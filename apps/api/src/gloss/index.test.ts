@@ -13,7 +13,7 @@ import {
   normalizeTokens,
   prepareCaptions,
 } from "./words";
-import { timeSigns } from "./timing";
+import { timeSigns, timingSummary } from "./timing";
 import { evaluate } from "./eval";
 import { missingSignsReport, missingWords } from "./missing-signs";
 import { EVERYDAY_WORDS, rankWords } from "./vocabulary";
@@ -281,6 +281,7 @@ describe("Cerebras translation", () => {
       JSON.stringify(EVAL_DICTIONARY),
     );
     expect(request.response_format.json_schema.strict).toBe(true);
+    expect(request.temperature).toBe(0);
     const checkSchema = (schema: unknown): void => {
       if (!schema || typeof schema !== "object") return;
       const object = schema as Record<string, unknown>;
@@ -510,6 +511,47 @@ describe("Cerebras translation", () => {
       else env.CEREBRAS_TIER = original;
     }
   });
+  it("gives context category fallback instructions without a global homonym mapping", async () => {
+    const cases = [
+      {
+        meaning: "a long-legged bird, not construction machinery",
+        tokens: ["BIRD", "TALL"],
+      },
+      {
+        meaning: "construction machinery, not a bird",
+        tokens: ["MACHINE", "TALL"],
+      },
+    ];
+    for (const { meaning, tokens } of cases) {
+      const context = {
+        topic: "Crane",
+        names: [],
+        terms: [{ term: "crane", meaning }],
+      };
+      const translate = createGlossTranslator({
+        log: quiet,
+        complete: async (request) => {
+          expect(request.messages[0]?.content).toContain(
+            JSON.stringify(context),
+          );
+          expect(request.messages[0]?.content).toContain("positive meaning");
+          expect(request.messages[0]?.content).toContain(
+            "Background names remain fingerspelled",
+          );
+          return response([{ index: 0, tokens }]);
+        },
+      });
+      const output = await translate([caption("The crane is tall")], {
+        lang: "ASL",
+        dictionary: ["BIRD", "MACHINE", "TALL"],
+        context,
+      });
+      expect(output[0]?.signs.map(({ gloss }) => gloss)).toEqual(tokens);
+    }
+    expect(normalizeTokens(["crane"], new Set(["BIRD", "MACHINE"]))).toEqual([
+      "FS:CRANE",
+    ]);
+  });
   it("passes all five context fixtures and optional context through the prompt", async () => {
     for (const testCase of EVAL_CASES.slice(25)) {
       const translate = createGlossTranslator({
@@ -609,6 +651,21 @@ describe("timing", () => {
     expect(result[0]?.signs).toEqual([]);
     expect(SegmentSchema.array().safeParse(result).success).toBe(true);
   });
+  it("reports dense content loss and unreadable fingerspelling separately from timing validity", () => {
+    const tokens = [["I", "DOG", "BIG", "NOT"]];
+    const segments = timeSigns([caption("x", 0, 0.5)], tokens);
+    expect(timingSummary(tokens, segments)).toEqual({
+      droppedFillers: 1,
+      droppedContent: 1,
+      denseFingerspelling: 0,
+    });
+    const names = [["FS:VERYLONGNAME"]];
+    expect(
+      timingSummary(names, timeSigns([caption("x", 0, 1)], names))
+        .denseFingerspelling,
+    ).toBe(1);
+    assertTiming(segments);
+  });
   it("weights fingerspelling, caps long signs and centres idle time", () => {
     const result = timeSigns(
       [caption("x", 0, 10)],
@@ -703,6 +760,144 @@ describe("handoff reports", () => {
       referenceStatus: "not-requested",
     });
   });
+  it("bounds reference requests and never calls an empty response ready", async () => {
+    let calls = 0;
+    const server = globalThis.Bun.serve({
+      port: 0,
+      fetch: () => {
+        calls++;
+        return Response.json([]);
+      },
+    });
+    try {
+      const segments = timeSigns(
+        [caption("x", 0, 10)],
+        [["FS:ALICE", "FS:BOB", "FS:CAROL"]],
+      );
+      const report = await missingSignsReport(segments, server.url.href, 2);
+      expect(calls).toBe(4);
+      expect(report).toHaveLength(2);
+      expect(
+        report.every((entry) => entry.referenceStatus === "unavailable"),
+      ).toBe(true);
+      await expect(
+        missingSignsReport(segments, server.url.href, 0),
+      ).rejects.toThrow("limit");
+      await expect(
+        missingSignsReport(segments, server.url.href, 1.5),
+      ).rejects.toThrow("limit");
+      expect(calls).toBe(4);
+    } finally {
+      await server.stop(true);
+    }
+  });
+  it("rejects homepages and off-domain reference results", async () => {
+    const server = globalThis.Bun.serve({
+      port: 0,
+      fetch: () =>
+        Response.json([
+          {
+            title: "Homepage",
+            url: "https://www.lifeprint.com/",
+            source: "lifeprint.com",
+          },
+          {
+            title: "Wrong domain",
+            url: "https://lifeprint.com.example.org/word",
+            source: "lifeprint.com",
+          },
+          {
+            title: "Membership",
+            url: "https://www.signingsavvy.com/member",
+            source: "signingsavvy.com",
+          },
+          {
+            title: "Information",
+            url: "https://www.handspeak.com/info/",
+            source: "handspeak.com",
+          },
+          {
+            title: "FAQ",
+            url: "https://www.signingsavvy.com/faq",
+            source: "signingsavvy.com",
+          },
+          {
+            title: "Sign index",
+            url: "https://www.signasl.org/sign/",
+            source: "signasl.org",
+          },
+          {
+            title: "Savvy index",
+            url: "https://www.signingsavvy.com/sign/",
+            source: "signingsavvy.com",
+          },
+          {
+            title: "Lifeprint index",
+            url: "https://www.lifeprint.com/asl101/pages-signs/",
+            source: "lifeprint.com",
+          },
+          {
+            title: "Valid",
+            url: "https://www.lifeprint.com/asl101/pages-signs/a/and.htm",
+            source: "lifeprint.com",
+          },
+        ]),
+    });
+    try {
+      const result = await missingSignsReport(
+        timeSigns([caption()], [["FS:AND"]]),
+        server.url.href,
+      );
+      expect(result[0]?.references).toHaveLength(1);
+      expect(result[0]?.references[0]?.title).toBe("Valid");
+    } finally {
+      await server.stop(true);
+    }
+  });
+  it("retries generic pages once with a clearer phrase and keeps the real endpoint result", async () => {
+    const queries: string[] = [];
+    const server = globalThis.Bun.serve({
+      port: 0,
+      fetch: (request) => {
+        const query = new URL(request.url).searchParams.get("word")!;
+        queries.push(query);
+        return Response.json(
+          query === "in"
+            ? [
+                {
+                  title: "FAQ",
+                  url: "https://www.signingsavvy.com/faq",
+                  source: "signingsavvy.com",
+                },
+              ]
+            : [
+                {
+                  title: "In",
+                  url: "https://www.lifeprint.com/asl101/pages-signs/i/in.htm",
+                  source: "lifeprint.com",
+                },
+              ],
+        );
+      },
+    });
+    try {
+      const result = await missingSignsReport(
+        timeSigns([caption()], [["FS:IN"]]),
+        server.url.href,
+      );
+      expect(queries).toEqual(["in", "the word in"]);
+      expect(result[0]?.referenceStatus).toBe("ready");
+      expect(result[0]?.references[0]?.title).toBe("In");
+    } finally {
+      await server.stop(true);
+    }
+  });
+  it("runs context-only diagnostics without counting ordinary cases", async () => {
+    const [report] = await evaluate(false, [], false, true);
+    expect(report?.sentences).toBe(5);
+    expect(report?.cases.every((testCase) => testCase.context)).toBe(true);
+    expect(report?.acceptance.status).toBe("blocked");
+  });
   it("fetches reference links once per distinct word and tolerates endpoint failures", async () => {
     const requested: string[] = [];
     const server = globalThis.Bun.serve({
@@ -712,11 +907,11 @@ describe("handoff reports", () => {
         expect(url.pathname).toBe("/api/sign-reference");
         const word = url.searchParams.get("word")!;
         requested.push(word);
-        return word === "BOB"
+        return word === "bob"
           ? Response.json([
               {
                 title: "Name reference",
-                url: "https://www.lifeprint.com/",
+                url: "https://www.lifeprint.com/asl101/pages-signs/n/name.htm",
                 source: "Lifeprint",
               },
             ])
@@ -729,7 +924,7 @@ describe("handoff reports", () => {
         [["FS:BOB", "FS:BOB", "FS:ALICE", "FS:23", "FS:HTML5"]],
       );
       const report = await missingSignsReport(segments, server.url.href);
-      expect(requested).toEqual(["BOB", "ALICE"]);
+      expect(requested).toEqual(["bob", "alice"]);
       expect(
         report.find(({ word }) => word === "BOB")?.references,
       ).toHaveLength(1);

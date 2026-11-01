@@ -92,6 +92,8 @@ describe("demo corpus evaluation", () => {
     const report = await evaluateCorpus(dense, ["DOG"], { live: false });
     expect(report.videos[0]?.tooFastSigns).toBe(0);
     expect(report.videos[0]?.tokens).toBe(0);
+    expect(report.videos[0]?.droppedContent).toBe(3);
+    expect(report.acceptance.criteria.readableContent).toBe(false);
     expect(report.acceptance.criteria.timing).toBe(true);
     expect(report.acceptance.status).not.toBe("passed");
     expect(report.acceptance.criteria.fiveVideos).toBe(false);
