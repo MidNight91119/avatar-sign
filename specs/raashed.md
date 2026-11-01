@@ -39,9 +39,10 @@ Bun runtime, Hono, `youtubei.js`, **`exa-js`** (sponsor), `zod`, `bun:sqlite` (o
 
 ## 2. Hours 1–6: Transcript
 
-- [ ] `apps/api/src/transcript.ts`: `getCaptions(videoId) → {start, end, text}[]` using `youtubei.js`. Prefer manual English captions, then auto-generated ones
-- [ ] Normalize: merge cues shorter than ~1s, split cues longer than ~8s at punctuation, decode HTML entities, remove `[Music]`-style tags
-- [ ] Clear errors: `NO_CAPTIONS`, `VIDEO_UNAVAILABLE`, `LIVE_NOT_SUPPORTED` → these go into `SignTrack.error` so Poonam and Hasan can show useful messages
+- [x] `apps/api/src/transcript.ts`: `getCaptions(videoId) → {start, end, text}[]` using `youtubei.js`. Prefer manual English captions, then auto-generated ones
+- [x] Normalize: merge cues shorter than ~1s, split cues longer than ~8s at punctuation, decode HTML entities, remove `[Music]`-style tags
+- [x] Clear errors: `NO_CAPTIONS`, `VIDEO_UNAVAILABLE`, `LIVE_NOT_SUPPORTED` → these go into `SignTrack.error` so Poonam and Hasan can show useful messages
+  - Done as `getTranscript(videoId, source)` (also returns title, description and duration for Exa and the length limit). YouTube's WEB clients now return UNPLAYABLE with no caption tracks for server requests; the IOS and ANDROID clients return them, so `youtubeSource()` tries IOS → ANDROID → WEB. The `.vtt` parser for the manual upload is in `captions.ts`; the endpoint comes with the API routes PR
 - [ ] Manual-upload fallback: `POST /api/captions/:videoId` accepts a `.vtt` file (parse it with a small TS VTT parser), in case YouTube blocks the server IP
 - [ ] **Exa video context** `apps/api/src/context.ts`: `getVideoContext(videoId, title, description) → VideoContext | undefined` (type from PLAN §4.2). Use Exa search with a schema, so Exa returns the structured result directly:
   ```ts
