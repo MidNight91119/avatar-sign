@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
-import type { CreatePlayer } from "../avatar/player";
-import type { AvatarPlayer, SignLang } from "../contracts";
+import type { SignLang } from "@signstream/shared";
+import { sampleTrack } from "../../test/fixtures";
+import type { AvatarPlayer, CreatePlayer } from "../avatar/player";
 import type { SidePanelUpdate } from "../messages";
-import { buildMockTrack } from "../mock-track";
 import { DEFAULT_SETTINGS, normalizeSettings, type Settings } from "../settings";
 import type { RequestTrack, TrackHandlers } from "../track-client";
 import { startApp } from "./app";
@@ -175,7 +175,7 @@ describe("content script app", () => {
     expect(h.players.filter((p) => !p.destroyed).length).toBe(1);
 
     // Play the current video's track: exactly one set of <video> listeners (play, pause, seeking, seeked, ratechange).
-    h.requests.at(-1)!.handlers.onReady(buildMockTrack(ids[0], "ASL", 60), "cache");
+    h.requests.at(-1)!.handlers.onReady(sampleTrack(ids[0]), "cache");
     expect(h.live.size).toBe(5);
   });
 
@@ -239,7 +239,7 @@ describe("content script app", () => {
     const h = harness();
     stop = await h.start();
     await settle();
-    h.requests[0]!.handlers.onReady(buildMockTrack(ids[0], "ASL", 60), "cache");
+    h.requests[0]!.handlers.onReady(sampleTrack(ids[0]), "cache");
 
     await h.changeSettings({ showGloss: false });
     expect(h.shadow()?.querySelector<HTMLElement>(".gloss")?.hidden).toBe(true);
@@ -255,7 +255,7 @@ describe("content script app", () => {
     const h = harness();
     stop = await h.start();
     await settle();
-    h.requests[0]!.handlers.onReady(buildMockTrack(ids[0], "ASL", 60), "cache");
+    h.requests[0]!.handlers.onReady(sampleTrack(ids[0]), "cache");
     const player = h.players[0]!;
 
     h.moviePlayer.classList.add("ad-showing");
@@ -275,7 +275,7 @@ describe("content script app", () => {
     const h = harness();
     stop = await h.start();
     await settle();
-    h.requests[0]!.handlers.onReady(buildMockTrack(ids[0], "ASL", 60), "cache");
+    h.requests[0]!.handlers.onReady(sampleTrack(ids[0]), "cache");
     stop();
     stop = undefined;
     expect(document.getElementById(PANEL_HOST_ID)).toBeNull();

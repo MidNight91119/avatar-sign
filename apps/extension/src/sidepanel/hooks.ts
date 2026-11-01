@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { SignLang, SignTrack } from "../contracts";
-import type { PageInfo } from "../messages";
+import type { SignLang, SignTrack } from "@signstream/shared";
+import type { PageInfo, TrackSource } from "../messages";
 import { loadSettings, normalizeSettings, onSettingsChanged, writeSettings, type Settings } from "../settings";
 import { requestSignTrack } from "../track-client";
 import { connectToActiveTab } from "./active-tab";
@@ -63,7 +63,7 @@ export function useRemoteState(remote: RemoteVideo) {
 
 export type TrackState =
   | { kind: "loading"; progress?: number; startedAt: number }
-  | { kind: "ready"; track: SignTrack; source: "api" | "cache" | "mock"; seconds: number }
+  | { kind: "ready"; track: SignTrack; source: TrackSource; seconds: number }
   | { kind: "error"; code: string };
 
 /** Requests the sign track through the background worker (same cache as the in-page panel). */

@@ -1,4 +1,4 @@
-import type { AvatarPlayer } from "../contracts";
+import type { AvatarPlayer } from "./player";
 
 export type MediaLike = Pick<
   HTMLVideoElement,

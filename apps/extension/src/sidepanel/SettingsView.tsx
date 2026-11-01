@@ -1,6 +1,7 @@
 import { SIGN_LANGS } from "@signstream/shared";
 import { useState } from "react";
-import { DEFAULT_SETTINGS, MAX_OFFSET_SEC, normalizeSettings, PANEL_SIZES, type Settings } from "../settings";
+import { API_ORIGIN } from "../config";
+import { MAX_OFFSET_SEC, PANEL_SIZES, type Settings } from "../settings";
 import { Icons, Row, Segmented, Switch } from "./ui";
 
 export function formatOffset(sec: number): string {
@@ -16,14 +17,7 @@ const SIZE_OPTIONS = PANEL_SIZES.map((size) => ({
 
 /** Settings, saved as you change them; open YouTube tabs apply them without a reload. */
 export function SettingsView({ settings, update }: { settings: Settings; update: (patch: Partial<Settings>) => void }) {
-  const [apiDraft, setApiDraft] = useState(settings.apiBaseUrl);
   const [developerOpen, setDeveloperOpen] = useState(settings.useMockData);
-
-  const commitApiUrl = () => {
-    const next = normalizeSettings({ ...settings, apiBaseUrl: apiDraft }).apiBaseUrl;
-    setApiDraft(next);
-    if (next !== settings.apiBaseUrl) update({ apiBaseUrl: next });
-  };
 
   return (
     <>
@@ -98,22 +92,12 @@ export function SettingsView({ settings, update }: { settings: Settings; update:
         </button>
         {developerOpen && (
           <>
-            <Row label="Demo mode" hint="Sample signs on any video, no server needed">
+            <Row label="Demo mode" hint="The team's 60-second demo track on any video, no server needed">
               <Switch label="Demo mode" checked={settings.useMockData} onChange={(useMockData) => update({ useMockData })} />
             </Row>
-            <div className="field">
-              <label htmlFor="api">API server</label>
-              <input
-                id="api"
-                type="url"
-                spellCheck={false}
-                value={apiDraft}
-                placeholder={DEFAULT_SETTINGS.apiBaseUrl}
-                onChange={(e) => setApiDraft(e.target.value)}
-                onBlur={commitApiUrl}
-                onKeyDown={(e) => e.key === "Enter" && commitApiUrl()}
-              />
-            </div>
+            <Row label="API server" hint="Set when the extension is built">
+              <code className="value">{API_ORIGIN}</code>
+            </Row>
           </>
         )}
       </section>

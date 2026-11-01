@@ -1,5 +1,4 @@
 import { describe, expect, it } from "bun:test";
-import { DEFAULT_API_BASE_URL } from "./config";
 import { DEFAULT_SETTINGS, normalizeSettings } from "./settings";
 
 describe("normalizeSettings", () => {
@@ -16,7 +15,6 @@ describe("normalizeSettings", () => {
       offsetSec: -0.3,
       showGloss: false,
       lang: "ISL",
-      apiBaseUrl: "https://signstream.up.railway.app",
       useMockData: true,
     };
     expect(normalizeSettings(custom)).toEqual(custom as typeof DEFAULT_SETTINGS);
@@ -29,9 +27,7 @@ describe("normalizeSettings", () => {
     expect(normalizeSettings({ offsetSec: Number.NaN }).offsetSec).toBe(0);
   });
 
-  it("accepts only http(s) API URLs, without a trailing slash", () => {
-    expect(normalizeSettings({ apiBaseUrl: " https://api.example.com/ " }).apiBaseUrl).toBe("https://api.example.com");
-    expect(normalizeSettings({ apiBaseUrl: "javascript:alert(1)" }).apiBaseUrl).toBe(DEFAULT_API_BASE_URL);
-    expect(normalizeSettings({ apiBaseUrl: "not a url" }).apiBaseUrl).toBe(DEFAULT_API_BASE_URL);
+  it("drops the old user-editable API URL: the API origin is fixed at build time", () => {
+    expect(normalizeSettings({ apiBaseUrl: "https://evil.example" })).not.toHaveProperty("apiBaseUrl");
   });
 });

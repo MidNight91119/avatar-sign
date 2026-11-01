@@ -1,4 +1,4 @@
-import type { AvatarPlayer } from "../contracts";
+import type { AvatarPlayer } from "./player";
 import { createSignIndex, formatGloss, type SignIndex } from "../track";
 import { h } from "./dom";
 
@@ -10,7 +10,9 @@ export function createPlaceholderPlayer(container: HTMLElement): AvatarPlayer {
   const doc = container.ownerDocument;
   const glossEl = h(doc, "div");
   const captionEl = h(doc, "div");
-  const root = h(doc, "div", { "data-signstream-placeholder": "" }, [glossEl, captionEl]);
+  // Reviewers and demo viewers must not mistake this for the signing avatar.
+  const label = h(doc, "div", {}, ["Placeholder: gloss text until the avatar is ready"]);
+  const root = h(doc, "div", { "data-signstream-placeholder": "" }, [label, glossEl, captionEl]);
   Object.assign(root.style, {
     position: "absolute",
     inset: "0",
@@ -21,6 +23,14 @@ export function createPlaceholderPlayer(container: HTMLElement): AvatarPlayer {
     gap: "12px",
     padding: "16px",
     textAlign: "center",
+  });
+  Object.assign(label.style, {
+    position: "absolute",
+    top: "10px",
+    left: "0",
+    right: "0",
+    fontSize: "11px",
+    color: "var(--muted)",
   });
   Object.assign(glossEl.style, { fontSize: "28px", fontWeight: "700", letterSpacing: "0.05em", minHeight: "36px" });
   Object.assign(captionEl.style, { fontSize: "12px", color: "var(--muted)", minHeight: "34px" });

@@ -379,7 +379,7 @@ button {
 
 /* Settings */
 /* Hairlines only between rows, not between a row and its slider or note. */
-.group > :is(.row, .field) + :is(.row, .field) {
+.group > .row + .row {
   border-top: 1px solid var(--border);
 }
 
@@ -422,6 +422,7 @@ button {
 
 .value {
   color: var(--text-2);
+  font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -447,8 +448,7 @@ input[type="range"] {
   accent-color: var(--text);
 }
 
-select,
-input[type="url"] {
+select {
   height: 32px;
   padding: 0 10px;
   border: 1px solid var(--border);
@@ -457,17 +457,6 @@ input[type="url"] {
   color: var(--text);
   font: inherit;
   font-size: 13px;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 12px 14px 14px;
-}
-
-.field label {
-  font-weight: 500;
 }
 
 /* Switch */

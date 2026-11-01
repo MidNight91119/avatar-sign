@@ -1,5 +1,4 @@
 import { SIGN_LANGS, type SignLang } from "@signstream/shared";
-import { DEFAULT_API_BASE_URL } from "./config";
 
 export const PANEL_SIZES = ["S", "M", "L"] as const;
 export type PanelSize = (typeof PANEL_SIZES)[number];
@@ -14,8 +13,7 @@ export interface Settings {
   offsetSec: number;
   showGloss: boolean;
   lang: SignLang;
-  apiBaseUrl: string;
-  /** Use the built-in mock track instead of calling the API. */
+  /** Demo mode: the shared mock track (mocks/sign-track.sample.json) instead of calling the API. */
   useMockData: boolean;
 }
 
@@ -25,20 +23,8 @@ export const DEFAULT_SETTINGS: Settings = {
   offsetSec: 0,
   showGloss: true,
   lang: "ASL",
-  apiBaseUrl: DEFAULT_API_BASE_URL,
   useMockData: false,
 };
-
-function normalizeApiBaseUrl(value: unknown): string {
-  if (typeof value !== "string") return DEFAULT_API_BASE_URL;
-  try {
-    const url = new URL(value.trim());
-    if (url.protocol !== "http:" && url.protocol !== "https:") return DEFAULT_API_BASE_URL;
-    return url.href.replace(/\/+$/, "");
-  } catch {
-    return DEFAULT_API_BASE_URL;
-  }
-}
 
 function normalizeOffset(value: unknown): number {
   if (typeof value !== "number" || !Number.isFinite(value)) return 0;
@@ -46,7 +32,10 @@ function normalizeOffset(value: unknown): number {
   return Math.round(clamped * 10) / 10;
 }
 
-/** Turns whatever is in storage (old versions, partial objects, junk) into valid settings. */
+/**
+ * Turns whatever is in storage (old versions, partial objects, junk) into valid settings.
+ * Unknown keys are dropped, including the old user-editable `apiBaseUrl`: the API origin is fixed at build time.
+ */
 export function normalizeSettings(raw: unknown): Settings {
   const s = typeof raw === "object" && raw !== null ? (raw as Record<string, unknown>) : {};
   return {
@@ -55,7 +44,6 @@ export function normalizeSettings(raw: unknown): Settings {
     offsetSec: normalizeOffset(s.offsetSec),
     showGloss: typeof s.showGloss === "boolean" ? s.showGloss : DEFAULT_SETTINGS.showGloss,
     lang: SIGN_LANGS.includes(s.lang as SignLang) ? (s.lang as SignLang) : DEFAULT_SETTINGS.lang,
-    apiBaseUrl: normalizeApiBaseUrl(s.apiBaseUrl),
     useMockData: typeof s.useMockData === "boolean" ? s.useMockData : DEFAULT_SETTINGS.useMockData,
   };
 }

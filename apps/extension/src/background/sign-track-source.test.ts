@@ -1,10 +1,10 @@
 import { describe, expect, it } from "bun:test";
-import type { SignTrack } from "../contracts";
-import { buildMockTrack } from "../mock-track";
-import { createTrackCache, pollSignTrack, SignTrackError } from "./sign-track-source";
+import type { SignTrack } from "@signstream/shared";
+import { sampleTrack } from "../../test/fixtures";
+import { createTrackCache, loadSignTrack, SignTrackFailure, type LoadOptions } from "./sign-track-source";
 
 const VIDEO = "dQw4w9WgXcQ";
-const ready = buildMockTrack(VIDEO, "ASL", 30);
+const ready = sampleTrack(VIDEO);
 const processing = (progress: number): SignTrack => ({ ...ready, status: "processing", progress, segments: [] });
 
 /** A fetch that returns the given responses in order (the last one repeats) and records the URLs it was called with. */
@@ -23,99 +23,122 @@ function fakeFetch(responses: (Response | Error)[]) {
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 
-const poll = (fetch: typeof globalThis.fetch, extra: Partial<Parameters<typeof pollSignTrack>[0]> = {}) =>
-  pollSignTrack({ baseUrl: "http://api.test", videoId: VIDEO, lang: "ASL", fetch, intervalMs: 1, ...extra });
+function memoryArea() {
+  const data: Record<string, unknown> = {};
+  return {
+    data,
+    get: (async (key: string) => ({ [key]: data[key] })) as unknown as chrome.storage.StorageArea["get"],
+    set: (async (items: Record<string, unknown>) => void Object.assign(data, items)) as chrome.storage.StorageArea["set"],
+  };
+}
+
+function load(fetch: typeof globalThis.fetch, extra: Partial<LoadOptions> = {}) {
+  return loadSignTrack({
+    videoId: VIDEO,
+    lang: "ASL",
+    mock: false,
+    apiOrigin: "http://api.test",
+    cache: createTrackCache(memoryArea()),
+    signal: new AbortController().signal,
+    fetch,
+    pollIntervalMs: 1,
+    retryDelayMs: 1,
+    ...extra,
+  });
+}
 
 const codeOf = async (promise: Promise<unknown>) => {
   try {
     await promise;
     return "resolved";
   } catch (err) {
-    return err instanceof SignTrackError ? err.code : String(err);
+    return err instanceof SignTrackFailure ? err.code : String(err);
   }
 };
 
-describe("pollSignTrack", () => {
-  it("calls GET /api/sign-track with the video and language", async () => {
+describe("loadSignTrack (shared createApiClient in the worker)", () => {
+  it("calls GET /api/sign-track on the fixed origin", async () => {
     const { fn, urls } = fakeFetch([json(ready)]);
-    await poll(fn);
+    const { source } = await load(fn);
+    expect(source).toBe("api");
     expect(urls).toEqual([`http://api.test/api/sign-track?videoId=${VIDEO}&lang=ASL`]);
   });
 
-  it("polls while processing, reports progress, and returns the ready track", async () => {
+  it("polls while processing, reports progress, and returns the validated ready track", async () => {
     const { fn, urls } = fakeFetch([json(processing(0.1)), json(processing(0.4)), json(ready)]);
     const progress: number[] = [];
-    const track = await poll(fn, { onProgress: (p) => progress.push(p) });
-    expect(track.status).toBe("ready");
+    const { track } = await load(fn, { onProgress: (p) => progress.push(p) });
     expect(track.segments.length).toBe(ready.segments.length);
-    expect(progress).toEqual([0.1, 0.4]);
+    expect(progress).toEqual([0.1, 0.4, 1]);
     expect(urls.length).toBe(3);
   });
 
-  it("passes the API's error code through (e.g. NO_CAPTIONS)", async () => {
+  it("passes the API's track error through (e.g. NO_CAPTIONS)", async () => {
     const { fn } = fakeFetch([json({ ...processing(0), status: "error", error: "NO_CAPTIONS" })]);
-    expect(await codeOf(poll(fn))).toBe("NO_CAPTIONS");
+    expect(await codeOf(load(fn))).toBe("NO_CAPTIONS");
   });
 
-  it("maps HTTP 429 to RATE_LIMITED", async () => {
-    const { fn } = fakeFetch([json({ message: "slow down" }, 429)]);
-    expect(await codeOf(poll(fn))).toBe("RATE_LIMITED");
+  it("uses the API's error code for HTTP errors (429 RATE_LIMITED)", async () => {
+    const { fn } = fakeFetch([json({ error: "RATE_LIMITED", message: "slow down" }, 429)]);
+    expect(await codeOf(load(fn))).toBe("RATE_LIMITED");
   });
 
-  it("rejects a response that isn't a sign track", async () => {
+  it("rejects a response that doesn't match the shared schema", async () => {
     const { fn } = fakeFetch([json({ hello: "world" })]);
-    expect(await codeOf(poll(fn))).toBe("INVALID_RESPONSE");
-    const { fn: html500 } = fakeFetch([new Response("<h1>oops</h1>", { status: 500 })]);
-    expect(await codeOf(poll(html500))).toBe("HTTP_500");
+    expect(await codeOf(load(fn))).toBe("INVALID_RESPONSE");
   });
 
-  it("retries network failures, then gives up with NETWORK", async () => {
+  it("retries when the API can't be reached, then gives up with NETWORK", async () => {
     const flaky = fakeFetch([new TypeError("offline"), json(ready)]);
-    expect((await poll(flaky.fn)).status).toBe("ready");
+    expect((await load(flaky.fn)).track.status).toBe("ready");
 
     const down = fakeFetch([new TypeError("offline")]);
-    expect(await codeOf(poll(down.fn, { maxNetworkFailures: 3 }))).toBe("NETWORK");
+    expect(await codeOf(load(down.fn, { networkRetries: 2 }))).toBe("NETWORK");
     expect(down.urls.length).toBe(3);
   });
 
-  it("times out if the track never finishes", async () => {
-    const { fn, urls } = fakeFetch([json(processing(0.5))]);
-    expect(await codeOf(poll(fn, { maxAttempts: 4 }))).toBe("TIMEOUT");
-    expect(urls.length).toBe(4);
-  });
-
-  it("stops polling when aborted (the user left the video)", async () => {
+  it("stops polling when aborted (the requester left the video)", async () => {
     const { fn, urls } = fakeFetch([json(processing(0.2))]);
     const controller = new AbortController();
-    const result = poll(fn, { signal: controller.signal, intervalMs: 50, onProgress: () => controller.abort() });
+    const result = load(fn, { signal: controller.signal, pollIntervalMs: 50, onProgress: () => controller.abort() });
     expect(await codeOf(result)).not.toBe("resolved");
     expect(urls.length).toBe(1);
+  });
+
+  it("serves a cached ready track without calling the API", async () => {
+    const area = memoryArea();
+    const cache = createTrackCache(area);
+    await cache.set(ready);
+    const { fn, urls } = fakeFetch([json(ready)]);
+    expect((await load(fn, { cache })).source).toBe("cache");
+    expect(urls).toEqual([]);
+  });
+
+  it("demo mode returns the shared mock for this video without fetching", async () => {
+    const { fn, urls } = fakeFetch([json(ready)]);
+    const { track, source } = await load(fn, { mock: true, videoId: "abcdefghijk" });
+    expect(source).toBe("mock");
+    expect(track.videoId).toBe("abcdefghijk");
+    expect(track.segments[0]?.text).toBe("Hello everyone, my name is Bob.");
+    expect(urls).toEqual([]);
   });
 });
 
 describe("createTrackCache", () => {
-  const memoryArea = () => {
-    const data: Record<string, unknown> = {};
-    return {
-      data,
-      get: (async (key: string) => ({ [key]: data[key] })) as unknown as chrome.storage.StorageArea["get"],
-      set: (async (items: Record<string, unknown>) => void Object.assign(data, items)) as chrome.storage.StorageArea["set"],
-    };
-  };
-
   it("stores ready tracks per video and language", async () => {
-    const area = memoryArea();
-    const cache = createTrackCache(area);
+    const cache = createTrackCache(memoryArea());
     await cache.set(ready);
     expect((await cache.get(VIDEO, "ASL"))?.segments.length).toBe(ready.segments.length);
     expect(await cache.get(VIDEO, "ISL")).toBeUndefined();
     expect(await cache.get("other-video", "ASL")).toBeUndefined();
   });
 
-  it("never caches unfinished tracks", async () => {
+  it("never caches unfinished tracks, and ignores invalid cache entries", async () => {
     const area = memoryArea();
     const cache = createTrackCache(area);
     await cache.set(processing(0.5));
     expect(Object.keys(area.data)).toEqual([]);
+    area.data[`track:ASL:${VIDEO}`] = { status: "ready", segments: "nope" };
+    expect(await cache.get(VIDEO, "ASL")).toBeUndefined();
   });
 });

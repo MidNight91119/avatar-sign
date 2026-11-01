@@ -1,4 +1,5 @@
 // Everything that depends on YouTube's page structure lives here, so a YouTube change is a one-file fix.
+import type { Route } from "../messages";
 
 export const SELECTORS = {
   video: "video.html5-main-video",
@@ -10,12 +11,6 @@ export const SELECTORS = {
 
 /** YouTube fires this on `document` after every SPA navigation (the URL changes without a reload). */
 export const NAVIGATE_FINISH_EVENT = "yt-navigate-finish";
-
-export type Route =
-  | { kind: "watch"; videoId: string }
-  | { kind: "live"; videoId: string }
-  | { kind: "shorts" }
-  | { kind: "other" };
 
 const VIDEO_ID = /^[\w-]{11}$/;
 

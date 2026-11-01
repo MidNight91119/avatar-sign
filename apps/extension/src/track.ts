@@ -1,4 +1,4 @@
-import type { Segment, Sign, SignTrack } from "./contracts";
+import type { Segment, Sign, SignTrack } from "@signstream/shared";
 
 /** Index of the last item whose start is at or before `t`, or -1. Items must be sorted by start. */
 function lastStartingBefore<T extends { start: number }>(items: readonly T[], t: number): number {

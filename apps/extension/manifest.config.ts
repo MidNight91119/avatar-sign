@@ -1,5 +1,8 @@
 import { defineManifest } from "@crxjs/vite-plugin";
-import { API_HOST_PERMISSIONS, TOGGLE_COMMAND } from "./src/config.ts";
+import { normalizeApiOrigin, TOGGLE_COMMAND } from "./src/config.ts";
+
+/** Fixed at build time; the worker can reach this origin and nothing else (PLAN §11). */
+export const apiOrigin = normalizeApiOrigin(process.env.VITE_SIGNSTREAM_API_ORIGIN);
 
 export default defineManifest({
   manifest_version: 3,
@@ -25,8 +28,8 @@ export default defineManifest({
     },
   ],
   permissions: ["storage", "sidePanel"],
-  // The background worker calls the API from here, so youtube.com's CORS rules never apply.
-  host_permissions: [...API_HOST_PERMISSIONS],
+  // Only the API origin: the background worker calls it, so youtube.com's CORS rules never apply.
+  host_permissions: [`${apiOrigin}/*`],
   // Clips and the avatar model from packages/sign-assets, loaded by the player inside the YouTube page.
   web_accessible_resources: [
     {

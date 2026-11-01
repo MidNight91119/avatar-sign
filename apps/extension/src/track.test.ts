@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import type { SignTrack } from "./contracts";
+import type { SignTrack } from "@signstream/shared";
 import { createSignIndex, formatGloss } from "./track";
 
 const track: Pick<SignTrack, "segments"> = {

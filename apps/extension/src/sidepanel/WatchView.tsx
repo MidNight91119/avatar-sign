@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { createPlayer, type PlayerKind } from "../avatar/player";
+import { createPlayer, type AvatarPlayer, type PlayerKind } from "../avatar/player";
 import { createVideoSync } from "../avatar/sync";
 import { SIGN_ASSETS_PATH } from "../config";
-import type { AvatarPlayer } from "../contracts";
 import { describeError } from "../errors";
 import type { PageInfo } from "../messages";
 import type { Settings } from "../settings";
@@ -60,7 +59,7 @@ export function WatchView({ settings, update, page, remote }: WatchViewProps) {
         <EmptyState icon={<Icons.alert />} title="Live streams aren't supported yet" body="Signing works on regular videos." />
       ) : (
         <Signer
-          key={`${route.videoId}|${settings.lang}|${settings.apiBaseUrl}|${settings.useMockData}`}
+          key={`${route.videoId}|${settings.lang}|${settings.useMockData}`}
           videoId={route.videoId}
           settings={settings}
           remote={remote}
@@ -86,7 +85,7 @@ function NowWatching({ videoId, title, settings }: { videoId: string; title: str
 }
 
 function Signer({ videoId, settings, remote }: { videoId: string; settings: Settings; remote: RemoteVideo }) {
-  const [track, retry] = useSignTrack(videoId, settings.lang, `${settings.apiBaseUrl}|${settings.useMockData}`);
+  const [track, retry] = useSignTrack(videoId, settings.lang, String(settings.useMockData));
   const { paused, rate, ad } = useRemoteState(remote);
   const stageRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<AvatarPlayer>(undefined);
@@ -193,7 +192,7 @@ function Signer({ videoId, settings, remote }: { videoId: string; settings: Sett
             <span className="meta">
               {track.source === "api" && `Ready in ${track.seconds.toFixed(1)}s · Cerebras`}
               {track.source === "cache" && "Ready · cached"}
-              {track.source === "mock" && "Sample signs, not this video's speech"}
+              {track.source === "mock" && "Demo track, not this video's speech"}
             </span>
           </div>
         </>

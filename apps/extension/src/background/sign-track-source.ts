@@ -1,91 +1,13 @@
-import { MAX_POLL_ATTEMPTS, POLL_INTERVAL_MS } from "../config";
-import { isSignTrack, type SignLang, type SignTrack } from "../contracts";
+import { ApiClientError, createApiClient, SignTrackSchema, type SignLang, type SignTrack } from "@signstream/shared";
+import { TRACK_TIMEOUT_MS } from "../config";
+import type { TrackSource } from "../messages";
 
-export class SignTrackError extends Error {
+/** A failure the UI can explain; `code` is a key in errors.ts. */
+export class SignTrackFailure extends Error {
   constructor(readonly code: string) {
     super(code);
-    this.name = "SignTrackError";
+    this.name = "SignTrackFailure";
   }
-}
-
-export interface PollOptions {
-  baseUrl: string;
-  videoId: string;
-  lang: SignLang;
-  signal?: AbortSignal;
-  onProgress?: (progress: number) => void;
-  fetch?: typeof fetch;
-  intervalMs?: number;
-  maxAttempts?: number;
-  /** Network failures in a row before giving up. */
-  maxNetworkFailures?: number;
-}
-
-function sleep(ms: number, signal?: AbortSignal): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (signal?.aborted) return reject(signal.reason);
-    const timer = setTimeout(resolve, ms);
-    signal?.addEventListener(
-      "abort",
-      () => {
-        clearTimeout(timer);
-        reject(signal.reason);
-      },
-      { once: true },
-    );
-  });
-}
-
-async function readTrack(res: Response): Promise<SignTrack | undefined> {
-  try {
-    const body: unknown = await res.json();
-    return isSignTrack(body) ? body : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-/**
- * GET /api/sign-track (PLAN §4.3) until the track is `ready` or `error`, reporting progress while it's `processing`.
- * Throws SignTrackError with a code from errors.ts, or the abort reason if `signal` fires.
- */
-export async function pollSignTrack(opts: PollOptions): Promise<SignTrack> {
-  const {
-    baseUrl,
-    videoId,
-    lang,
-    signal,
-    onProgress,
-    fetch: doFetch = fetch,
-    intervalMs = POLL_INTERVAL_MS,
-    maxAttempts = MAX_POLL_ATTEMPTS,
-    maxNetworkFailures = 3,
-  } = opts;
-  const url = `${baseUrl}/api/sign-track?${new URLSearchParams({ videoId, lang })}`;
-  let networkFailures = 0;
-
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    if (attempt > 0) await sleep(intervalMs, signal);
-
-    let res: Response;
-    try {
-      res = await doFetch(url, { signal });
-    } catch (err) {
-      if (signal?.aborted) throw signal.reason;
-      if (++networkFailures >= maxNetworkFailures) throw new SignTrackError("NETWORK");
-      continue;
-    }
-    networkFailures = 0;
-
-    if (res.status === 429) throw new SignTrackError("RATE_LIMITED");
-    const track = await readTrack(res);
-    if (!track) throw new SignTrackError(res.ok ? "INVALID_RESPONSE" : `HTTP_${res.status}`);
-
-    if (track.status === "ready") return track;
-    if (track.status === "error") throw new SignTrackError(track.error ?? "UNKNOWN");
-    onProgress?.(Math.min(1, Math.max(0, track.progress ?? 0)));
-  }
-  throw new SignTrackError("TIMEOUT");
 }
 
 type StorageLike = Pick<chrome.storage.StorageArea, "get" | "set">;
@@ -95,11 +17,72 @@ export function createTrackCache(area: StorageLike) {
   const key = (videoId: string, lang: SignLang) => `track:${lang}:${videoId}`;
   return {
     async get(videoId: string, lang: SignLang): Promise<SignTrack | undefined> {
-      const value = (await area.get(key(videoId, lang)))[key(videoId, lang)];
-      return isSignTrack(value) && value.status === "ready" ? value : undefined;
+      const parsed = SignTrackSchema.safeParse((await area.get(key(videoId, lang)))[key(videoId, lang)]);
+      return parsed.success && parsed.data.status === "ready" ? parsed.data : undefined;
     },
     async set(track: SignTrack): Promise<void> {
       if (track.status === "ready") await area.set({ [key(track.videoId, track.lang)]: track });
     },
   };
+}
+
+export type TrackCache = ReturnType<typeof createTrackCache>;
+
+export interface LoadOptions {
+  videoId: string;
+  lang: SignLang;
+  /** Demo mode: the shared client returns mocks/sign-track.sample.json instead of calling the API. */
+  mock: boolean;
+  apiOrigin: string;
+  cache: TrackCache;
+  signal: AbortSignal;
+  onProgress?: (progress: number) => void;
+  fetch?: typeof fetch;
+  pollIntervalMs?: number;
+  /** Network failures (the API down, offline) are retried this many times before giving up. */
+  networkRetries?: number;
+  retryDelayMs?: number;
+}
+
+const wait = (ms: number, signal: AbortSignal) =>
+  new Promise<void>((resolve, reject) => {
+    const timer = setTimeout(resolve, ms);
+    signal.addEventListener("abort", () => (clearTimeout(timer), reject(signal.reason)), { once: true });
+  });
+
+/**
+ * Cache first, then `createApiClient().getSignTrack` from @signstream/shared, which polls every 2s while the
+ * track is processing and validates every response with the shared zod schema. Each call is self-contained:
+ * if the worker is suspended mid-poll, the caller reconnects and calls this again, and the API resumes the same job.
+ */
+export async function loadSignTrack(opts: LoadOptions): Promise<{ track: SignTrack; source: TrackSource }> {
+  const { videoId, lang, signal, networkRetries = 2, retryDelayMs = 1000 } = opts;
+
+  if (!opts.mock) {
+    const cached = await opts.cache.get(videoId, lang);
+    if (cached) return { track: cached, source: "cache" };
+  }
+
+  const client = createApiClient({ baseUrl: opts.apiOrigin, mock: opts.mock, fetch: opts.fetch });
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const track = await client.getSignTrack(videoId, lang, {
+        signal,
+        onProgress: opts.onProgress,
+        pollIntervalMs: opts.pollIntervalMs,
+        timeoutMs: TRACK_TIMEOUT_MS,
+      });
+      if (track.status !== "ready") throw new SignTrackFailure(track.error ?? "INTERNAL");
+      if (opts.mock) return { track, source: "mock" };
+      await opts.cache.set(track);
+      return { track, source: "api" };
+    } catch (err) {
+      if (signal.aborted) throw signal.reason;
+      if (err instanceof SignTrackFailure) throw err;
+      if (err instanceof ApiClientError) throw new SignTrackFailure(err.code);
+      // fetch() rejects with a TypeError when the API can't be reached.
+      if (attempt >= networkRetries) throw new SignTrackFailure("NETWORK");
+      await wait(retryDelayMs, signal);
+    }
+  }
 }

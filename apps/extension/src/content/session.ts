@@ -1,4 +1,4 @@
-import type { SignTrack } from "../contracts";
+import type { SignTrack } from "@signstream/shared";
 import { describeError } from "../errors";
 import type { Settings } from "../settings";
 import { createSignIndex, formatGloss } from "../track";
@@ -141,7 +141,7 @@ export function startWatchSession(videoId: string, isLiveRoute: boolean, deps: S
       onReady: (track, source) => {
         startPlayback(track, video, moviePlayer);
         if (source === "api") panel.toast(`Signed in ${elapsed()}s with Cerebras`);
-        if (source === "mock") panel.toast("Demo data: not this video's speech");
+        if (source === "mock") panel.toast("Demo track: not this video's speech");
       },
     });
     cleanups.push(cancel);

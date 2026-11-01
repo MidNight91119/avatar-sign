@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { defineConfig, type Plugin } from "vite";
-import manifest from "./manifest.config.ts";
+import manifest, { apiOrigin } from "./manifest.config.ts";
 
 const SIGN_ASSETS_DIR = join(import.meta.dirname, "../../packages/sign-assets");
 
@@ -35,12 +35,10 @@ function signAssets(): Plugin {
 
 export default defineConfig({
   plugins: [react(), crx({ manifest }), signAssets()],
+  define: {
+    __SIGNSTREAM_API_ORIGIN__: JSON.stringify(apiOrigin),
+  },
   build: {
     emptyOutDir: true,
-  },
-  server: {
-    port: 5174,
-    strictPort: true,
-    cors: { origin: [/^chrome-extension:\/\//] },
   },
 });

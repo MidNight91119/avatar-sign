@@ -1,7 +1,6 @@
 import { describe, expect, it } from "bun:test";
-import type { AvatarPlayer } from "../contracts";
-import { buildMockTrack } from "../mock-track";
-import { createPlayer } from "./player";
+import { sampleTrack } from "../../test/fixtures";
+import { createPlayer, type AvatarPlayer } from "./player";
 
 describe("createPlayer", () => {
   it("falls back to the gloss placeholder while @signstream/player has no createAvatarPlayer", () => {
@@ -41,20 +40,21 @@ describe("createPlayer", () => {
 });
 
 describe("placeholder player", () => {
-  it("prints the current gloss and caption, and follows seeks", () => {
+  it("is labelled as a placeholder, prints the current gloss and caption, and follows seeks", () => {
     const container = document.createElement("div");
     const { player } = createPlayer(container, {});
-    player.load(buildMockTrack("dQw4w9WgXcQ", "ASL", 60));
+    player.load(sampleTrack());
+    expect(container.textContent).toContain("Placeholder");
 
-    player.tick(0.6); // first sign of "Hello, my name is Bob."
+    player.tick(0.3); // HELLO 0–0.6
     expect(container.textContent).toContain("HELLO");
-    expect(container.textContent).toContain("Hello, my name is Bob.");
+    expect(container.textContent).toContain("Hello everyone, my name is Bob.");
 
-    player.tick(0.5 + 3.2); // last slot: FS:BOB
+    player.tick(2.5); // FS:BOB 2–3.05
     expect(container.textContent).toContain("B-O-B");
 
-    player.tick(5.6); // next segment, after a seek
-    expect(container.textContent).toContain("TOMORROW");
+    player.tick(3.3); // next segment: TODAY 3.2–3.8
+    expect(container.textContent).toContain("TODAY");
 
     player.destroy();
     expect(container.childElementCount).toBe(0);

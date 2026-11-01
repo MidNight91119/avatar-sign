@@ -1,4 +1,4 @@
-import { SIDEPANEL_PORT, type PageInfo, type SidePanelUpdate, type VideoSnapshot } from "../messages";
+import { SIDEPANEL_PORT, SidePanelUpdateSchema, type PageInfo, type VideoSnapshot } from "../messages";
 
 export interface ActiveTabHandlers {
   /** `null` when the active tab isn't a YouTube page with SignStream running. */
@@ -38,9 +38,11 @@ export function connectToActiveTab(handlers: ActiveTabHandlers): () => void {
     tabId = id;
     const next = chrome.tabs.connect(id, { name: SIDEPANEL_PORT });
     port = next;
-    next.onMessage.addListener((msg: SidePanelUpdate) => {
-      if (msg.type === "page") handlers.onPage(msg.page);
-      else handlers.onVideo(msg.video);
+    next.onMessage.addListener((msg: unknown) => {
+      const parsed = SidePanelUpdateSchema.safeParse(msg);
+      if (!parsed.success) return;
+      if (parsed.data.type === "page") handlers.onPage(parsed.data.page);
+      else handlers.onVideo(parsed.data.video);
     });
     next.onDisconnect.addListener(() => {
       void chrome.runtime.lastError; // "Receiving end does not exist" on non-YouTube tabs; expected

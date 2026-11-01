@@ -11,7 +11,7 @@ import { createSidebarHub, linkFromPort } from "./sidebar-link";
 // Registered right away: the side panel may connect while the app is still loading settings.
 const sidebar = createSidebarHub();
 chrome.runtime.onConnect.addListener((port) => {
-  if (port.name === SIDEPANEL_PORT) sidebar.accept(linkFromPort(port));
+  if (port.name === SIDEPANEL_PORT && port.sender?.id === chrome.runtime.id) sidebar.accept(linkFromPort(port));
 });
 
 startApp({

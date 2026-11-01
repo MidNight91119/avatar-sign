@@ -83,7 +83,7 @@ export async function startApp(deps: AppDeps): Promise<() => void> {
 
     const showOverlay = video && settings.enabled && (!sidebar || doc.fullscreenElement);
     const key = showOverlay
-      ? [video.videoId, video.kind, settings.lang, settings.apiBaseUrl, settings.useMockData].join("|")
+      ? [video.videoId, video.kind, settings.lang, settings.useMockData].join("|")
       : "";
     if (key === sessionKey) {
       session?.applySettings(settings);

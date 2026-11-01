@@ -1,6 +1,25 @@
 import * as playerPackage from "@signstream/player";
-import type { AvatarPlayer, AvatarPlayerOptions, CreateAvatarPlayer } from "../contracts";
+import type { SignLang, SignTrack } from "@signstream/shared";
 import { createPlaceholderPlayer } from "./placeholder-player";
+
+// PLAN §4.4. @signstream/player doesn't export these yet; import them from there once it does.
+export interface AvatarPlayer {
+  load(track: SignTrack): void;
+  tick(currentTimeSec: number): void;
+  setSpeed(rate: number): void;
+  play(): void;
+  pause(): void;
+  playSign(gloss: string): void;
+  destroy(): void;
+}
+
+export interface AvatarPlayerOptions {
+  lang?: SignLang;
+  assetsBaseUrl?: string;
+  showGloss?: boolean;
+}
+
+export type CreateAvatarPlayer = (container: HTMLElement, opts?: AvatarPlayerOptions) => AvatarPlayer;
 
 export type PlayerKind = "avatar" | "placeholder";
 export type CreatePlayer = typeof createPlayer;
