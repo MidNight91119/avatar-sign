@@ -68,6 +68,7 @@ Bun runtime, Hono, `youtubei.js`, **`exa-js`** (sponsor), `zod`, `bun:sqlite` (o
   - Done in `apps/api/src/exa.ts` together with the Discover and sign-reference search logic. Exa returns `output.content` as an object or a JSON string; both are handled. Invalid output falls back to the highlights as `topic`. Caching by `videoId` comes with the cache PR
 - [x] Establish the five-video regression corpus and fetch captions for Durgesh
   - The user-selected official CS50 corpus is already fetched and attributed in `apps/api/src/gloss/word-priorities.json` (1,007 cues). Ayush still chooses presentation segments; see PLAN §10.
+  - Live check (2026-11-01): all 5 CS50 videos return sorted, non-overlapping captions from YouTube through `getTranscript` (61–301 cues each)
 
 ## 3. Hours 6–12: API
 
@@ -86,6 +87,7 @@ Bun runtime, Hono, `youtubei.js`, **`exa-js`** (sponsor), `zod`, `bun:sqlite` (o
   - Ready: `apps/api/Dockerfile` (build from the repo root, volume at `/data`) and deploy steps in the API README. Needs your hosting account and the production keys
 - [x] Swap the gloss stub for Durgesh's real module (hour 10) and test end-to-end on one demo video
   - Merged in PR #10; `services.ts` imports the real module. Historical real API/YouTube/Cerebras evidence is in `apps/api/src/gloss/live-results.json`; post-timing-fix full acceptance remains pending.
+  - Local end-to-end run (2026-11-01) on Linear Search (`TwsgCHYmbbA`) with real Cerebras + Exa keys: `ready`, 61 segments, 364 signs, cached reload 13ms, `/vtt` export works. 100% fingerspelled because `dictionary.json` has 0 signs (#20); total 22s (Exa hit the 4s cap, one Cerebras 429 retry)
 
 ## 4. Hours 12–18: Hardening
 
@@ -101,6 +103,7 @@ Bun runtime, Hono, `youtubei.js`, **`exa-js`** (sponsor), `zod`, `bun:sqlite` (o
 - [ ] Set up the API **locally on the demo laptop** with the cache pre-loaded (the offline backup)
   - Steps in the API README ("Offline demo laptop"): `demo import` then `dev`
 - [ ] Pre-run the `/discover` queries Ayush will use in the demo, so they come from the cache
+  - Queries from Ayush (PR #23): "binary search explained", "how computers store numbers", "how volcanoes work". Shortlist posted in #21. The final pre-run must happen within an hour of going on stage (1-hour TTL), or the results have to come from `demo import`
   - Tool ready: `demo discover "<query>"...`
 - [ ] Pre-fetch `/api/sign-reference` for the 500 most common English words (~$5 of Exa credit) so `/signs` loads instantly
   - Tool ready: `demo sign-refs` (500 words in `src/scripts/common-words.ts`; cached words are skipped)
@@ -123,6 +126,7 @@ Bun runtime, Hono, `youtubei.js`, **`exa-js`** (sponsor), `zod`, `bun:sqlite` (o
 
 - Partial results (see §4)
 - `GET /api/sign-track/:videoId/vtt`: export the gloss as a subtitle track (useful for learners)
+  - Done: `?lang=ASL`, one cue per segment, fingerspelling shown as `fs-WORD`. It only serves existing tracks (404 `NOT_FOUND`, 409 `NOT_READY`), so it never starts a job or spends credits
 
 ## PR test cases
 
@@ -131,6 +135,7 @@ Every PR must pass these before review (tick them in the PR description). Also s
 - [x] `packages/shared`: zod schemas parse `mocks/sign-track.sample.json` without errors, and reject a track with a missing `segments` field
 - [ ] `getCaptions` returns sorted, non-overlapping `{start, end, text}` for 2 demo videos; a video with no captions gives the `NO_CAPTIONS` error, not a crash
   - Covered by tests with fixtures (sorted, non-overlapping, `NO_CAPTIONS`); historical real Linear Search/Loops API runs are recorded by Durgesh; rerun current deployed behavior before marking this acceptance case complete
+  - Live local run (2026-11-01): all 5 CS50 demo videos return sorted, non-overlapping captions; still needs the rerun on the deployed API
 - [x] `GET /api/sign-track` on a new video returns `processing` with a `progress` value, then `ready`; two requests at once for the same video start only **one** job
 - [x] A cached video returns in < 1s and makes **no** Cerebras or Exa call (check the logs)
 - [x] With `EXA_API_KEY` removed, glossing still finishes (context is `undefined`)
@@ -141,6 +146,7 @@ Every PR must pass these before review (tick them in the PR description). Also s
 
 - [ ] Everyone was building against your contracts by hour 1
 - [ ] The API is deployed; cached demo videos load in < 1s; a new 3-minute video finishes in < 15s (Exa + Cerebras)
+  - Locally (2026-11-01, free key, throwaway cache, `d03fb20`): `fDKIpRe8GW4` (4:00) 14.1s cold, `w1vhSSu8Nxw` (3:53) 9.9s cold; cached 13–15 ms. Exa hit its 4s cap on every cold run, so these ran without context. Not deployed yet
 - [ ] `/api/discover` and `/api/sign-reference` work and are cached; Exa failures never break glossing
 - [ ] Captions blocked → the manual `.vtt` upload works
 - [ ] Cached API routes run locally on the demo laptop with no internet; YouTube playback itself still needs network, so use the recorded demo when fully offline
@@ -156,14 +162,25 @@ No new shared wire fields or player methods are required for the first gate.
 
 | Task     | Implement / verify                                                                                                                                                                                 | Evidence required                                                                                                                                                        |
 | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [ ] R-I1 | Reconcile `services.ts`, pipeline, client and deploy branch with main; retain the real gloss import and current schemas                                                                            | Commit links; existing route/client tests pass without another scaffold                                                                                                  |
+| [x] R-I1 | Reconcile `services.ts`, pipeline, client and deploy branch with main; retain the real gloss import and current schemas                                                                            | Commit links; existing route/client tests pass without another scaffold                                                                                                  |
 | [ ] R-I2 | Configure production Cerebras/Exa, persistent SQLite and HTTPS API; document quota tier, CORS/API origin, safe env locations and public health semantics                                           | One actual request per sponsor, redacted status/timing, deployed URL; health configured=true alone is insufficient                                                       |
-| [ ] R-I3 | Coordinate outer 40-caption progress batches with Durgesh's 20/60 inner batches; enforce a shared provider request budget across simultaneous videos, retries and clients                          | Mocked multi-video quota tests; free-tier pacing is account-wide, not just concurrency=1 per invocation; no hidden fallback in timing evidence                           |
-| [ ] R-I4 | Test sign windows at outer batch boundaries and overlapping source captions. The translator only sees each slice; clip overflow to the actual next caption before publishing a cumulative snapshot | Integration fixture spanning captions 39/40, gap=0/<0.5s, no overlapping emitted signs in either partial or final track; agree the smallest owner-local fix with Durgesh |
+| [x] R-I3 | Coordinate outer 40-caption progress batches with Durgesh's 20/60 inner batches; enforce a shared provider request budget across simultaneous videos, retries and clients                          | Mocked multi-video quota tests; free-tier pacing is account-wide, not just concurrency=1 per invocation; no hidden fallback in timing evidence                           |
+| [x] R-I4 | Test sign windows at outer batch boundaries and overlapping source captions. The translator only sees each slice; clip overflow to the actual next caption before publishing a cumulative snapshot | Integration fixture spanning captions 39/40, gap=0/<0.5s, no overlapping emitted signs in either partial or final track; agree the smallest owner-local fix with Durgesh |
 | [ ] R-I5 | Confirm cumulative `onPartial`, progress, final/error and AbortSignal behavior with both consumers. Document fresh-job vs cached data and ensure stale tab requests can be discarded               | Client/route tests; inspect emitted snapshots; preserve existing optional callbacks and schemas                                                                          |
 | [ ] R-I6 | Refresh cached tracks after prompt, dictionary or timing changes. Coordinate API cache and extension session-cache eviction before demonstrations                                                  | Compare cold/refresh/warm runs; new dictionary keys appear in rebuilt tracks; exported cache records matching code/asset revisions in the run log                        |
 | [ ] R-I7 | Exercise existing admin VTT fallback, cache warm/refresh/export/import and Exa degraded mode on demo laptop                                                                                        | Replay same snapshot with sponsor access disabled; no secrets in ZIP/client/report; distinguish cached API from offline YouTube playback                                 |
-| [ ] R-I8 | Harden reference/discover requests and deployment errors using existing adapters rather than another search endpoint                                                                               | Actual allowlisted reference URLs and YouTube watch results; empty/error responses friendly; live failures remain separate from fixture assertions                       |
+| [x] R-I8 | Harden reference/discover requests and deployment errors using existing adapters rather than another search endpoint                                                                               | Actual allowlisted reference URLs and YouTube watch results; empty/error responses friendly; live failures remain separate from fixture assertions                       |
+
+Status (2026-11-01, branch `raashed/finish-spec`):
+
+- R-I1: rebased on `d50096a`; the real gloss import and current schemas are unchanged; 158 API tests and 19 shared tests pass with no new scaffold
+- R-I3: `src/provider-budget.ts`. One budget per account covers requests/min, requests/hour, **tokens/min** and calls in flight, and a 429 pauses everyone. Every `textToSigns` call and retry goes through it (`services.ts`). Tests use mocks and a fake clock. Live run on the free key, two videos at once: 6 rate-limit errors (429s) and 297s before the token cap; 0 errors, 0 fallbacks and 77s after it (API README → Provider budget)
+- R-I4: changed only in `pipeline.ts`, nothing in Durgesh's module. Each 40-caption slice gets an empty look-ahead cue (never sent to the model), so the real translator times the slice's last caption exactly as in a whole-track call, and `clipOverlaps` is a safety net. Tests with the real translator: captions 39/40 with gap=0 and 0.3s, plus overlapping source captions; partial == final == whole-track; no overlaps
+- R-I5: unchecked. Client tests cover cached vs fresh, cumulative partials, error after partials, and abort (polling and the in-flight fetch). Semantics are written up in the API README. It still needs confirming with Poonam's and Hasan's real consumers
+- R-I6: unchecked. Ready tracks now record gloss/dictionary/model hashes; `demo stale` and `demo refresh --stale` find and rebuild old ones; the export records the commit and per-track revisions. The real refresh waits on a non-empty `dictionary.json` (#20), and Poonam owns `chrome.storage.session` eviction
+- R-I7: unchecked. Rehearsed on this machine: export → import into a fresh cache → API with both keys blank. Cached tracks 15 ms, cached search/reference served, uncached search → 503 `EXA_DISABLED`, `/vtt` works, 0 provider calls. Still needs the actual demo laptop with real (non-fingerspelled) tracks
+- R-I8: live check: `/discover` returned 9 results, all `youtube.com/watch` (1.9s cold, 13 ms cached); `/sign-reference?word=array` returned signasl.org and handspeak.com only. Added an 8s timeout (504), Exa 429 → 503 with `Retry-After`, merged identical in-flight requests, no caching of failures, empty answers cached for 5 min, ~280-char excerpts, and a filter for pages that don't name the word (live, `zzqxv` returned the letter Z)
+- R-I2: unchecked. The free personal key's real quota (headers): 5 req/min, 150/hour, 2,400/day, 30k tokens/min. Production keys, hosting and the HTTPS URL still need your accounts
 
 First handoff to Poonam/Hasan: API base URL, ASL/mock mode instructions, example
 ready/processing/error payloads, partial snapshot semantics and origin settings.
@@ -175,7 +192,10 @@ run them intentionally on the designated account and report whether cache was us
 
 ### Additional PR test cases
 
-- [ ] Simultaneous different videos plus 429 retries obey one account-wide request budget.
-- [ ] Full-track timing remains valid at the API's 40-caption boundary, including partial snapshots.
+- [x] Simultaneous different videos plus 429 retries obey one account-wide request budget.
+  - `provider-budget.test.ts`, `services.test.ts`, and the live two-video run (0 errors (429s) with the token cap)
+- [x] Full-track timing remains valid at the API's 40-caption boundary, including partial snapshots.
+  - `pipeline.test.ts` "batch boundaries (R-I4)" with the real translator and a fake model
 - [ ] Dictionary/prompt refresh replaces stale API and host caches in the demonstration path.
 - [ ] Cached API responses are <1s and sponsor-free on the actual deployment/laptop; cold totals and gloss-only times are recorded separately.
+  - On this machine: cached 13–15 ms with both keys blank; Linear Search cold 15.4s total / 4.8s gloss / 4.0s Exa. Still needs the deployment and the demo laptop

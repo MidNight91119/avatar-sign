@@ -153,7 +153,7 @@ is attributed under its [published license](https://cs50.harvard.edu/x/2026/lice
 
 - Root `pnpm lint`, `pnpm check-types`, `pnpm test` and `pnpm build`: passed
   with workspace dependencies installed from the lockfile.
-- Gloss suite: 51 tests passed, including malformed JSON, indexed validation,
+- Gloss suite: 62 tests passed, including malformed JSON, indexed validation,
   429 backoff, free-tier batching, concurrency, context prompt forwarding,
   references and timing across dense/overlapping source windows, including
   overlapping long captions that are split before translation, portable model
@@ -175,7 +175,7 @@ models matched 7/10 expected glosses using evaluation-only vocabulary;
 `gpt-oss-120b` took 1.4s versus 7.1s for `qwen-3.8-27b`, so the default stays
 `gpt-oss-120b`. Context selected COFFEE for Java and corrected MONA to MAUNA.
 With per-word name spelling scored correctly, 4/5 context cases match exactly;
-the crane case remains a mismatch. The runs used no fallback.
+the crane case was a mismatch in that historical run. The current 5/5 result is recorded below. Those historical runs used no fallback.
 
 Through the real API, full Linear Search processed in 5.4s, a 180-second Data
 Types caption excerpt in 2.9s, and full Loops (9:23) in 20.6s, all without
@@ -184,9 +184,10 @@ The supplied development key is limited to 5 requests/minute; paired context
 runs were paced accordingly. Never treat quota waits or fallback as fast
 provider evidence.
 
-Pending: Hasan's playable dictionary/animations (actual coverage is still 0%),
-real Exa-backed reference/context results, all strict live quality cases and
-the full three-minute-video speed acceptance target.
+Still pending: Hasan's playable dictionary/animations (actual coverage is still 0%),
+linguistic/readability review and full host/deployed integration. Current Exa and
+full-video speed evidence is recorded below; all-30-case strict live quality is
+not established by the five-case context run.
 
 ## Sources and prompt decisions
 
@@ -202,3 +203,60 @@ The portable model shape and bounded local validator share their object/index
 definitions; local array/string length limits are omitted from the sent schema.
 Every object has `additionalProperties: false`. SDK usage follows the
 [official Node SDK](https://github.com/Cerebras/cerebras-cloud-sdk-node).
+
+## Current acceptance work: issues #15–#18
+
+See [acceptance-results.json](./acceptance-results.json) for current sanitized
+measurements; the earlier `live-results.json` is retained as historical evidence.
+
+| Item           | Current evidence                                                                                                                             | Limit                                                                                                           |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| #15 context    | 5/5 paired fixture matches, three exact improvements, zero regressions/fallback; real Exa context and opposite-sense/name controls exercised | Vocabulary is evaluation-only; this does not claim playable assets or general linguistic accuracy               |
+| #16 references | Top ten missing words from all five real caption sets have live Exa-backed, specific allowlisted references through the actual API           | Frequencies use offline fallback; 10 of 988 distinct words were queried, with explicit truncation               |
+| #18 speed      | Full CS50 Defining Custom Types, 3:33 / 69 manual-caption cues: 3.91s gloss, 4.84s including caption fetch, two calls, no fallback           | Excludes Exa/avatar loading; three content tokens omitted and 417 FS signs flagged dense; speed-only acceptance |
+| #17 coverage   | Actual dictionary still has zero entries; all five current offline reports have 0% real-sign coverage                                        | Blocked by Hasan's clips/dictionary (#20), not solved by fixture vocabulary                                     |
+
+The prompt uses both topic and terms, does not invent specific time words from
+past tense, preserves named entities and chooses available categories only when
+context supports them. Provider requests use temperature 0 for repeatable
+translation. `--context-only` evaluates the existing five cases and their
+without-context controls; free-tier runs space translation invocations by 13s.
+That pacing is not an account-wide limiter across processes/retries.
+
+```sh
+# Diagnostic, no sponsor calls; remains blocked on real acceptance.
+pnpm eval:gloss --context-only
+
+# Intentional live context run with an explicitly marked evaluation dictionary.
+pnpm eval:gloss --context-only --live --dictionary ./evaluation-dictionary.json --check
+
+# Full, untruncated YouTube captions + Cerebras benchmark. Defaults to runtime dictionary.
+bun apps/api/src/gloss/benchmark.ts --video 96M4q0OnMfY --live --check
+
+# Reference checks are independent of how the existing track was translated.
+# Use a configured development API, not production credentials.
+pnpm signs:missing --track ./sign-track.json --api http://localhost:8787 --limit 10 --check
+```
+
+`--limit` is 1–500 when supplied and caps returned words; each word makes at most two endpoint requests. Output
+records `distinctMissingWords`, `reportLimit` and `reportTruncated`. Reference
+`--check` requires actual HTTP endpoint results for the reported eligible words;
+it cannot itself authenticate whether a custom endpoint is backed by Exa. This
+branch's saved evidence uses Raashed's actual Hono/Exa services with a personal key.
+Lowercase queries avoid upstream search-operator interpretation of AND; root homepages, membership/info/FAQ navigation, empty results and off-domain
+URLs are not reported ready. A single clearer-phrase retry can recover a sign
+entry without changing the reported word or inventing a URL. An API cache
+holding older homepage results needs an owner-controlled refresh before retry.
+
+Timing telemetry now reports dropped fillers/content and a fingerspelling-density
+heuristic (less than 0.12 seconds per character). Counts contain no caption text or
+names. Corpus acceptance checks these separately from numeric timing; a valid
+schedule alone is not a fully interpreted track. Do not use omission to claim a
+language-quality or coverage win.
+
+The three [playback fixtures](./fixtures/playback.sample.json) are for Hasan/Poonam's
+scheduler integration, with schema/seek-checkpoint tests. The owned pipeline test
+covers valid non-overlapping input across the 40-caption split. Overlapping raw
+cues are also tested through the canonical normalizer used by both real ingress
+paths; no production boundary defect is claimed. Account-wide quota/deployed
+coordination remains pending; see the verification file.

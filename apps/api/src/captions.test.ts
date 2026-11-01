@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { cleanCaptionText, decodeEntities, normalizeCaptions, parseJson3, parseVtt } from "./captions";
+import { cleanCaptionText, decodeEntities, normalizeCaptions, parseJson3, parseVtt, toVtt } from "./captions";
 
 const isSortedNonOverlapping = (cues: { start: number; end: number }[]) =>
   cues.every((c, i) => c.end >= c.start && (i === 0 || c.start >= cues[i - 1]!.end - 1e-9));
@@ -107,5 +107,29 @@ describe("normalizeCaptions", () => {
     const out = normalizeCaptions([{ start: 0, end: 24, text: words }]);
     expect(out.length).toBe(3);
     expect(out.map((c) => c.text).join(" ")).toBe(words);
+  });
+});
+
+describe("toVtt", () => {
+  it("writes one cue per segment with fingerspelling as fs-WORD, skipping empty segments", () => {
+    const vtt = toVtt([
+      { start: 0, end: 2.5, signs: [{ gloss: "HELLO" }, { gloss: "FS:BOB" }] },
+      { start: 2.5, end: 4, signs: [] },
+      { start: 3725.0405, end: 3727, signs: [{ gloss: "HOT" }] },
+    ]);
+    expect(vtt).toBe(
+      "WEBVTT\n\n00:00:00.000 --> 00:00:02.500\nHELLO fs-BOB\n\n01:02:05.041 --> 01:02:07.000\nHOT\n",
+    );
+  });
+
+  it("round-trips through parseVtt", () => {
+    const segments = [
+      { start: 1, end: 3, signs: [{ gloss: "MY" }, { gloss: "NAME" }] },
+      { start: 3, end: 5.25, signs: [{ gloss: "FS:VOLCANO" }] },
+    ];
+    expect(parseVtt(toVtt(segments))).toEqual([
+      { start: 1, end: 3, text: "MY NAME" },
+      { start: 3, end: 5.25, text: "fs-VOLCANO" },
+    ]);
   });
 });
