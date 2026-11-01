@@ -1,0 +1,335 @@
+/* signside panel. Hosts set --font-inter, --font-inter-tight and --font-instrument-serif. */
+
+.ss-wordmark {
+  font-family: var(--font-inter-tight, "Inter Tight"), system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+}
+.ss-wordmark em {
+  font-family: var(--font-instrument-serif, "Instrument Serif"), Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.15em;
+  letter-spacing: -0.01em;
+}
+
+.ss-panel {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  width: 100%;
+  height: 100%;
+  min-height: 560px;
+  border-radius: 32px;
+  color: #111111;
+  font-family: var(--font-inter, "Inter"), system-ui, sans-serif;
+  background:
+    radial-gradient(120% 40% at 50% 100%, rgba(242, 170, 80, 0.55) 0%, rgba(242, 170, 80, 0) 70%),
+    linear-gradient(180deg, #f2f0eb 0%, #eeebe6 20%, #ded0cd 40%, #e2c6b6 56%, #efcf86 76%, #f3be68 100%);
+}
+.ss-panel p {
+  margin: 0;
+}
+.ss-panel button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.ss-panel button:disabled {
+  cursor: default;
+}
+.ss-panel button:focus-visible {
+  outline: 2px solid #111111;
+  outline-offset: 2px;
+}
+
+.ss-avatar {
+  position: absolute;
+  left: 0;
+  top: 64px;
+  width: 100%;
+  height: auto;
+  z-index: -1;
+}
+.ss-hands-signing {
+  transform-box: view-box;
+  transform-origin: 125px 220px;
+  animation: ss-sign 0.45s ease-out;
+}
+@keyframes ss-sign {
+  from {
+    transform: translateY(6px) rotate(-3deg);
+  }
+}
+
+.ss-glass {
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.ss-header {
+  position: absolute;
+  inset: 14px 14px auto;
+  height: 48px;
+  box-sizing: border-box;
+  padding: 0 7px 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.42);
+}
+.ss-header .ss-wordmark {
+  flex: 1;
+  font-size: 19px;
+  color: #1a1a1a;
+}
+.ss-header img {
+  display: block;
+  object-fit: contain;
+}
+
+.ss-toprow {
+  position: absolute;
+  inset: 74px 14px auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.ss-segmented {
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+}
+.ss-segmented button {
+  height: 32px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  font-size: 13.5px;
+  color: #2e2e2e;
+}
+.ss-segmented button[aria-pressed="true"] {
+  background: #ffffff;
+  color: #111111;
+  font-weight: 500;
+  box-shadow: 0 2px 6px -2px rgba(0, 0, 0, 0.18);
+}
+.ss-chip {
+  height: 32px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.6);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ss-dot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 999px;
+  background: #9a9a9a;
+}
+.ss-dot-idle {
+  background: #22b455;
+}
+.ss-dot-live,
+.ss-dot-signing {
+  background: #ff5a1f;
+}
+
+.ss-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 22px;
+}
+.ss-progress-row .ss-progress {
+  flex: 1;
+}
+.ss-gloss {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #111111;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.ss-stack {
+  position: absolute;
+  inset: auto 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ss-card {
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+.ss-caption {
+  border-radius: 26px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-family: var(--font-inter-tight, "Inter Tight"), var(--font-inter, "Inter"), system-ui, sans-serif;
+}
+.ss-head {
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.4px;
+}
+.ss-head mark {
+  background: #ffd3b8;
+  color: inherit;
+  border-radius: 7px;
+  padding: 0 5px;
+}
+.ss-sub {
+  font-size: 16px;
+  line-height: 1.25;
+  color: #555555;
+}
+.ss-progress {
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.1);
+}
+.ss-progress div {
+  height: 3px;
+  border-radius: 999px;
+  background: #111111;
+}
+
+.ss-source {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px 8px 8px;
+  border-radius: 22px;
+}
+.ss-thumb {
+  width: 48px;
+  height: 48px;
+  flex: none;
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 55% 85%, #ff7a2e 0%, rgba(255, 122, 46, 0) 62%),
+    radial-gradient(circle at 25% 15%, #f3c6c4 0%, rgba(243, 198, 196, 0) 65%),
+    linear-gradient(180deg, #f2ddd6 0%, #f8e4c8 100%);
+}
+.ss-source-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ss-source-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: #555555;
+}
+.ss-source-detail {
+  font-size: 14px;
+  color: #1a1a1a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ss-speed {
+  height: 32px;
+  padding: 0 12px;
+  flex: none;
+  border: none;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.06);
+  font-size: 13px;
+}
+
+.ss-cta {
+  height: 60px;
+  width: 100%;
+  padding: 0 8px 0 24px;
+  border: none;
+  border-radius: 999px;
+  background: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 17px;
+  font-weight: 500;
+}
+.ss-panel .ss-cta {
+  color: #ffffff;
+}
+.ss-cta-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.ss-stop {
+  width: 13px;
+  height: 13px;
+  border-radius: 3px;
+  background: #000000;
+}
+.ss-panel .ss-cta-waiting {
+  background: rgba(255, 255, 255, 0.6);
+  color: #4a4a4a;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.ss-cta-waiting .ss-cta-icon {
+  background: rgba(255, 255, 255, 0.8);
+}
+.ss-cta-waiting i {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: #7a7a7a;
+  animation: ss-wait 1.2s ease-in-out infinite;
+}
+.ss-cta-waiting i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.ss-cta-waiting i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes ss-wait {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ss-hands-signing,
+  .ss-cta-waiting i {
+    animation: none;
+  }
+}
