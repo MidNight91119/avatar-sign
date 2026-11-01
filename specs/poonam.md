@@ -75,14 +75,14 @@ manifest.json
 
 Every PR must pass these before review (tick them in the PR description). Also see the PR rules in PLAN §9.
 
-- [ ] Load unpacked on a clean Chrome profile: no errors on the extensions page or the YouTube console
-- [ ] Open 5 videos in a row **without reloading**: the panel remounts for each, and the right track loads each time
-- [ ] Pause, seek forward/back, 0.5× and 2× speed: the avatar follows within ~0.5s
-- [ ] Fullscreen and theater mode: the panel stays visible; the drag position is kept after reload
-- [ ] An ad plays: the panel hides or pauses and the avatar doesn't move
-- [ ] A video with no captions shows the error message; Shorts and live streams don't break the page
-- [ ] After 10 navigations, there is only one panel and no duplicate event listeners (check with DevTools)
-- [ ] The popup settings save and apply without reloading the page
+- [ ] Load unpacked on a clean Chrome profile: no errors on the extensions page or the YouTube console (YouTube console clean and the worker starts; the `chrome://extensions` page itself not inspected yet)
+- [x] Open 5 videos in a row **without reloading**: the panel remounts for each, and the right track loads each time
+- [x] Pause, seek forward/back, 0.5× and 2× speed: the avatar follows within ~0.5s (gloss placeholder; re-check with the avatar)
+- [x] Fullscreen and theater mode: the panel stays visible; the drag position is kept after reload
+- [x] An ad plays: the panel hides or pauses and the avatar doesn't move
+- [x] A video with no captions shows the error message; Shorts and live streams don't break the page
+- [x] After 10 navigations, there is only one panel and no duplicate event listeners (check with DevTools)
+- [x] The popup settings save and apply without reloading the page (settings live in the side panel)
 
 ## Definition of done
 
@@ -106,7 +106,7 @@ already merged; there is no need to wait for new endpoint shapes.
 | [ ] P-I1 | Add MV3 manifest, compatible Vite/CRXJS setup, test/build scripts and reproducible unpacked/ZIP output                           | Clean Chrome load; bundle executable dependencies locally; minimal youtube/API host permissions and local asset resource declarations                       |
 | [ ] P-I2 | Mount one Shadow DOM panel and a mock gloss display while Hasan finishes the renderer. Isolate YouTube DOM selectors/event hints | Current video ID/video replacement detected; no duplicate mount on repeated events; cancel observers and rAF on dispose                                     |
 | [ ] P-I3 | Bind a media-clock adapter to the existing player API; pass `currentTime + offset` every frame and re-sample on paused seeks     | Pause, waiting/stalled/playing, forward/back seeks, 0.5×/2×, hidden-tab return; no timestamp double-scaling or independent sign timers                      |
-| [ ] P-I4 | Keep API work in short service-worker requests, with content-script polling or tested reconnecting messages and session cache    | Worker suspension/restart mid-processing; request identity and cancellation; old video's late response ignored; fixed API origin and validated message data |
+| [x] P-I4 | Keep API work in short service-worker requests, with content-script polling or tested reconnecting messages and session cache    | Worker suspension/restart mid-processing; request identity and cancellation; old video's late response ignored; fixed API origin and validated message data |
 | [ ] P-I5 | Load schema-validated partial/ready snapshots cumulatively, with progress/error/empty UI and a bounded polling lifetime          | Replace snapshots rather than append; partial→ready has no duplicate signs or reset to zero; seek beyond prepared data shows preparing/idle                 |
 | [ ] P-I6 | Package Hasan's same model/dictionary/clips under extension assets and pass `chrome.runtime.getURL("assets/")`                   | Installed build resolves nested URLs; renderer works without CDN scripts or sponsor keys; no missing runtime model files                                    |
 | [ ] P-I7 | Handle ads, fullscreen subtree, theater mode, Shorts/live exclusions, route changes and replacement videos                       | Ads never drive signs with ad time; fullscreen keeps panel visible; ten navigations leave one panel/clock and no old polling                                |
@@ -117,11 +117,11 @@ already merged; there is no need to wait for new endpoint shapes.
 
 Checked in a clean Chromium profile on real YouTube, with demo mode and with the API running locally (rule-only gloss, no keys). The avatar is still the gloss-text placeholder, so none of this is avatar evidence.
 
-- **P-I1 (partial):** MV3 manifest in `manifest.config.ts`, Vite 8 + CRXJS 3, `dev` (`vite build --watch`), `build`, `zip` and `test` scripts; loads in a clean profile; all runtime JS bundled locally. Left: host permissions are localhost plus Railway/Render/Fly wildcards until the deployed API origin is known; the ZIP install itself is not tried yet.
-- **P-I2 (partial):** one Shadow DOM panel with a gloss-text placeholder until `createAvatarPlayer` exists; selectors and event hints isolated in `content/youtube.ts`; one panel after 10 navigations; observers and rAF cancelled on dispose. Left: URL-change fallback besides `yt-navigate-finish`, replacement `<video>` detection, a visible "placeholder" label.
+- **P-I1 (partial):** MV3 manifest in `manifest.config.ts`, Vite 8 + CRXJS 3, `dev` (`vite build --watch`), `build`, `zip` and `test` scripts; loads in a clean profile; all runtime JS bundled locally; the only host permission is the API origin, fixed at build time with `VITE_SIGNSTREAM_API_ORIGIN`. Left: the ZIP install itself is not tried yet.
+- **P-I2 (partial):** one Shadow DOM panel with a gloss-text placeholder until `createAvatarPlayer` exists; selectors and event hints isolated in `content/youtube.ts`; one panel after 10 navigations; observers and rAF cancelled on dispose. The placeholder is labelled "Placeholder: gloss text until the avatar is ready". Left: URL-change fallback besides `yt-navigate-finish`, replacement `<video>` detection.
 - **P-I3 (partial):** the rAF loop passes `currentTime + offset`, forwards play/pause/rate and re-samples on seeking/seeked, without scaling by rate. 0.5× and 2× matched the API track within 0.5s (24/24 samples each); paused seeks show the right sign. Left: freeze on waiting/stalled.
-- **P-I4 (not done as written):** the worker polls while a per-video port is open, cancels when it closes (a stale video can't load into a new panel) and caches ready tracks in `chrome.storage.session`. Left: recover from worker suspension (reconnect), validate message payloads, fix the API origin (it is configurable under Developer settings).
-- **P-I5 (not done):** only `ready` tracks load; partial snapshots are ignored.
+- **P-I4 (done):** the worker uses the shared `createApiClient().getSignTrack` per port request, with the ready-track cache in `chrome.storage.session` and no state that must survive suspension. Track requests carry a request id; the client ignores updates for other requests and reconnects when the worker drops the port. Stopping the worker with DevTools mid-request on real YouTube: the panel reconnected and finished loading. The API origin is fixed at build time, and every port message is validated with zod in the receiver.
+- **P-I5 (not done):** only `ready` tracks load; partial snapshots are ignored (the shared client's `onPartial` is the next step).
 - **P-I6 (not done):** sign assets ship at `sign-assets/` because Vite puts its chunks in `assets/`; move `build.assetsDir` so `chrome.runtime.getURL("assets/")` works, then package Hasan's model and clips.
 - **P-I7 (partial):** ads show "Ad playing" and the avatar doesn't tick (seen with a real ad); the panel stays inside the fullscreen subtree above YouTube's controls; theater mode; Shorts skipped; live shows "not supported"; 10 navigations leave one panel and the same `<video>` listener count. Left: replacement video elements.
 - **P-I8 (partial):** settings apply without reload; offset, size and position persist; Alt+S and the control-bar toggle. Left: stop rendering while minimized, focus/contrast check, storage-failure handling.
@@ -143,7 +143,7 @@ not a service worker. Backend sponsor/admin credentials stay on the backend.
 
 ### Additional PR test cases
 
-- [ ] Worker suspension and restart during polling recover or show a useful bounded error.
+- [x] Worker suspension and restart during polling recover or show a useful bounded error.
 - [ ] Switching videos while an API/asset request is pending cannot load the old track into the new panel.
 - [ ] Seeking while paused, buffering, ads and hidden-tab return maintain correct pose/time.
 - [ ] Partial snapshots do not duplicate signs; seeking beyond available data never replays a stale sign.

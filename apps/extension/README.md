@@ -20,8 +20,8 @@ pnpm --filter @signstream/extension dev        # rebuilds apps/extension/dist on
 
 Open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked** and pick `apps/extension/dist`. Open any YouTube video.
 
-- **No API running?** Open the side panel → settings → **Developer settings** → **Demo mode**. Every video then gets a built-in mock track, so you can check the avatar and the sync.
-- **API URL:** defaults to `http://localhost:8787` (`apps/api` on `pnpm dev`). Change it under **Developer settings**, or change `DEFAULT_API_BASE_URL` in `src/config.ts` for the release build. If the deployed API isn't on Railway, Render or Fly, add its origin to `API_HOST_PERMISSIONS` in the same file.
+- **No API running?** Open the side panel → settings → **Developer settings** → **Demo mode**. Every video then plays the team's 60-second mock (`mocks/sign-track.sample.json`, through the shared client's mock mode), so you can check the avatar and the sync.
+- **API origin is fixed at build time** (PLAN §11): `http://localhost:8787` by default (`apps/api` on `pnpm dev`). For a release build, run `VITE_SIGNSTREAM_API_ORIGIN=https://<deployed-api> pnpm --filter @signstream/extension zip`. The manifest's only host permission is that origin, the worker can't call anything else, and anything that isn't a bare http(s) origin fails the build.
 - After a change, click ↻ on the extension in `chrome://extensions` and refresh the YouTube tab. (`dev` is `vite build --watch`, not the CRXJS dev server: that one serves the side panel and worker from localhost and reloads the whole extension, which breaks the YouTube tab's connection.)
 
 | Command | What it does |
@@ -48,8 +48,9 @@ side panel (React)                         content script (youtube.com)         
 - **Fullscreen:** the floating panel moves inside `document.fullscreenElement` and stays above YouTube's controls (also when the side panel is open, since Chrome hides it in fullscreen).
 - **Shorts** are skipped. **Live streams** show "not supported" without calling the API.
 
+- **Data:** sign tracks are the shared `SignTrack` type and are fetched with the shared `createApiClient().getSignTrack` in the worker (`background/sign-track-source.ts`). Every message between the content script, side panel and worker is validated with zod (`src/messages.ts`); track requests carry a request id, and the client reconnects if the worker is suspended mid-request.
+
 ## Waiting on teammates
 
-- **`src/contracts.ts`** mirrors PLAN §4.1 and §4.4 because `packages/shared` doesn't export the schemas yet. Switch the imports to `@signstream/shared` and delete the file when Raashed's schemas land.
-- **`src/avatar/player.ts`** uses Hasan's `createAvatarPlayer` as soon as `@signstream/player` exports it. Until then, a placeholder prints the current gloss as text.
+- **`src/avatar/player.ts`** uses Hasan's `createAvatarPlayer` as soon as `@signstream/player` exports it, and owns the PLAN §4.4 `AvatarPlayer` type until that package exports it. Until then, a placeholder labelled "Placeholder" prints the current gloss as text.
 - **Sign assets:** the build copies `packages/sign-assets` to `sign-assets/` (not `assets/`, which Vite uses for its chunks), and the player gets `assetsBaseUrl: chrome.runtime.getURL("sign-assets/")`.
