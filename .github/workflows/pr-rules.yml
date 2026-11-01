@@ -2,7 +2,6 @@ name: PR rules
 
 on:
   pull_request:
-    branches: [main]
     types: [opened, synchronize, reopened, edited, labeled, unlabeled]
 
 permissions:

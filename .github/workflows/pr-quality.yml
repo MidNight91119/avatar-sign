@@ -3,7 +3,6 @@ name: PR quality
 # Only runs when the code changes (not on label or description edits).
 on:
   pull_request:
-    branches: [main]
     types: [opened, synchronize, reopened]
 
 permissions:
