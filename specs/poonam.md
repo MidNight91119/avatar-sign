@@ -65,11 +65,11 @@ manifest.json
 
 ## Stretch
 
-- Keyboard shortcut Alt+S (`commands` in the manifest)
-- Learner mode: show the gloss text under the avatar
-- Firefox build (the `webextension-polyfill`)
-- Popup "Find signed videos" search box that calls `/api/discover` (**Exa**) and opens the result on YouTube with SignStream on
-- While a new video is processing, show "Translating with Cerebras…" with the time taken, so the speed is visible
+- [x] Keyboard shortcut Alt+S (`commands` in the manifest)
+- [x] Learner mode: show the gloss text under the avatar (the "Show gloss" setting)
+- [ ] Firefox build (the `webextension-polyfill`)
+- [ ] Popup "Find signed videos" search box that calls `/api/discover` (**Exa**) and opens the result on YouTube with SignStream on
+- [x] While a new video is processing, show "Translating with Cerebras…" with the time taken, so the speed is visible
 
 ## PR test cases
 
@@ -88,7 +88,7 @@ Every PR must pass these before review (tick them in the PR description). Also s
 
 - [ ] Works on all 5 demo videos, and when you navigate between them without reloading
 - [ ] The avatar stays within ~0.5s of the speech through pause, seek, 0.5×–2× speed and fullscreen
-- [ ] No console errors on YouTube; no leaked listeners after 10 navigations
+- [x] No console errors on YouTube; no leaked listeners after 10 navigations
 - [ ] The `.zip` installs on a clean Chrome profile
 
 ## Demo role
@@ -112,6 +112,21 @@ already merged; there is no need to wait for new endpoint shapes.
 | [ ] P-I7 | Handle ads, fullscreen subtree, theater mode, Shorts/live exclusions, route changes and replacement videos                       | Ads never drive signs with ad time; fullscreen keeps panel visible; ten navigations leave one panel/clock and no old polling                                |
 | [ ] P-I8 | Finish accessible toggle/popup/panel settings, keyboard controls and persisted offset/size/position                              | Settings apply without reload; minimize/off stops unnecessary rendering; focus/contrast and storage failure cases checked                                   |
 | [ ] P-I9 | Release ZIP and a short capture from actual unpacked build; record code/asset/API revisions with Ayush                           | Fresh profile install, actual five-video matrix and working download path; no test env or secret bundled                                                    |
+
+### Status on `poonam/extension` (2026-11-01)
+
+Checked in a clean Chromium profile on real YouTube, with demo mode and with the API running locally (rule-only gloss, no keys). The avatar is still the gloss-text placeholder, so none of this is avatar evidence.
+
+- **P-I1 (partial):** MV3 manifest in `manifest.config.ts`, Vite 8 + CRXJS 3, `dev` (`vite build --watch`), `build`, `zip` and `test` scripts; loads in a clean profile; all runtime JS bundled locally. Left: host permissions are localhost plus Railway/Render/Fly wildcards until the deployed API origin is known; the ZIP install itself is not tried yet.
+- **P-I2 (partial):** one Shadow DOM panel with a gloss-text placeholder until `createAvatarPlayer` exists; selectors and event hints isolated in `content/youtube.ts`; one panel after 10 navigations; observers and rAF cancelled on dispose. Left: URL-change fallback besides `yt-navigate-finish`, replacement `<video>` detection, a visible "placeholder" label.
+- **P-I3 (partial):** the rAF loop passes `currentTime + offset`, forwards play/pause/rate and re-samples on seeking/seeked, without scaling by rate. 0.5× and 2× matched the API track within 0.5s (24/24 samples each); paused seeks show the right sign. Left: freeze on waiting/stalled.
+- **P-I4 (not done as written):** the worker polls while a per-video port is open, cancels when it closes (a stale video can't load into a new panel) and caches ready tracks in `chrome.storage.session`. Left: recover from worker suspension (reconnect), validate message payloads, fix the API origin (it is configurable under Developer settings).
+- **P-I5 (not done):** only `ready` tracks load; partial snapshots are ignored.
+- **P-I6 (not done):** sign assets ship at `sign-assets/` because Vite puts its chunks in `assets/`; move `build.assetsDir` so `chrome.runtime.getURL("assets/")` works, then package Hasan's model and clips.
+- **P-I7 (partial):** ads show "Ad playing" and the avatar doesn't tick (seen with a real ad); the panel stays inside the fullscreen subtree above YouTube's controls; theater mode; Shorts skipped; live shows "not supported"; 10 navigations leave one panel and the same `<video>` listener count. Left: replacement video elements.
+- **P-I8 (partial):** settings apply without reload; offset, size and position persist; Alt+S and the control-bar toggle. Left: stop rendering while minimized, focus/contrast check, storage-failure handling.
+- **P-I9 (not started):** needs the real avatar and the five demo videos.
+- **Plan deviation, settings and side panel:** settings live in a Chrome side panel (Phantom-style) instead of a popup. While it is open, the avatar renders there for the active tab, driven by video snapshots from the content script, and the floating panel hides; the floating panel is still the default and comes back in fullscreen, where Chrome hides the side panel. Ayush's `/extension` copy should mention it.
 
 Do not serialize `onPartial` callbacks through `chrome.runtime.sendMessage`.
 Messages carry data; the content script installs callbacks locally, or the
