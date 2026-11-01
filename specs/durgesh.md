@@ -51,10 +51,26 @@ caption segments
 ```
 
 ### Step 2: LLM details (Cerebras, our sponsor)
-- Use **Cerebras** through `@cerebras/cerebras_cloud_sdk` (the API is OpenAI-compatible). In the first hour, try 2 models from the Cerebras model list (for example `gpt-oss-120b` and `llama-3.3-70b`) on your 10 test sentences and pick the better one. Keep the model name in an env variable (`CEREBRAS_MODEL`).
+- Use **Cerebras** through `@cerebras/cerebras_cloud_sdk` (the API is OpenAI-compatible). In the first hour, compare the two production models on your 10 test sentences and keep the better one in `CEREBRAS_MODEL`:
+  - `gpt-oss-120b`: ~3,000 tokens/s, 65k context on the free tier. **Start with this one**
+  - `qwen-3.8-27b`: ~1,850 tokens/s, 64k context. Use it if quality or rate limits are a problem
 - **Use the speed:** Cerebras is fast enough to gloss a whole video in seconds. Log the time per video (tokens/second and total time). Ayush uses these numbers in the pitch.
-- **Exa context:** `opts.context` contains a short summary of the video's topic, people and terms (Raashed fetches it with Exa). Put it in the prompt as "Background about this video", and tell the model to use it to choose the right sign for words with several meanings and to spell names correctly. Glossing must still work when `context` is empty.
-- **Structured output:** use Cerebras structured outputs (`response_format: { type: "json_schema", ... }`), then validate with `zod`. On a validation failure, retry once, then fall back to a rule-only gloss (drop stopwords, keep word order).
+- **Exa context:** `opts.context` is a `VideoContext` object (`topic`, `names`, `terms`; PLAN §4.2) that Raashed gets from Exa. Put it in the prompt as "Background about this video". Tell the model to use `terms` to pick the right sign for words with several meanings, and to use the spellings in `names` for fingerspelling (auto-captions often get names wrong). Glossing must still work when `context` is `undefined`.
+- **Structured output:** use Cerebras strict structured outputs, then validate with `zod`:
+  ```ts
+  import Cerebras from "@cerebras/cerebras_cloud_sdk";
+  const client = new Cerebras({ apiKey: process.env.CEREBRAS_API_KEY });
+
+  const res = await client.chat.completions.create({
+    model: process.env.CEREBRAS_MODEL ?? "gpt-oss-120b",
+    messages: [{ role: "system", content: systemPrompt }, { role: "user", content: batchJson }],
+    response_format: {
+      type: "json_schema",
+      json_schema: { name: "gloss_batch", strict: true, schema: glossBatchSchema },
+    },
+  });
+  ```
+  Strict mode needs `additionalProperties: false` on **every** object in the schema. On a validation failure, retry once, then fall back to a rule-only gloss (drop stopwords, keep word order).
 - **Batch** about 20 segments per call, keyed by segment index so results come back in the right order.
 - Put the **dictionary list in the system prompt** and tell the model to use only those words, or `FS:` for anything else.
 - On a rate-limit error (HTTP 429), retry with exponential backoff (3 tries), then use the rule-only fallback for that batch.

@@ -29,7 +29,7 @@ Node.js 20+, Hono (`@hono/node-server`), `youtubei.js`, **`exa-js`** (sponsor), 
   ```
 - [ ] `mocks/sign-track.sample.json`: about 60s of a real video, written by hand, with real glosses (`HELLO`, `MY`, `NAME`, `FS:...`). Add a `MOCK=1` mode to the client that returns the mock, so Hasan and Poonam can build before the API exists
 - [ ] Stub for Durgesh: `apps/api/src/gloss/index.ts` with the `textToSigns` signature from PLAN §4.2 that returns dummy signs, so the API compiles from day one
-- [ ] Get the **Cerebras** and **Exa** API keys/credits from the sponsors at kickoff and share them in the team password manager
+- [ ] Get the **Cerebras** key (free trial at https://cloud.cerebras.ai) and the **Exa** key (https://dashboard.exa.ai); ask both sponsor booths about hackathon credits; share the keys in the team password manager. Check the free-tier rate limits of both and note them in the README
 - [ ] `.env.example` (`CEREBRAS_API_KEY`, `CEREBRAS_MODEL`, `EXA_API_KEY`, `DATABASE_URL`, `ALLOWED_ORIGINS`), a short README "how to run", and branch protection on `main`
 - [ ] Post in the team chat: "Contracts are ready, start building."
 
@@ -39,7 +39,21 @@ Node.js 20+, Hono (`@hono/node-server`), `youtubei.js`, **`exa-js`** (sponsor), 
 - [ ] Normalize: merge cues shorter than ~1s, split cues longer than ~8s at punctuation, decode HTML entities, remove `[Music]`-style tags
 - [ ] Clear errors: `NO_CAPTIONS`, `VIDEO_UNAVAILABLE`, `LIVE_NOT_SUPPORTED` → these go into `SignTrack.error` so Poonam and Hasan can show useful messages
 - [ ] Manual-upload fallback: `POST /api/captions/:videoId` accepts a `.vtt` file (parse it with a small TS VTT parser), in case YouTube blocks the server IP
-- [ ] **Exa video context** `apps/api/src/context.ts`: `getVideoContext(videoId, title) → string`. Run `exa.searchAndContents(title, { numResults: 3, text: { maxCharacters: 1500 }, excludeDomains: ["youtube.com"] })` and join the results into a short background text (topic, names, terms). Cache it by `videoId`. If Exa fails or is slow (> 3s), return `""` and continue
+- [ ] **Exa video context** `apps/api/src/context.ts`: `getVideoContext(videoId, title, description) → VideoContext | undefined` (type from PLAN §4.2). Use Exa search with a schema, so Exa returns the structured result directly:
+  ```ts
+  import Exa from "exa-js";
+  const exa = new Exa(); // reads EXA_API_KEY
+
+  const res = await exa.search(`${title}. ${description.slice(0, 200)}`, {
+    type: "auto",
+    numResults: 5,
+    systemPrompt: "Find background on this video's topic, people, places and technical terms.",
+    outputSchema: videoContextJsonSchema, // made from the zod VideoContext schema
+    contents: { highlights: true },
+  });
+  const ctx = VideoContextSchema.safeParse(res.output?.content);
+  ```
+  Cache it by `videoId`. If Exa fails, is slow (> 4s) or returns something invalid, return `undefined` and continue. **Glossing must never wait on Exa for long.** If `outputSchema` doesn't work in time, fall back to `highlights` only and let Durgesh's prompt read the excerpts
 - [ ] Ayush picks the **5 demo videos** by hour 3. Fetch their captions and send them to Durgesh by **hour 4**
 
 ## 3. Hours 6–12: API
@@ -49,8 +63,8 @@ Node.js 20+, Hono (`@hono/node-server`), `youtubei.js`, **`exa-js`** (sponsor), 
 - [ ] Job pipeline: a cache miss → status `processing` → `getCaptions` + `getVideoContext` (Exa) in parallel → `textToSigns` (Durgesh's module, on Cerebras) → store → `ready`. Update `progress` after each batch. An in-memory job map is fine. Two requests for the same `videoId` must share one job, not start two
 - [ ] Cache: key = `videoId:lang`, value = the `SignTrack` JSON. Add a `?refresh=1` admin flag (protected by a secret) to rebuild a track after Durgesh improves the prompt
 - [ ] `/api/signs`: reads Hasan's `packages/sign-assets/dictionary.json`
-- [ ] **`/api/discover?q=`** (Exa): `exa.search(q + " explained", { includeDomains: ["youtube.com"], numResults: 10 })` → pull the `videoId` from each URL → return `{ videoId, title, url, snippet, thumbnail }[]`. Stretch: mark which results have captions. Cache by query for 1 hour
-- [ ] **`/api/sign-reference?word=`** (Exa): `exa.search("how to sign " + word + " in ASL", { includeDomains: ["handspeak.com", "lifeprint.com", "signingsavvy.com", "signasl.org"], numResults: 3 })` → `{ title, url, source }[]`. Cache forever
+- [ ] **`/api/discover?q=`** (Exa): `exa.search(q, { type: "auto", includeDomains: ["youtube.com"], numResults: 10, contents: { highlights: true } })` → keep only `/watch?v=` URLs, pull the `videoId` → return `{ videoId, title, url, snippet, thumbnail }[]` (snippet = first highlight; thumbnail = `https://i.ytimg.com/vi/<id>/hqdefault.jpg`). Stretch: mark which results have captions. Cache by query for 1 hour
+- [ ] **`/api/sign-reference?word=`** (Exa): `exa.search("how to sign " + word + " in ASL", { type: "auto", includeDomains: ["handspeak.com", "lifeprint.com", "signingsavvy.com", "signasl.org"], numResults: 3, contents: { highlights: true } })` → `{ title, url, source, highlight }[]`. Cache forever
 - [ ] `/api/health` reports whether the Cerebras and Exa keys work
 - [ ] Rate limit (a simple per-IP counter, for example 20 new videos per hour) to protect the Cerebras and Exa credits; limit video length to ~15 min
 - [ ] Deploy (Railway / Render / Fly, anywhere with a persistent disk for SQLite) and share the URL by **hour 10**
@@ -92,4 +106,4 @@ Node.js 20+, Hono (`@hono/node-server`), `youtubei.js`, **`exa-js`** (sponsor), 
 - [ ] The API runs locally on the demo laptop with no internet
 
 ## Demo role
-Explain the architecture in about 20s on the "How it works" slide, pointing out where Exa and Cerebras sit in the pipeline,, and be ready to answer the judges' technical questions.
+Explain the architecture in about 20s on the "How it works" slide, pointing out where Exa and Cerebras sit in the pipeline, and be ready to answer the judges' technical questions.

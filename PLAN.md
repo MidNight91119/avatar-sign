@@ -85,6 +85,29 @@ Both sponsors are part of the core product, not add-ons. Judges should see them 
 | **Exa** | **2. Discover:** "find videos about photosynthesis" → Exa search limited to YouTube → open any result with the avatar | Turns the website from "paste a URL" into a way to find accessible content | Raashed (API), Ayush (`/discover` page) |
 | **Exa** | **3. Sign references:** for words the avatar can't sign yet, find how-to-sign pages and videos (Handspeak, Lifeprint, SigningSavvy) | Speeds up making new animations (Hasan) and gives learners a "how to sign this" link | Durgesh (missing-signs report), Raashed (API), Hasan (`/signs` link) |
 
+#### What the sponsors offer (from cerebras.ai, exa.ai and their docs, checked 2026-11-01)
+
+**Cerebras**: https://www.cerebras.ai/ · docs: https://inference-docs.cerebras.ai/
+- Inference Cloud with a **free trial**; the API is **OpenAI-compatible**, and the TypeScript SDK is `@cerebras/cerebras_cloud_sdk`
+- Production models on shared inference:
+
+  | Model ID | Speed (Cerebras docs) | Context (free / paid) | Our use |
+  |---|---|---|---|
+  | `gpt-oss-120b` | ~3,000 tokens/s | 65k / 131k | **Default** for gloss translation |
+  | `qwen-3.8-27b` | ~1,850 tokens/s | 64k / 128k | Backup if quality or rate limits are a problem |
+
+- **Structured outputs** with `response_format: { type: "json_schema", json_schema: { name, strict: true, schema } }`. Strict mode needs `additionalProperties: false` on every object in the schema
+- Speed numbers are Cerebras's own claims. We measure our own end to end and use those in the pitch
+
+**Exa**: https://exa.ai/ · docs: https://exa.ai/docs
+- TypeScript SDK `exa-js`: `new Exa()` reads `EXA_API_KEY`
+- **Search:** `exa.search(query, { type: "auto", numResults, includeDomains, contents: { highlights: true } })`. `type` can be `"auto"` (default, fast), `"deep-lite"` or `"deep"` (multi-step research, slower)
+- **Highlights:** short, relevant excerpts of each page instead of the full text. Small enough to put straight into the Cerebras prompt
+- **`outputSchema`:** search can return structured JSON that matches a schema, with citations. We use this for video context
+- **Answer:** `exa.answer(question)` / `exa.streamAnswer(question)`: a direct answer with sources (stretch: "Ask about this video" on `/watch`)
+- **Exa MCP server** (https://exa.ai/mcp): team members can connect it to their coding agents to search docs during the hackathon
+- Free API usage to start from https://dashboard.exa.ai; ask the Exa booth about hackathon credits
+
 ---
 
 ## 3. Tech stack (all TypeScript)
@@ -96,8 +119,8 @@ Both sponsors are part of the core product, not add-ons. Judges should see them 
 | Validation | `zod`: the shared schemas are the single source of truth for the JSON formats |
 | Backend | Node.js 20+ with **Hono** |
 | Transcript | `youtubei.js` (or `youtube-transcript`) |
-| LLM | **Cerebras** through `@cerebras/cerebras_cloud_sdk` (OpenAI-compatible API, structured JSON output). Choose the model from the Cerebras model list on the day: a large model such as `gpt-oss-120b` or `llama-3.3-70b` |
-| Web search | **Exa** through `exa-js` (`searchAndContents`, filtered by domain) |
+| LLM | **Cerebras** through `@cerebras/cerebras_cloud_sdk` (OpenAI-compatible, strict JSON schema output). Model: `gpt-oss-120b` (default) or `qwen-3.8-27b`, set with `CEREBRAS_MODEL` |
+| Web search | **Exa** through `exa-js`: `search` with `type: "auto"`, `includeDomains`, `contents.highlights` and `outputSchema` |
 | Cache | SQLite through `better-sqlite3` locally, or Upstash Redis when deployed |
 | Avatar | Three.js + `@pixiv/three-vrm` (VRM avatar); keyframe animation clips as JSON |
 | Extension | Chrome MV3, Vite + `@crxjs/vite-plugin`, React for the popup |
@@ -152,9 +175,16 @@ export function textToSigns(
   opts: {
     lang: SignLang;
     dictionary: string[];
-    context?: string;   // from Exa: video topic, names, jargon (≤ 1,500 characters)
+    context?: VideoContext;   // from Exa, see below
   }
 ): Promise<Segment[]>;
+
+// packages/shared/src/video-context.ts (Exa search with outputSchema returns this shape)
+export interface VideoContext {
+  topic: string;                               // "A lesson on how volcanoes form"
+  names: string[];                             // correct spellings: ["Mauna Loa", "Kilauea"]
+  terms: { term: string; meaning: string }[];  // [{ term: "magma", meaning: "molten rock under the ground" }]
+}
 ```
 
 ### 4.3 API endpoints (Raashed)

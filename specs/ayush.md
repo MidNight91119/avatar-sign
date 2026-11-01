@@ -48,7 +48,7 @@ Hasan sets up the app, shared layout and theme by hour 2. You build these pages 
 3. Live demo (switch to the browser)
 4. How it works: the pipeline diagram (Raashed)
 5. Why it's hard: gloss ≠ English (Durgesh)
-6. **Built with Cerebras and Exa:** Cerebras speed numbers (whole video glossed in N seconds, from Durgesh) and the three ways we use Exa (context, Discover, sign references)
+6. **Built with Cerebras and Exa:** Cerebras speed numbers that **we measured** (whole video glossed in N seconds, from Durgesh); Cerebras advertises ~3,000 tokens/s on `gpt-oss-120b`, so say where that number comes from if you use it. Also show the three ways we use Exa (context, Discover, sign references)
 7. What's next: ISL, a bigger sign library, facial expressions, translations reviewed by the Deaf community
 8. Team
 
