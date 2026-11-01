@@ -1,0 +1,655 @@
+{
+  "date": "2026-11-01",
+  "baselineCommit": "d50096a089d0e952a3b66398b77705f644b8435b",
+  "implementationHashes": {
+    "prompt.ts": "6377558efeb8eba9ac88d31a78622dcf40c88175ff8776737db5dcd6f51e33bd",
+    "index.ts": "ad80a76fe9e0390b4c79f5a78611bde3e41807052af86940966033700804b050",
+    "timing.ts": "bdc333b0cdead39ae1a69ee1a26cbfa649691175b5d283399369e5aff32ade9b",
+    "missing-signs.ts": "b7b796bb6123c28c569a364e98f6a364efb7113021a605f179852f05df3465be"
+  },
+  "scope": "Current issue evidence; historical live-results.json remains unchanged. No animation or linguistic acceptance implied by speed.",
+  "context": {
+    "mode": "live",
+    "providerOnly": true,
+    "model": "gpt-oss-120b",
+    "elapsedMs": 117648.796917,
+    "providerTokens": 12133,
+    "fallbackBatches": 0,
+    "dictionarySize": 60,
+    "sentences": 5,
+    "tokens": 14,
+    "realSigns": 12,
+    "fingerspelled": 2,
+    "coveragePercent": 85.71428571428571,
+    "exactMatches": 5,
+    "contextMatches": 5,
+    "contextImprovements": 3,
+    "contextRegressions": 0,
+    "acceptance": {
+      "status": "passed",
+      "criteria": {
+        "providerOnly": true,
+        "coverage": true,
+        "exactGlosses": true,
+        "contextImprovement": true
+      }
+    },
+    "cases": [
+      {
+        "text": "The bat is flying",
+        "context": true,
+        "expected": [
+          "BAT-ANIMAL",
+          "FLY"
+        ],
+        "actual": [
+          "BAT-ANIMAL",
+          "FLY"
+        ],
+        "exactMatch": true,
+        "withoutContext": [
+          "BAT-ANIMAL",
+          "FLY"
+        ],
+        "withoutContextMatch": true
+      },
+      {
+        "text": "We sat by the bank",
+        "context": true,
+        "expected": [
+          "WE",
+          "SIT",
+          "RIVER"
+        ],
+        "actual": [
+          "WE",
+          "SIT",
+          "RIVER"
+        ],
+        "exactMatch": true,
+        "withoutContext": [
+          "WE",
+          "SIT",
+          "RIVER"
+        ],
+        "withoutContextMatch": true
+      },
+      {
+        "text": "The crane is tall",
+        "context": true,
+        "expected": [
+          "BIRD",
+          "TALL"
+        ],
+        "actual": [
+          "BIRD",
+          "TALL"
+        ],
+        "exactMatch": true,
+        "withoutContext": [
+          "FS:CRANE",
+          "TALL"
+        ],
+        "withoutContextMatch": false
+      },
+      {
+        "text": "I like java",
+        "context": true,
+        "expected": [
+          "I",
+          "LIKE",
+          "COFFEE"
+        ],
+        "actual": [
+          "I",
+          "LIKE",
+          "COFFEE"
+        ],
+        "exactMatch": true,
+        "withoutContext": [
+          "I",
+          "LIKE",
+          "FS:JAVA"
+        ],
+        "withoutContextMatch": false
+      },
+      {
+        "text": "We visited mona loa",
+        "context": true,
+        "expected": [
+          "WE",
+          "VISIT",
+          "FS:MAUNA",
+          "FS:LOA"
+        ],
+        "actual": [
+          "WE",
+          "VISIT",
+          "FS:MAUNA",
+          "FS:LOA"
+        ],
+        "exactMatch": true,
+        "withoutContext": [
+          "WE",
+          "FS:MONA",
+          "FS:LOA",
+          "VISIT"
+        ],
+        "withoutContextMatch": false
+      }
+    ]
+  },
+  "actualExaControls": [
+    {
+      "kind": "actual-exa-java",
+      "text": "I like java",
+      "context": {
+        "topic": "The history and etymology of java as a slang term for coffee, originating from coffee cultivation on the island of Java in Indonesia.",
+        "names": [
+          "Dutch East India Company (Vereenigde Oost-Indische Compagnie or VOC)",
+          "Peter Giuliano",
+          "Josephus Daniels"
+        ],
+        "terms": [
+          {
+            "term": "Java (as a term for coffee)",
+            "meaning": "An informal or slang term for coffee, originating from the Indonesian island where the Dutch established coffee plantations in the late 17th century."
+          },
+          {
+            "term": "Cup of joe",
+            "meaning": "A slang synonym for coffee, often linked to the prohibition of alcohol for U.S. sailors during World War I by Secretary of the Navy Josephus Daniels."
+          },
+          {
+            "term": "Aged coffee / Old Government Java",
+            "meaning": "A process where coffee was aged for 2-3 years, often in the holds of cargo ships, to produce a mellow taste. Became associated with the term Old Government Java."
+          }
+        ]
+      },
+      "actual": [
+        "I",
+        "LIKE",
+        "COFFEE"
+      ],
+      "fallbackBatches": 0
+    },
+    {
+      "kind": "actual-exa-name",
+      "text": "We visited mona loa",
+      "context": {
+        "topic": "Mauna Loa is the largest active volcano on Earth, located on the Island of Hawaii.",
+        "names": [
+          "Mauna Loa"
+        ],
+        "terms": [
+          {
+            "term": "Mauna Loa",
+            "meaning": "A Hawaiian phrase literally meaning Long Mountain."
+          },
+          {
+            "term": "Shield volcano",
+            "meaning": "A type of volcano with a broad, rounded shape caused by low-viscosity lava flows."
+          }
+        ]
+      },
+      "actual": [
+        "WE",
+        "VISIT",
+        "FS:MAUNA",
+        "FS:LOA"
+      ],
+      "fallbackBatches": 0
+    },
+    {
+      "kind": "machinery-control",
+      "text": "The crane is tall",
+      "context": {
+        "topic": "Construction machinery",
+        "names": [],
+        "terms": [
+          {
+            "term": "crane",
+            "meaning": "construction machinery, not a bird"
+          }
+        ]
+      },
+      "actual": [
+        "MACHINE",
+        "TALL"
+      ],
+      "fallbackBatches": 0
+    },
+    {
+      "kind": "proper-name-control",
+      "text": "My name is Crane",
+      "context": {
+        "topic": "Introductions",
+        "names": [
+          "Crane"
+        ],
+        "terms": []
+      },
+      "actual": [
+        "MY",
+        "NAME",
+        "FS:CRANE"
+      ],
+      "fallbackBatches": 0
+    },
+    {
+      "kind": "actual-exa-bird",
+      "text": "The crane is tall",
+      "context": {
+        "topic": "The biology, behavior, and habitat of crane species, specifically focusing on wading birds like the sandhill crane.",
+        "names": [
+          "David Wolfson",
+          "Christine Petersen"
+        ],
+        "terms": [
+          {
+            "term": "Wetland",
+            "meaning": "Areas where water and land mix, often characterized by water that collects and saturates the soil for part of the year."
+          },
+          {
+            "term": "Predator",
+            "meaning": "An animal that hunts other animals for food."
+          },
+          {
+            "term": "Omnivore",
+            "meaning": "Animals that eat both plant and animal matter."
+          },
+          {
+            "term": "Migration",
+            "meaning": "The seasonal movement of birds from one place to another, often between distinct summer and winter habitats."
+          }
+        ]
+      },
+      "actual": [
+        "BIRD",
+        "TALL"
+      ],
+      "fallbackBatches": 0
+    }
+  ],
+  "controlNotes": [
+    "Actual Exa contexts were fetched through the existing Exa adapter on a personal key.",
+    "One additional control hit a provider limit and fell back; it is excluded here and the bird case was rerun successfully after quota reset.",
+    "Bank exact improvement is word order, not proof of semantic improvement. Coffee/name evidence demonstrates semantic/spelling improvement.",
+    "Dictionary for context tests is explicitly evaluation-only; actual runtime dictionary remains empty."
+  ],
+  "references": {
+    "mode": "actual local Hono /api/sign-reference + Exa SDK, personal key; no mocked responses",
+    "tokenFrequencySource": "Offline rule-only aggregation of all five actual CS50 caption sets, not five live translations",
+    "distinctMissingWords": 988,
+    "reportLimit": 10,
+    "reportTruncated": true,
+    "acceptance": {
+      "scope": "reference availability for reported words only; endpoint provenance requires a live run",
+      "status": "passed"
+    },
+    "missing": [
+      {
+        "word": "WE",
+        "count": 240,
+        "referenceStatus": "ready",
+        "query": "we",
+        "references": [
+          {
+            "title": "ASL we",
+            "url": "https://www.lifeprint.com/asl101/pages-signs/w/we.htm",
+            "source": "lifeprint.com"
+          },
+          {
+            "title": "How to sign \"we\"",
+            "url": "https://lifeprint.com/asl101/pages-signs/02/how-sign-we.htm",
+            "source": "lifeprint.com"
+          },
+          {
+            "title": "American Sign Language ASL Video Dictionary - we",
+            "url": "https://www.signasl.org/sign/we",
+            "source": "signasl.org"
+          }
+        ]
+      },
+      {
+        "word": "AND",
+        "count": 234,
+        "referenceStatus": "ready",
+        "query": "and",
+        "references": [
+          {
+            "title": "\"AND\" American Sign Language (ASL)",
+            "url": "https://www.lifeprint.com/asl101/pages-signs/a/and.htm",
+            "source": "lifeprint.com"
+          },
+          {
+            "title": "AND \u2022 ASL Dictionary",
+            "url": "https://www.handspeak.com/word/79/",
+            "source": "handspeak.com"
+          },
+          {
+            "title": "American Sign Language ASL Video Dictionary - and",
+            "url": "https://www.signasl.org/sign/and",
+            "source": "signasl.org"
+          }
+        ]
+      },
+      {
+        "word": "THAT",
+        "count": 181,
+        "referenceStatus": "ready",
+        "query": "that",
+        "references": [
+          {
+            "title": "\"That\" American Sign Language (ASL)",
+            "url": "https://www.lifeprint.com/asl101/pages-signs/t/that.htm",
+            "source": "lifeprint.com"
+          },
+          {
+            "title": "THAT \u2022 ASL Dictionary",
+            "url": "https://www.handspeak.com/word/2782/",
+            "source": "handspeak.com"
+          },
+          {
+            "title": "Sign for THAT",
+            "url": "https://www.signingsavvy.com/sign/THAT/428/1",
+            "source": "signingsavvy.com"
+          }
+        ]
+      },
+      {
+        "word": "SO",
+        "count": 176,
+        "referenceStatus": "ready",
+        "query": "so",
+        "references": [
+          {
+            "title": "\"so\" American Sign Language (ASL)",
+            "url": "https://www.lifeprint.com/asl101/pages-signs/s/so.htm",
+            "source": "lifeprint.com"
+          },
+          {
+            "title": "American Sign Language ASL Video Dictionary - so",
+            "url": "https://www.signasl.org/sign/so",
+            "source": "signasl.org"
+          },
+          {
+            "title": "Sign for SO",
+            "url": "https://www.signingsavvy.com/sign/SO/6087/1",
+            "source": "signingsavvy.com"
+          }
+        ]
+      },
+      {
+        "word": "YOU",
+        "count": 173,
+        "referenceStatus": "ready",
+        "query": "you",
+        "references": [
+          {
+            "title": "\"you\" ASL American Sign Language",
+            "url": "https://www.lifeprint.com/asl101/pages-signs/y/you.htm",
+            "source": "lifeprint.com"
+          },
+          {
+            "title": "YOU \u2022 ASL Dictionary",
+            "url": "https://www.handspeak.com/word/2448/",
+            "source": "handspeak.com"
+          },
+          {
+            "title": "American Sign Language ASL Video Dictionary - you",
+            "url": "https://www.signasl.org/sign/you",
+            "source": "signasl.org"
+          }
+        ]
+      },
+      {
+        "word": "IT",
+        "count": 166,
+        "referenceStatus": "ready",
+        "query": "it",
+        "references": [
+          {
+            "title": "The ASL sign for \"it\"",
+            "url": "https://www.lifeprint.com/asl101/pages-signs/i/it.htm",
+            "source": "lifeprint.com"
+          },
+          {
+            "title": "IT \u2022 ASL Dictionary",
+            "url": "https://www.handspeak.com/word/8667/",
+            "source": "handspeak.com"
+          },
+          {
+            "title": "Sign for IT",
+            "url": "https://www.signingsavvy.com/sign/IT/1602/6",
+            "source": "signingsavvy.com"
+          }
+        ]
+      },
+      {
+        "word": "IN",
+        "count": 151,
+        "referenceStatus": "ready",
+        "query": "the word in",
+        "references": [
+          {
+            "title": "\"in\" ASL American Sign Language",
+            "url": "https://www.lifeprint.com/asl101/pages-signs/i/in.htm",
+            "source": "lifeprint.com"
+          },
+          {
+            "title": "IN \u2022 ASL Dictionary",
+            "url": "https://www.handspeak.com/word/1112/",
+            "source": "handspeak.com"
+          },
+          {
+            "title": "\"in and out\" American Sign Language (ASL)",
+            "url": "https://www.lifeprint.com/asl101/pages-signs/i/inout.htm",
+            "source": "lifeprint.com"
+          }
+        ]
+      },
+      {
+        "word": "IF",
+        "count": 112,
+        "referenceStatus": "ready",
+        "query": "if",
+        "references": [
+          {
+            "title": "if in ASL",
+            "url": "https://www.lifeprint.com/asl101/pages-signs/i/if.htm",
+            "source": "lifeprint.com"
+          },
+          {
+            "title": "IF \u2022 ASL Dictionary",
+            "url": "https://www.handspeak.com/word/1096/",
+            "source": "handspeak.com"
+          },
+          {
+            "title": "Sign for IF",
+            "url": "https://www.signingsavvy.com/sign/IF/3644/1",
+            "source": "signingsavvy.com"
+          }
+        ]
+      },
+      {
+        "word": "NOT",
+        "count": 102,
+        "referenceStatus": "ready",
+        "query": "not",
+        "references": [
+          {
+            "title": "\"not\" American Sign Language (ASL)",
+            "url": "https://www.lifeprint.com/asl101/pages-signs/n/not.htm",
+            "source": "lifeprint.com"
+          },
+          {
+            "title": "American Sign Language ASL Video Dictionary - not",
+            "url": "https://www.signasl.org/sign/not",
+            "source": "signasl.org"
+          },
+          {
+            "title": "ASL Dictionary - NOT",
+            "url": "https://www.handspeak.com/word/1515/",
+            "source": "handspeak.com"
+          }
+        ]
+      },
+      {
+        "word": "FOR",
+        "count": 101,
+        "referenceStatus": "ready",
+        "query": "for",
+        "references": [
+          {
+            "title": "American Sign Language ASL Video Dictionary - for",
+            "url": "https://www.signasl.org/sign/for",
+            "source": "signasl.org"
+          },
+          {
+            "title": "\"for\" American Sign Language (ASL)",
+            "url": "https://www.lifeprint.com/asl101/pages-signs/f/for.htm",
+            "source": "lifeprint.com"
+          },
+          {
+            "title": "FOR \u2022 ASL Dictionary",
+            "url": "https://www.handspeak.com/word/844/",
+            "source": "handspeak.com"
+          }
+        ]
+      }
+    ],
+    "note": "Only the top ten words were reported; each allows at most two API queries (normal casing, then a clearer phrase if only generic results). All links are actual API/Exa responses, including IN from the query the word in. Page excerpts excluded."
+  },
+  "benchmark": {
+    "scope": "full YouTube caption fetch plus gloss; excludes Exa and avatar asset loading",
+    "title": "Defining Custom Types - CS50 Shorts",
+    "url": "https://youtu.be/96M4q0OnMfY",
+    "source": "youtube-captions",
+    "captionCount": 69,
+    "captionTrack": {
+      "languageCode": "en-US",
+      "auto": false
+    },
+    "glossElapsedMs": 3909.918083,
+    "mode": "live",
+    "videoId": "96M4q0OnMfY",
+    "durationSeconds": 213,
+    "elapsedMs": 3909.918083,
+    "providerCalls": 2,
+    "providerTokens": 12382,
+    "completionTokens": 9608,
+    "tokensPerSecond": 2457.3404854119035,
+    "droppedFillers": 1,
+    "droppedContent": 3,
+    "denseFingerspelling": 417,
+    "fallbackBatches": 0,
+    "tokens": 509,
+    "realSigns": 0,
+    "fingerspelled": 509,
+    "coveragePercent": 0,
+    "timingViolations": 0,
+    "invalidGlosses": 0,
+    "tooFastSigns": 0,
+    "tooSlowSigns": 0,
+    "providerOnly": true,
+    "captionsAndGlossElapsedMs": 4843.539083,
+    "acceptance": {
+      "status": "passed",
+      "criteria": {
+        "fullVideoAtLeast3Minutes": true,
+        "providerOnly": true,
+        "glossUnder10Seconds": true,
+        "captionsAndGlossUnder10Seconds": true,
+        "validTiming": true
+      },
+      "scope": "speed and numeric timing only; excludes playable coverage and linguistic/readability acceptance"
+    },
+    "courseUrl": "https://cs50.harvard.edu/x/shorts/defining_custom_types/",
+    "attribution": {
+      "creator": "CS50, Harvard University",
+      "license": "CC BY-NC-SA 4.0",
+      "licenseUrl": "https://cs50.harvard.edu/x/2026/license/"
+    },
+    "dictionaryKind": "actual runtime dictionary (0 signs/letters)",
+    "completionTokenNote": "SDK completion counts and throughput include reasoning tokens"
+  },
+  "coverage": {
+    "mode": "offline-rule-fallback",
+    "actualDictionaryEntries": 0,
+    "coveragePercent": 0,
+    "tokens": 7721,
+    "acceptance": {
+      "scope": "five-video coverage, timing, sign references and speed",
+      "status": "blocked",
+      "criteria": {
+        "fiveVideos": true,
+        "realData": true,
+        "providerOnly": false,
+        "coverage": false,
+        "timing": true,
+        "readableContent": false,
+        "references": false,
+        "threeMinuteUnder10Seconds": false
+      }
+    },
+    "videos": [
+      {
+        "videoId": "Fc9htmvVZ9U",
+        "coveragePercent": 0,
+        "tokens": 2269,
+        "realSigns": 0,
+        "fingerspelled": 2269,
+        "droppedContent": 34,
+        "denseFingerspelling": 1807,
+        "timingViolations": 0
+      },
+      {
+        "videoId": "f1xZf4iJDWE",
+        "coveragePercent": 0,
+        "tokens": 1994,
+        "realSigns": 0,
+        "fingerspelled": 1994,
+        "droppedContent": 19,
+        "denseFingerspelling": 1315,
+        "timingViolations": 0
+      },
+      {
+        "videoId": "WgX8e_O7eG8",
+        "coveragePercent": 0,
+        "tokens": 1522,
+        "realSigns": 0,
+        "fingerspelled": 1522,
+        "droppedContent": 33,
+        "denseFingerspelling": 1234,
+        "timingViolations": 0
+      },
+      {
+        "videoId": "TwsgCHYmbbA",
+        "coveragePercent": 0,
+        "tokens": 449,
+        "realSigns": 0,
+        "fingerspelled": 449,
+        "droppedContent": 14,
+        "denseFingerspelling": 313,
+        "timingViolations": 0
+      },
+      {
+        "videoId": "T98PIp4omUA",
+        "coveragePercent": 0,
+        "tokens": 1487,
+        "realSigns": 0,
+        "fingerspelled": 1487,
+        "droppedContent": 13,
+        "denseFingerspelling": 1018,
+        "timingViolations": 0
+      }
+    ],
+    "blocker": "Hasan assets/dictionary issue #20; issue #17 remains open"
+  },
+  "remaining": [
+    "Human readability/linguistic review, including omitted tokens and dense fingerspelling",
+    "Actual playable clips and >=70% per-video coverage",
+    "Account-wide provider quota enforcement and deployed pipeline coordination",
+    "Owner confirmation of benchmark presentation and deployed cache/player integration"
+  ]
+}

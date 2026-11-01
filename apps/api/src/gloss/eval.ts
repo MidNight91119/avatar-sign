@@ -9,6 +9,7 @@ export async function evaluate(
   live: boolean,
   dictionary: string[],
   compare = false,
+  contextOnly = false,
 ) {
   const env = globalThis.process.env;
   if (live && !env.CEREBRAS_API_KEY)
@@ -24,7 +25,7 @@ export async function evaluate(
   for (const model of models) {
     let fallbackBatches = 0;
     let tokenCount = 0;
-    const translate = createGlossTranslator({
+    const run = createGlossTranslator({
       model,
       ...(!live
         ? {
@@ -42,16 +43,32 @@ export async function evaluate(
           globalThis.console.error(JSON.stringify(event));
       },
     });
+    let previousCall = 0;
+    const translate: typeof run = async (...args) => {
+      if (live && env.CEREBRAS_TIER === "free" && previousCall)
+        await new Promise<void>((resolve) =>
+          globalThis.setTimeout(
+            resolve,
+            Math.max(0, 13_000 - (performance.now() - previousCall)),
+          ),
+        );
+      previousCall = performance.now();
+      return run(...args);
+    };
     const started = performance.now();
     const cases = [];
-    const selected = compare ? EVAL_CASES.slice(0, 10) : EVAL_CASES;
+    const selected = contextOnly
+      ? EVAL_CASES.filter(({ context }) => context)
+      : compare
+        ? EVAL_CASES.slice(0, 10)
+        : EVAL_CASES;
     const groups = [
       selected.filter(({ context }) => !context),
       ...selected
         .filter(({ context }) => context)
         .map((testCase) => [testCase]),
     ];
-    for (const group of groups) {
+    for (const group of groups.filter((group) => group.length > 0)) {
       const segments = await translate(
         group.map(({ text }, index) => ({
           start: index * 12,
@@ -154,6 +171,10 @@ export async function evaluate(
 
 if (import.meta.main) {
   const args = argumentsForCli();
+  if (args["context-only"] && (args.compare || args.corpus))
+    throw new Error(
+      "--context-only cannot be combined with --compare or --corpus",
+    );
   if (args.corpus && args.compare)
     throw new Error(
       "--compare evaluates the ten model-comparison sentences; omit --corpus",
@@ -164,7 +185,7 @@ if (import.meta.main) {
         live: args.live,
         api: args.api,
       })
-    : await evaluate(args.live, dictionary, args.compare);
+    : await evaluate(args.live, dictionary, args.compare, args["context-only"]);
   globalThis.console.log(JSON.stringify(report, null, 2));
   if (args.check) {
     const passed = Array.isArray(report)
