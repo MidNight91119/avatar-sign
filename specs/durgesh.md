@@ -211,6 +211,8 @@ Keep historical pre-review live outputs labelled as historical.
 
 ### Immediate MVP readiness
 
+- PR #34 CI exposed a Turbopack Google-font resolver failure after local checks passed. The website now bundles the same Fontsource families already used by the extension, preserving typography and removing build-time Google font requests; a clean build verifies the integration.
+
 - Latest integration rebased onto main `9462407` after PR #30. The actual API now advertises 733 procedural signs. A refreshed full Linear Search track has 346 tokens, 202 native signs (**58.38%**), zero provider fallback, 7.936s total with cached Exa context. The >=70% gate remains open.
 - Computer-use verification on the real YouTube short confirmed extension hand-pose changes and caption/gloss progression from 01:17 to 01:35. Native signs and fingerspelling render; this is visual integration evidence, not linguistic sign-off. The merged extension needs `VITE_API_URL=http://localhost:8787` at build time and localhost host permission.
 - Website integration now creates the privacy-enhanced iframe before attaching the YouTube clock API, avoiding the observed permanently blank auto-created frame. Actual CS50 playback, moving avatar and matching caption/gloss progression were observed at 02:13 in the app browser; the broader seek/rate matrix remains open.
