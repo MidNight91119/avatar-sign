@@ -1,6 +1,6 @@
 # Demo segments (A-I1)
 
-The one shared list of what we show on stage. The five videos are the CS50 regression corpus in [PLAN §10](../../PLAN.md#demo-corpus-and-latency-definitions) (`apps/api/src/gloss/cs50.ts`). This file only picks **excerpts** from them and does not replace them. Sent to Raashed in [#21](https://github.com/rshdhere/avatar-sign/issues/21); awaiting his reply.
+The one shared list of what we show on stage. The five videos are the CS50 regression corpus in [PLAN §10](../../PLAN.md#demo-corpus-and-latency-definitions) (`apps/api/src/gloss/cs50.ts`). This file only picks **excerpts** from them and does not replace them. Agreed with Raashed in [#21](https://github.com/rshdhere/avatar-sign/issues/21).
 
 ## Corpus (full videos)
 
@@ -32,29 +32,35 @@ Each range covers whole caption sentences, from the start of the first quoted li
 
 Expect a lot of fingerspelling until Hasan's clip library grows.
 
-## Speed benchmark (full video, about 3 minutes): not chosen yet
+## Stage video and speed benchmarks
 
-PLAN §10 asks for one complete captioned video of about three minutes. None of the five fits:
+PLAN §10 asks for one complete captioned video of about three minutes. None of the five corpus videos fits: Linear Search is 2:50 (170s), and the others are 9–14 minutes. So the benchmarks come from outside the corpus and add to it.
 
-- Linear Search is 2:50 (170s), just under 180s.
-- The others are 9–14 minutes, not the ~3-minute length PLAN §10 asks for. (For reference, Loops took **20.6s for 9:23** and missed the <10s target; see the timings below.)
+| Role                                                                                                     | Video                                                                                                 | Length                              | Scope                                                                          | Measured                                                                                                      |
+| -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| **Stage video**: opened live from `/discover` (the Cerebras moment) and the full-video **API** benchmark | [How Do Volcanoes Work? - Behind the News](https://www.youtube.com/watch?v=w1vhSSu8Nxw) `w1vhSSu8Nxw` | 3:53, 74 manual-caption cues        | complete video, **cold** API job on a throwaway cache (captions + Exa + gloss) | **9.9s** total, 5.0s gloss ([#21](https://github.com/rshdhere/avatar-sign/issues/21#issuecomment-6555897857)) |
+| Full-video **gloss** benchmark                                                                           | [CS50 Defining Custom Types](https://youtu.be/96M4q0OnMfY) `96M4q0OnMfY`                              | 3:33 (213s), 69 manual-caption cues | complete video, captions + gloss, excludes Exa and avatar assets               | **3.91s** gloss, 4.84s captions + gloss (`apps/api/src/gloss/acceptance-results.json`)                        |
 
-Plan: Raashed pre-runs the `/discover` queries below and posts the top results in #21. Ayush picks one **3–4 min result with manual captions**. `DiscoverResult` has no duration or caption fields, so those are checked separately for the shortlisted results. That video is:
+Why the volcano video for the stage:
 
-- the **uncached** video opened live on stage (the Cerebras moment), so it must **not** be warmed, and
-- the full-video speed benchmark for PLAN §10.
+- It's the only `/discover` candidate under 10s cold end to end. The other 3–4 min result with manual captions, "Binary search in 4 minutes" (`fDKIpRe8GW4`), took 14.1s.
+- It uses everyday words (kids' news), and it fits the "find accessible videos" story.
 
-Its cold timing has to be measured before the stage run without warming the stage cache, for example with a throwaway cache database.
+Rules for the stage video:
+
+- Raashed keeps it out of every cache warm and export, so it is **uncached** on stage.
+- Run details: free Cerebras key (`CEREBRAS_TIER=free`), commit `d03fb20`, 0 fallback batches, 0 rate-limit errors (429s). The Exa context step hit its 4s cap and returned no context, so this run had none.
+- All signs are fingerspelled until `dictionary.json` has clips (#20), and avatar asset loading is not included in these timings.
 
 ## `/discover` queries (pre-run by Raashed)
 
-1. `binary search explained` (primary)
-2. `how computers store numbers`
-3. `how volcanoes work`
+1. `how volcanoes work` (stage query; the volcano video is in its results)
+2. `binary search explained`
+3. `how computers store numbers`
 
 `prerunDiscover` caches results for 1 hour (`apps/api/src/demo-cache.ts`), so the final pre-run has to happen within an hour of going on stage.
 
-## Measured timings so far (historical)
+## Historical timings
 
 Source: `apps/api/src/gloss/live-results.json`, model `gpt-oss-120b`, 0 fallback batches. These runs are from **before the timing-floor fix** (`apps/api/src/gloss/VERIFICATION.md`; PLAN §10 says they are not current acceptance evidence).
 
@@ -64,10 +70,10 @@ Source: `apps/api/src/gloss/live-results.json`, model `gpt-oss-120b`, 0 fallback
 | Data Types, API + Cerebras              | 180s excerpt, `manual` source                  | 2.9s  |
 | Loops, API + YouTube + Cerebras         | full video (563s, 199 cues)                    | 20.6s |
 
-Do not quote any of these as "a 3-minute video in N seconds": Linear Search is under 180s, Data Types is an excerpt, and Loops is a complete 9:23 video that missed the <10s target.
+Do not quote any of these as "a 3-minute video in N seconds": Linear Search is under 180s, Data Types is an excerpt, and Loops is a complete 9:23 video that missed the <10s target. Quote the two benchmarks above instead, with their scope.
 
 ## Still open
 
-- [ ] Raashed confirms the list and warms the 5 corpus videos, and only those (#21)
-- [ ] Choose the benchmark video from Raashed's `/discover` results (#21) and measure its cold timing
+- [ ] Raashed confirms the list and warms the 5 corpus videos only, never the stage video (#21)
+- [ ] Re-measure the stage video cold right before the pitch (same throwaway-cache method), once real clips exist
 - [ ] Hasan and Durgesh confirm the three segments are readable once real clips exist (G1/G3)

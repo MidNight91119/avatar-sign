@@ -19,7 +19,7 @@ You have three jobs:
 - [x] Establish the **five-video regression corpus**
   - The user requested official CS50 sources; Durgesh fetched five videos / 1,007 timed cues, listed in PLAN §10 and `apps/api/src/gloss/word-priorities.json`. These full videos are mostly longer than 1–3 minutes.
 - [ ] Choose short presentation segments from that corpus and confirm their readability with Hasan/Durgesh. Separately agree a full >=180-second captioned video for the speed gate; an excerpt is not that benchmark.
-  - A-I1 in progress: segments chosen and recorded in [`docs/pitch/demo-segments.md`](../docs/pitch/demo-segments.md) (Loops 6:42–8:01 live; Linear Search 0:15–1:32 and Binary Search 2:03–3:15 as backups), sent to Raashed in #21 with the `/discover` queries. Still open: the benchmark video (picked from Raashed's `/discover` results, left uncached for the live Cerebras moment) and the readability check once real clips exist.
+  - A-I1 in progress: segments recorded in [`docs/pitch/demo-segments.md`](../docs/pitch/demo-segments.md) (Loops 6:42–8:01 live; Linear Search 0:15–1:32 and Binary Search 2:03–3:15 as backups) and agreed with Raashed in #21. Stage video and full-video API benchmark: `w1vhSSu8Nxw` (3:53, 9.9s cold total, kept uncached); full-video gloss benchmark: `96M4q0OnMfY` (3:33, 3.91s). Still open: the readability check once real clips exist.
 - [ ] Write the pitch story and the deck outline (see §4)
 - [ ] Write the copy (text) for the landing page
 
