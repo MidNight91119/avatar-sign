@@ -2,8 +2,10 @@
 import type { SignLang, SignTrack } from "@signstream/shared";
 import { CAM, FACE, HN, add, bound, buildHand, coef, cross, norm, sub } from "./engine/rig";
 import { FS } from "./engine/shader";
+import { avatarIndex } from "./avatars";
 import { buildTimeline, naturalDuration, type Pose, type Timeline } from "./timeline";
 
+export { AVATARS, DEFAULT_AVATAR, avatarIndex } from "./avatars";
 export { buildTimeline, knownSigns, naturalDuration, unitsFor } from "./timeline";
 export type { Pose, Timeline, Unit } from "./timeline";
 
@@ -26,13 +28,13 @@ export interface AvatarPlayerOptions {
   assetsBaseUrl?: string;
   /** Show the current gloss under the avatar. */
   showGloss?: boolean;
+  /** Which painted avatar to draw: an index into `AVATARS`. Optional; defaults to Sara. */
+  avatar?: number;
 }
 
 const N = HN * 2;
 /** A media-time jump bigger than this (or any backward jump) is a seek: snap to the new pose instead of sweeping. */
 const SEEK_JUMP = 0.6;
-/** Painted avatar in the shader: 0 Suki (deco portrait), 1 Sara (hanfu, light backdrop), 2 Sasha (crimson hijab). */
-const AVATAR = 1;
 
 const VS = `#version 300 es
 void main(){vec2 p=vec2((gl_VertexID<<1)&2,gl_VertexID&2);gl_Position=vec4(p*2.-1.,0,1);}`;
@@ -52,6 +54,7 @@ interface Hand {
 const noopPlayer: AvatarPlayer = { load() {}, tick() {}, setSpeed() {}, play() {}, pause() {}, playSign() {}, destroy() {} };
 
 export function createAvatarPlayer(container: HTMLElement, opts: AvatarPlayerOptions = {}): AvatarPlayer {
+  const avatar = avatarIndex(opts.avatar);
   const canvas = document.createElement("canvas");
   canvas.style.cssText = "display:block;width:100%;height:100%";
   container.append(canvas);
@@ -232,7 +235,7 @@ export function createAvatarPlayer(container: HTMLElement, opts: AvatarPlayerOpt
     const blink = (sim % 3.7) / 0.13;
     gl.uniform2f(U.uRes, canvas.width, canvas.height);
     gl.uniform1f(U.uTime, sim);
-    gl.uniform1f(U.uAv, AVATAR);
+    gl.uniform1f(U.uAv, avatar);
     gl.uniform3fv(U.uFace, FACE);
     gl.uniform3fv(U.uExpr, [tl.joyAt(clock), blink >= 1 ? 1 : Math.abs(blink * 2 - 1), 0]);
     gl.uniform3fv(U.uCam, cam);

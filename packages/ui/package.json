@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     "./avatar-canvas": "./src/avatar-canvas.tsx",
+    "./avatar-picker": "./src/avatar-picker.tsx",
     "./caption": "./src/caption.ts",
     "./sign-panel": "./src/sign-panel.tsx",
     "./styles.css": "./src/styles.css",

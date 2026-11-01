@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import type { SignReference } from "@signstream/shared";
 import { knownSigns, unitsFor } from "@signstream/player";
 import { AvatarCanvas } from "@repo/ui/avatar-canvas";
+import { AvatarPicker, useAvatar } from "@repo/ui/avatar-picker";
 import { SignPanel } from "@repo/ui/sign-panel";
 import { api, apiUrl } from "../../lib/api";
 
@@ -21,6 +22,7 @@ export function SignsView() {
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<{ gloss: string; key: number }>();
   const [refs, setRefs] = useState<Refs>();
+  const [avatar, setAvatar] = useAvatar();
 
   const q = query.trim().toUpperCase();
   const shown = SIGNS.filter((g) => g.includes(q));
@@ -109,7 +111,8 @@ export function SignsView() {
       <div className="signs-panel">
         <SignPanel
           mode={selected ? "signing" : "idle"}
-          avatar={<AvatarCanvas sign={selected} />}
+          avatar={<AvatarCanvas sign={selected} avatar={avatar} />}
+          headerAction={<AvatarPicker value={avatar} onChange={setAvatar} />}
           logoSrc="/brand/hand.png"
           langs={["ASL"]}
           lang="ASL"
