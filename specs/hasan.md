@@ -1,5 +1,9 @@
 # Hasan: Avatar Engine + Website
 
+PR #34 follow-up: bundle Inter, Inter Tight and Instrument Serif with the same
+Fontsource packages used by the extension. This fixes the CI Turbopack Google-font
+resolver error while preserving the website typography and CSS font variables.
+
 Demo integration follow-up: the approved bridge registers 733 actual engine
 definitions and preserves digits. On main through PR #30, the extension also
 needs localhost API host permission and `VITE_API_URL` at build time. The website
