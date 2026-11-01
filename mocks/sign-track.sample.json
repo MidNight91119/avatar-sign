@@ -1,0 +1,453 @@
+{
+  "videoId": "sample-volcanoes",
+  "lang": "ASL",
+  "source": "manual",
+  "status": "ready",
+  "progress": 1,
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 3.2,
+      "text": "Hello everyone, my name is Bob.",
+      "signs": [
+        {
+          "gloss": "HELLO",
+          "start": 0.0,
+          "duration": 0.6
+        },
+        {
+          "gloss": "ALL",
+          "start": 0.6,
+          "duration": 0.5
+        },
+        {
+          "gloss": "MY",
+          "start": 1.1,
+          "duration": 0.4
+        },
+        {
+          "gloss": "NAME",
+          "start": 1.5,
+          "duration": 0.5
+        },
+        {
+          "gloss": "FS:BOB",
+          "start": 2.0,
+          "duration": 1.05
+        }
+      ]
+    },
+    {
+      "start": 3.2,
+      "end": 7.0,
+      "text": "Today we are going to learn about volcanoes.",
+      "signs": [
+        {
+          "gloss": "TODAY",
+          "start": 3.2,
+          "duration": 0.6
+        },
+        {
+          "gloss": "WE",
+          "start": 3.8,
+          "duration": 0.45
+        },
+        {
+          "gloss": "LEARN",
+          "start": 4.25,
+          "duration": 0.7
+        },
+        {
+          "gloss": "ABOUT",
+          "start": 4.95,
+          "duration": 0.5
+        },
+        {
+          "gloss": "FS:VOLCANO",
+          "start": 5.45,
+          "duration": 1.5
+        }
+      ]
+    },
+    {
+      "start": 7.0,
+      "end": 11.5,
+      "text": "A volcano is a mountain with hot melted rock inside.",
+      "signs": [
+        {
+          "gloss": "FS:VOLCANO",
+          "start": 7.0,
+          "duration": 1.4
+        },
+        {
+          "gloss": "MOUNTAIN",
+          "start": 8.4,
+          "duration": 0.7
+        },
+        {
+          "gloss": "HOT",
+          "start": 9.1,
+          "duration": 0.6
+        },
+        {
+          "gloss": "ROCK",
+          "start": 9.7,
+          "duration": 0.6
+        },
+        {
+          "gloss": "INSIDE",
+          "start": 10.3,
+          "duration": 0.7
+        }
+      ]
+    },
+    {
+      "start": 11.5,
+      "end": 15.8,
+      "text": "Do you know where the biggest volcano is?",
+      "signs": [
+        {
+          "gloss": "BIG",
+          "start": 11.5,
+          "duration": 0.6
+        },
+        {
+          "gloss": "FS:VOLCANO",
+          "start": 12.1,
+          "duration": 1.4
+        },
+        {
+          "gloss": "WHERE",
+          "start": 13.5,
+          "duration": 0.7,
+          "nonManual": "question"
+        },
+        {
+          "gloss": "YOU",
+          "start": 14.2,
+          "duration": 0.45
+        },
+        {
+          "gloss": "KNOW",
+          "start": 14.65,
+          "duration": 0.6,
+          "nonManual": "question"
+        }
+      ]
+    },
+    {
+      "start": 15.8,
+      "end": 20.4,
+      "text": "It is in Hawaii, and it is called Mauna Loa.",
+      "signs": [
+        {
+          "gloss": "FS:HAWAII",
+          "start": 15.8,
+          "duration": 1.2
+        },
+        {
+          "gloss": "NAME",
+          "start": 17.0,
+          "duration": 0.5
+        },
+        {
+          "gloss": "FS:MAUNA",
+          "start": 17.5,
+          "duration": 1.0
+        },
+        {
+          "gloss": "FS:LOA",
+          "start": 18.5,
+          "duration": 0.6
+        }
+      ]
+    },
+    {
+      "start": 20.4,
+      "end": 25.0,
+      "text": "When a volcano erupts, the rock comes out as lava.",
+      "signs": [
+        {
+          "gloss": "FS:VOLCANO",
+          "start": 20.4,
+          "duration": 1.3
+        },
+        {
+          "gloss": "EXPLODE",
+          "start": 21.7,
+          "duration": 0.7
+        },
+        {
+          "gloss": "ROCK",
+          "start": 22.4,
+          "duration": 0.6
+        },
+        {
+          "gloss": "COME-OUT",
+          "start": 23.0,
+          "duration": 0.7
+        },
+        {
+          "gloss": "FS:LAVA",
+          "start": 23.7,
+          "duration": 0.8
+        }
+      ]
+    },
+    {
+      "start": 25.0,
+      "end": 29.6,
+      "text": "Lava is very, very hot. Please don't touch it!",
+      "signs": [
+        {
+          "gloss": "FS:LAVA",
+          "start": 25.0,
+          "duration": 0.8
+        },
+        {
+          "gloss": "VERY",
+          "start": 25.8,
+          "duration": 0.5,
+          "nonManual": "emphasis"
+        },
+        {
+          "gloss": "HOT",
+          "start": 26.3,
+          "duration": 0.6,
+          "nonManual": "emphasis"
+        },
+        {
+          "gloss": "TOUCH",
+          "start": 26.9,
+          "duration": 0.6
+        },
+        {
+          "gloss": "NOT",
+          "start": 27.5,
+          "duration": 0.5,
+          "nonManual": "negation"
+        }
+      ]
+    },
+    {
+      "start": 29.6,
+      "end": 34.1,
+      "text": "Some volcanoes sleep for a long time.",
+      "signs": [
+        {
+          "gloss": "SOME",
+          "start": 29.6,
+          "duration": 0.5
+        },
+        {
+          "gloss": "FS:VOLCANO",
+          "start": 30.1,
+          "duration": 1.3
+        },
+        {
+          "gloss": "SLEEP",
+          "start": 31.4,
+          "duration": 0.7
+        },
+        {
+          "gloss": "LONG",
+          "start": 32.1,
+          "duration": 0.6
+        },
+        {
+          "gloss": "TIME",
+          "start": 32.7,
+          "duration": 0.6
+        }
+      ]
+    },
+    {
+      "start": 34.1,
+      "end": 38.9,
+      "text": "Scientists watch them every day to keep people safe.",
+      "signs": [
+        {
+          "gloss": "SCIENTIST",
+          "start": 34.1,
+          "duration": 0.8
+        },
+        {
+          "gloss": "WATCH",
+          "start": 34.9,
+          "duration": 0.6
+        },
+        {
+          "gloss": "EVERY-DAY",
+          "start": 35.5,
+          "duration": 0.8
+        },
+        {
+          "gloss": "PEOPLE",
+          "start": 36.3,
+          "duration": 0.6
+        },
+        {
+          "gloss": "SAFE",
+          "start": 36.9,
+          "duration": 0.7
+        }
+      ]
+    },
+    {
+      "start": 38.9,
+      "end": 43.5,
+      "text": "They measure the ground and the smoke.",
+      "signs": [
+        {
+          "gloss": "THEY",
+          "start": 38.9,
+          "duration": 0.45
+        },
+        {
+          "gloss": "MEASURE",
+          "start": 39.35,
+          "duration": 0.7
+        },
+        {
+          "gloss": "GROUND",
+          "start": 40.05,
+          "duration": 0.6
+        },
+        {
+          "gloss": "SMOKE",
+          "start": 40.65,
+          "duration": 0.7
+        }
+      ]
+    },
+    {
+      "start": 43.5,
+      "end": 48.2,
+      "text": "If the ground moves, people must leave their homes.",
+      "signs": [
+        {
+          "gloss": "GROUND",
+          "start": 43.5,
+          "duration": 0.6
+        },
+        {
+          "gloss": "MOVE",
+          "start": 44.1,
+          "duration": 0.6
+        },
+        {
+          "gloss": "PEOPLE",
+          "start": 44.7,
+          "duration": 0.6
+        },
+        {
+          "gloss": "MUST",
+          "start": 45.3,
+          "duration": 0.5
+        },
+        {
+          "gloss": "LEAVE",
+          "start": 45.8,
+          "duration": 0.6
+        },
+        {
+          "gloss": "HOME",
+          "start": 46.4,
+          "duration": 0.6
+        }
+      ]
+    },
+    {
+      "start": 48.2,
+      "end": 53.0,
+      "text": "Volcanoes also make new land and good soil.",
+      "signs": [
+        {
+          "gloss": "FS:VOLCANO",
+          "start": 48.2,
+          "duration": 1.3
+        },
+        {
+          "gloss": "ALSO",
+          "start": 49.5,
+          "duration": 0.5
+        },
+        {
+          "gloss": "MAKE",
+          "start": 50.0,
+          "duration": 0.5
+        },
+        {
+          "gloss": "NEW",
+          "start": 50.5,
+          "duration": 0.5
+        },
+        {
+          "gloss": "LAND",
+          "start": 51.0,
+          "duration": 0.6
+        },
+        {
+          "gloss": "GOOD",
+          "start": 51.6,
+          "duration": 0.5
+        }
+      ]
+    },
+    {
+      "start": 53.0,
+      "end": 57.4,
+      "text": "What do you want to learn next?",
+      "signs": [
+        {
+          "gloss": "NEXT",
+          "start": 53.0,
+          "duration": 0.6
+        },
+        {
+          "gloss": "LEARN",
+          "start": 53.6,
+          "duration": 0.7
+        },
+        {
+          "gloss": "YOU",
+          "start": 54.3,
+          "duration": 0.45
+        },
+        {
+          "gloss": "WANT",
+          "start": 54.75,
+          "duration": 0.6
+        },
+        {
+          "gloss": "WHAT",
+          "start": 55.35,
+          "duration": 0.7,
+          "nonManual": "question"
+        }
+      ]
+    },
+    {
+      "start": 57.4,
+      "end": 60.0,
+      "text": "Thank you for watching. Bye!",
+      "signs": [
+        {
+          "gloss": "THANK-YOU",
+          "start": 57.4,
+          "duration": 0.8
+        },
+        {
+          "gloss": "WATCH",
+          "start": 58.2,
+          "duration": 0.6
+        },
+        {
+          "gloss": "BYE",
+          "start": 58.8,
+          "duration": 0.6
+        }
+      ]
+    }
+  ]
+}

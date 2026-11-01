@@ -164,6 +164,10 @@ importers:
         version: 7.0.2
 
   packages/shared:
+    dependencies:
+      zod:
+        specifier: ^4.6.7
+        version: 4.6.7
     devDependencies:
       '@repo/eslint-config':
         specifier: workspace:*

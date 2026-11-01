@@ -20,14 +20,15 @@ Bun runtime, Hono, `youtubei.js`, **`exa-js`** (sponsor), `zod`, `bun:sqlite` (o
 ## 1. Hour 0–1: Unblock everyone (top priority)
 
 - [x] Turborepo + pnpm monorepo: `apps/{api,extension,web}`, `packages/{player,sign-assets,shared,ui,typescript-config,eslint-config}`, strict TS, ESLint + Prettier, Bun for the API and tests, root scripts (`pnpm dev`, `pnpm build`, `pnpm test`, `pnpm pr-check`)
-- [ ] `packages/shared`: zod schemas + TS types from PLAN §4.1 (`SignTrack`, `Segment`, `Sign`, `SignLang`). Export the types with `z.infer` so they can't drift from the schemas
+- [x] `packages/shared`: zod schemas + TS types from PLAN §4.1 (`SignTrack`, `Segment`, `Sign`, `SignLang`). Export the types with `z.infer` so they can't drift from the schemas
 - [ ] `packages/shared`: a typed API client:
   ```ts
   createApiClient({ baseUrl })
     .getSignTrack(videoId, lang, { onProgress })  // polls every 2s until "ready" or "error"
     .getSigns(lang)                               // string[]
   ```
-- [ ] `mocks/sign-track.sample.json`: about 60s of a real video, written by hand, with real glosses (`HELLO`, `MY`, `NAME`, `FS:...`). Add a `MOCK=1` mode to the client that returns the mock, so Hasan and Poonam can build before the API exists
+- [x] `mocks/sign-track.sample.json`: about 60s of a real video, written by hand, with real glosses (`HELLO`, `MY`, `NAME`, `FS:...`). Add a `MOCK=1` mode to the client that returns the mock, so Hasan and Poonam can build before the API exists
+  - Done: zod schemas also cover `Caption`, `VideoContext` (+ JSON schema for Exa/Cerebras), `DiscoverResult`, `SignReference`, `Health` and error codes. The `MOCK=1` client mode comes with the API client PR
 - [ ] Stub for Durgesh: `apps/api/src/gloss/index.ts` with the `textToSigns` signature from PLAN §4.2 that returns dummy signs, so the API compiles from day one
 - [ ] **Sponsor keys (see PLAN §2.2):** activate your $5 Cerebras credit and create the **production** Cerebras key; make sure the account is on the **Developer tier** (1,000 requests/min) and not the free trial (5 requests/min). Create the **production** Exa key on the $100 credit. Put both in the team password manager and in the deploy's env variables only. Everyone else uses their own Cerebras dev key
 - [ ] Turn on usage alerts in both dashboards if they offer them; note spend in the team chat at each checkpoint
