@@ -42,3 +42,8 @@ bun.lock
 bun.lockb
 package-lock.json
 yarn.lock
+
+# API SQLite cache
+data/
+*.sqlite
+*.sqlite-*

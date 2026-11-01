@@ -33,7 +33,8 @@ Bun runtime, Hono, `youtubei.js`, **`exa-js`** (sponsor), `zod`, `bun:sqlite` (o
 - [ ] **Sponsor keys (see PLAN §2.2):** activate your $5 Cerebras credit and create the **production** Cerebras key; make sure the account is on the **Developer tier** (1,000 requests/min) and not the free trial (5 requests/min). Create the **production** Exa key on the $100 credit. Put both in the team password manager and in the deploy's env variables only. Everyone else uses their own Cerebras dev key
 - [ ] Turn on usage alerts in both dashboards if they offer them; note spend in the team chat at each checkpoint
 - [x] PR checks: separate Lint, Type check, Tests and Build jobs, plus a rule that source changes need test changes (`no-tests-needed` label to skip)
-- [ ] `.env.example` (`CEREBRAS_API_KEY`, `CEREBRAS_MODEL`, `EXA_API_KEY`, `DATABASE_URL`, `ALLOWED_ORIGINS`), a short README "how to run", and branch protection on `main`
+- [x] `.env.example` (`CEREBRAS_API_KEY`, `CEREBRAS_MODEL`, `EXA_API_KEY`, `DATABASE_URL`, `ALLOWED_ORIGINS`, plus `ADMIN_SECRET` and rate limits), zod-validated `src/env.ts`, and an API README "how to run"
+- [ ] Branch protection on `main` (requires all five PR checks)
 - [ ] Post in the team chat: "Contracts are ready, start building."
 
 ## 2. Hours 1–6: Transcript
