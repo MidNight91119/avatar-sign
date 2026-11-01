@@ -68,6 +68,7 @@ Bun runtime, Hono, `youtubei.js`, **`exa-js`** (sponsor), `zod`, `bun:sqlite` (o
   - Done in `apps/api/src/exa.ts` together with the Discover and sign-reference search logic. Exa returns `output.content` as an object or a JSON string; both are handled. Invalid output falls back to the highlights as `topic`. Caching by `videoId` comes with the cache PR
 - [x] Establish the five-video regression corpus and fetch captions for Durgesh
   - The user-selected official CS50 corpus is already fetched and attributed in `apps/api/src/gloss/word-priorities.json` (1,007 cues). Ayush still chooses presentation segments; see PLAN §10.
+  - Live check (2026-11-01): all 5 CS50 videos return sorted, non-overlapping captions from YouTube through `getTranscript` (61–301 cues each)
 
 ## 3. Hours 6–12: API
 
@@ -86,6 +87,7 @@ Bun runtime, Hono, `youtubei.js`, **`exa-js`** (sponsor), `zod`, `bun:sqlite` (o
   - Ready: `apps/api/Dockerfile` (build from the repo root, volume at `/data`) and deploy steps in the API README. Needs your hosting account and the production keys
 - [x] Swap the gloss stub for Durgesh's real module (hour 10) and test end-to-end on one demo video
   - Merged in PR #10; `services.ts` imports the real module. Historical real API/YouTube/Cerebras evidence is in `apps/api/src/gloss/live-results.json`; post-timing-fix full acceptance remains pending.
+  - Local end-to-end run (2026-11-01) on Linear Search (`TwsgCHYmbbA`) with real Cerebras + Exa keys: `ready`, 61 segments, 364 signs, cached reload 13ms, `/vtt` export works. 100% fingerspelled because `dictionary.json` has 0 signs (#20); total 22s (Exa hit the 4s cap, one Cerebras 429 retry)
 
 ## 4. Hours 12–18: Hardening
 
@@ -123,6 +125,7 @@ Bun runtime, Hono, `youtubei.js`, **`exa-js`** (sponsor), `zod`, `bun:sqlite` (o
 
 - Partial results (see §4)
 - `GET /api/sign-track/:videoId/vtt`: export the gloss as a subtitle track (useful for learners)
+  - Done: `?lang=ASL`, one cue per segment, fingerspelling shown as `fs-WORD`. It only serves existing tracks (404 `NOT_FOUND`, 409 `NOT_READY`), so it never starts a job or spends credits
 
 ## PR test cases
 
@@ -131,6 +134,7 @@ Every PR must pass these before review (tick them in the PR description). Also s
 - [x] `packages/shared`: zod schemas parse `mocks/sign-track.sample.json` without errors, and reject a track with a missing `segments` field
 - [ ] `getCaptions` returns sorted, non-overlapping `{start, end, text}` for 2 demo videos; a video with no captions gives the `NO_CAPTIONS` error, not a crash
   - Covered by tests with fixtures (sorted, non-overlapping, `NO_CAPTIONS`); historical real Linear Search/Loops API runs are recorded by Durgesh; rerun current deployed behavior before marking this acceptance case complete
+  - Live local run (2026-11-01): all 5 CS50 demo videos return sorted, non-overlapping captions; still needs the rerun on the deployed API
 - [x] `GET /api/sign-track` on a new video returns `processing` with a `progress` value, then `ready`; two requests at once for the same video start only **one** job
 - [x] A cached video returns in < 1s and makes **no** Cerebras or Exa call (check the logs)
 - [x] With `EXA_API_KEY` removed, glossing still finishes (context is `undefined`)

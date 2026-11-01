@@ -27,6 +27,7 @@ All responses are JSON and match the zod schemas in `@signstream/shared` (PLAN �
 | `GET` | `/api/health` | `{ ok, cerebras, exa }` | Whether each key is **set** (not a paid live check) |
 | `GET` | `/api/sign-track?videoId=&lang=ASL` | `SignTrack` | Cached → instant. New → starts one shared job and returns `processing` with `progress` and the segments done so far; poll every 2s. Errors: `NO_CAPTIONS`, `VIDEO_UNAVAILABLE`, `LIVE_NOT_SUPPORTED`, `VIDEO_TOO_LONG`, `GLOSS_FAILED`, `INTERNAL` |
 | `GET` | `/api/sign-track?...&refresh=1` | `SignTrack` | Rebuilds a cached track. Needs header `x-admin-secret` |
+| `GET` | `/api/sign-track/:videoId/vtt?lang=ASL` | `text/vtt` | The gloss as a subtitle track (fingerspelling shown as `fs-WORD`). Only for existing tracks: 404 `NOT_FOUND` if none, 409 `NOT_READY` while processing; never starts a job |
 | `POST` | `/api/captions/:videoId?lang=&title=` | `SignTrack` (202) | Manual `.vtt` upload (raw body or form field `file`) when YouTube blocks the server. Needs `x-admin-secret` |
 | `GET` | `/api/signs?lang=ASL` | `string[]` | Glosses in `packages/sign-assets/dictionary.json` (reloaded when it changes) |
 | `GET` | `/api/discover?q=` | `DiscoverResult[]` | Exa, YouTube `/watch` videos only; cached 1 hour; 503 `EXA_DISABLED` without a key |

@@ -15,7 +15,7 @@ import {
   type SignReference,
 } from "@signstream/shared";
 import { cacheKeys, type Cache } from "./cache";
-import { normalizeCaptions, parseVtt } from "./captions";
+import { normalizeCaptions, parseVtt, toVtt } from "./captions";
 import type { Env } from "./env";
 import type { JobManager } from "./jobs";
 import { createRateLimiter, type RateLimiter } from "./rate-limit";
@@ -94,6 +94,23 @@ export function createApp(services: AppServices) {
       found = jobs.lookup(videoId.data, lang.data, { refresh });
     }
     return c.json(SignTrackSchema.parse(found!.track));
+  });
+
+  // Gloss as a subtitle track for learners. Only serves tracks that already exist, so it never spends credits.
+  app.get("/api/sign-track/:videoId/vtt", (c) => {
+    const videoId = VideoIdSchema.safeParse(c.req.param("videoId"));
+    if (!videoId.success) return bad(c, videoId.error.issues[0]!.message);
+    const lang = SignLangSchema.safeParse(c.req.query("lang") ?? "ASL");
+    if (!lang.success) return bad(c, "lang must be ASL or ISL");
+    const track = jobs.lookup(videoId.data, lang.data, { allowStart: false })?.track;
+    if (!track || track.status === "error") {
+      return c.json({ error: "NOT_FOUND", message: "No sign track for this video yet; request /api/sign-track first" }, 404);
+    }
+    if (track.status !== "ready") return c.json({ error: "NOT_READY", message: "The sign track is still processing" }, 409);
+    return c.body(toVtt(track.segments), 200, {
+      "content-type": "text/vtt; charset=utf-8",
+      "content-disposition": `inline; filename="${videoId.data}.${lang.data.toLowerCase()}.vtt"`,
+    });
   });
 
   app.post("/api/captions/:videoId", async (c) => {
