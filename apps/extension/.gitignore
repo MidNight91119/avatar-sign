@@ -1,1 +1,4 @@
-signstream-extension.zip
+dist
+node_modules
+*.local
+.DS_Store

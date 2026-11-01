@@ -4,32 +4,31 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite build --watch --mode development",
+    "dev": "vite",
     "build": "vite build",
-    "zip": "vite build && cd dist && zip -qr ../signstream-extension.zip .",
-    "test": "bun test",
     "lint": "eslint . --max-warnings 0",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "test": "bun test"
   },
   "dependencies": {
+    "@fontsource-variable/inter": "5.3.0",
+    "@fontsource-variable/inter-tight": "5.3.0",
+    "@fontsource/instrument-serif": "5.3.0",
+    "@repo/ui": "workspace:*",
     "@signstream/player": "workspace:*",
     "@signstream/shared": "workspace:*",
     "react": "19.2.8",
-    "react-dom": "19.2.8",
-    "zod": "^4.6.7"
+    "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "3.0.0",
-    "@happy-dom/global-registrator": "21.0.4",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/bun": "^1.4.4",
     "@types/chrome": "0.3.7",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.5",
-    "@vitejs/plugin-react": "6.1.2",
     "eslint": "10.9.1",
-    "globals": "17.12.0",
     "typescript": "7.0.2",
     "vite": "8.3.5"
   }

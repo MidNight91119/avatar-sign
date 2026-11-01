@@ -1,0 +1,19 @@
+:root {
+  --font-inter: "Inter Variable";
+  --font-inter-tight: "Inter Tight Variable";
+  --font-instrument-serif: "Instrument Serif";
+  color-scheme: light;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  background: #f3f2f0;
+}
+
+/* The side panel is the whole page: square corners, edge to edge. */
+#root .ss-panel {
+  border-radius: 0;
+}
