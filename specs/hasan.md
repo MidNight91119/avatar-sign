@@ -41,7 +41,7 @@ A player that takes a `SignTrack` and the current video time and makes a 3D avat
 
 ### Handoffs
 - **Needs from Raashed:** the mock sign track (hour 1), and the `SignTrack` type from `packages/shared`.
-- **Needs from Durgesh:** a ranked word list of the top 100–200 words to animate (hour 2).
+- **Needs from Durgesh:** a ranked word list of the top 100–200 words to animate (hour 2), and the missing-signs report with **Exa** reference links (hour 12). Use the linked videos as references when you make new clips.
 - **Gives Poonam:** a working player package by **hour 6**, even if it only has a few signs. Tell Poonam about any API change right away.
 - **Gives Durgesh:** an up-to-date `dictionary.json` (commit it whenever you add clips).
 
@@ -63,8 +63,9 @@ A player that takes a `SignTrack` and the current video time and makes a 3D avat
 | Route | Content | Priority |
 |---|---|---|
 | `/watch` | Paste a YouTube URL → YouTube IFrame Player on the left, avatar on the right. Poll `player.getCurrentTime()` in `requestAnimationFrame` → `avatar.tick(t)`. Forward play, pause and rate events. Show a loading state with `progress` while the track is processing. Support share links: `/watch?v=<id>` | **P0: this is the backup demo** |
-| `/signs` | A grid of every gloss from `/api/signs` with a search box; click one → the avatar plays it with `playSign()`. Also useful for testing your own clips | P0 |
+| `/signs` | A grid of every gloss from `/api/signs` with a search box; click one → the avatar plays it with `playSign()`. If someone searches for a word we don't have, the avatar fingerspells it and the page shows "How to sign it" links from `/api/sign-reference` (**Exa**). Also useful for testing your own clips | P0 |
 | `/` | Landing page. **Built by Ayush** | P1 |
+| `/discover` | Find videos by topic (**Exa**). **Built by Ayush** | P1 |
 | `/extension` | Install steps. **Built by Ayush** | P1 |
 
 ### Tasks
@@ -74,7 +75,7 @@ A player that takes a `SignTrack` and the current video time and makes a 3D avat
 | B1 | Scaffold Next.js + Tailwind + shadcn, shared layout (header/footer, theme) and deploy an empty page to Vercel. Ayush starts on `/` after this | 2 |
 | B2 | `/watch` working with the mock track and the player | 8 |
 | B3 | `/watch` using the live API + loading and error states | 12 |
-| B4 | `/signs` page | 13 |
+| B4 | `/signs` page, including the Exa "How to sign it" links | 13 |
 | B5 | Review Ayush's `/` and `/extension` PRs; check the look matches across all pages | 17 |
 | B6 | Accessibility check: keyboard navigation, focus rings, contrast, alt text, `prefers-reduced-motion`. Judges will look at this on an accessibility project | 18 |
 

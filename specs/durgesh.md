@@ -42,7 +42,7 @@ caption segments
    │
    ├─▶ 1. Pre-clean: remove [Music], [Applause], speaker tags; fix auto-caption case; split long segments
    │
-   ├─▶ 2. LLM gloss (batched): segments → gloss tokens, using only words from the dictionary
+   ├─▶ 2. Cerebras LLM gloss (batched): segments + Exa context → gloss tokens, using only words from the dictionary
    │
    ├─▶ 3. Rule-based post-pass: uppercase; synonym map → dictionary keys; anything not in the dictionary → FS:WORD;
    │       numbers → FS digits; drop empty tokens
@@ -50,11 +50,14 @@ caption segments
    └─▶ 4. Timing: spread signs across [start, end] of each segment → Segment[]
 ```
 
-### Step 2: LLM details
-- Use `@anthropic-ai/sdk` with `claude-haiku-5-5` (fast and cheap). Switch to `claude-sonnet-5-5` if the quality is poor.
-- **Structured output:** force JSON through tool use / a JSON schema, then validate it with `zod`. On a validation failure, retry once, then fall back to a rule-only gloss (drop stopwords, keep word order).
+### Step 2: LLM details (Cerebras, our sponsor)
+- Use **Cerebras** through `@cerebras/cerebras_cloud_sdk` (the API is OpenAI-compatible). In the first hour, try 2 models from the Cerebras model list (for example `gpt-oss-120b` and `llama-3.3-70b`) on your 10 test sentences and pick the better one. Keep the model name in an env variable (`CEREBRAS_MODEL`).
+- **Use the speed:** Cerebras is fast enough to gloss a whole video in seconds. Log the time per video (tokens/second and total time). Ayush uses these numbers in the pitch.
+- **Exa context:** `opts.context` contains a short summary of the video's topic, people and terms (Raashed fetches it with Exa). Put it in the prompt as "Background about this video", and tell the model to use it to choose the right sign for words with several meanings and to spell names correctly. Glossing must still work when `context` is empty.
+- **Structured output:** use Cerebras structured outputs (`response_format: { type: "json_schema", ... }`), then validate with `zod`. On a validation failure, retry once, then fall back to a rule-only gloss (drop stopwords, keep word order).
 - **Batch** about 20 segments per call, keyed by segment index so results come back in the right order.
-- Put the **dictionary list in the system prompt** and tell the model to use only those words, or `FS:` for anything else. Prompt caching on the system prompt keeps this cheap.
+- Put the **dictionary list in the system prompt** and tell the model to use only those words, or `FS:` for anything else.
+- On a rate-limit error (HTTP 429), retry with exponential backoff (3 tries), then use the rule-only fallback for that batch.
 - Use `p-limit` for concurrency (about 4 calls in parallel) so long videos finish fast.
 
 ### Step 4: Timing algorithm
@@ -71,17 +74,20 @@ caption segments
 |---|---|---|
 | D1 | Research the grammar rules (table above); write the system prompt v1 | 1.5 |
 | D2 | **Top-200 word list** ranked by how often the words appear in the captions of our 5 demo videos + common everyday words → give it to Hasan | **2** |
-| D3 | `textToSigns()` with an LLM call + zod validation, tested with Vitest on 5 sentences | 5 |
+| D3 | `textToSigns()` with a Cerebras call + zod validation, tested with Vitest on 5 sentences; compare 2 Cerebras models | 5 |
 | D4 | Post-pass: synonym map (`synonyms.ts`, for example `LARGE/HUGE → BIG`, `PURCHASE → BUY`), FS fallback, number handling | 7 |
 | D5 | Timing algorithm + unit tests (signs never overlap; all signs stay inside their window ±0.5s) | 9 |
 | D6 | Hand the module to Raashed and test it end-to-end on a real video | 10 |
+| D6b | Use `opts.context` (Exa) in the prompt; add 5 eval sentences where context changes the right sign (homonyms, names) | 11 |
+| D6c | **Missing-signs report** `pnpm signs:missing`: the most-fingerspelled words in the demo videos, each with how-to-sign links from `/api/sign-reference` (Exa). Hasan uses it to pick what to animate next | 12 |
 | D7 | **Eval script** `pnpm eval:gloss`: 30 sentences with expected glosses + coverage report (% of tokens that are real signs rather than FS) | 13 |
 | D8 | Tune using the demo videos: add synonyms and tell Hasan which missing signs would help most | 13–18 |
 
 ## Handoffs
 - **Needs from Hasan:** `dictionary.json` (it grows during the event, so always read it at runtime).
 - **Needs from Raashed:** real caption output from the demo videos (hour ~4) for testing.
-- **Gives Hasan:** the ranked word list (hour 2), and later "the most common FS words in the demo videos" so Hasan knows what to animate next.
+- **Gives Hasan:** the ranked word list (hour 2), and later the missing-signs report with Exa reference links (hour 12) so Hasan knows what to animate next and has a video to copy from.
+- **Gives Ayush:** Cerebras speed numbers (time per video, tokens/second) for the pitch (hour 16).
 - **Gives Raashed:** the `textToSigns` module (hour 10).
 
 ## Stretch
@@ -92,7 +98,8 @@ caption segments
 ## Definition of done
 - [ ] `textToSigns` passes all its unit tests; the timing never produces overlapping signs
 - [ ] On the demo videos, **≥70% of the tokens are real signs** (not fingerspelled)
-- [ ] A 3-minute video is glossed in < 20s
+- [ ] A 3-minute video is glossed in **< 10s** on Cerebras
+- [ ] Exa context improves at least the homonym/name eval cases
 - [ ] The eval script runs and its results are pasted in the README
 
 ## Demo role

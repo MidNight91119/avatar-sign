@@ -61,6 +61,8 @@ manifest.json
 - Keyboard shortcut Alt+S (`commands` in the manifest)
 - Learner mode: show the gloss text under the avatar
 - Firefox build (the `webextension-polyfill`)
+- Popup "Find signed videos" search box that calls `/api/discover` (**Exa**) and opens the result on YouTube with SignStream on
+- While a new video is processing, show "Translating with Cerebras…" with the time taken, so the speed is visible
 
 ## Definition of done
 - [ ] Works on all 5 demo videos, and when you navigate between them without reloading
