@@ -47,10 +47,12 @@ side panel (React)                         content script (youtube.com)         
 - **Ads:** while `#movie_player` has `ad-showing`, the avatar doesn't tick (the `<video>` shows ad time) and both views say "Ad playing".
 - **Fullscreen:** the floating panel moves inside `document.fullscreenElement` and stays above YouTube's controls (also when the side panel is open, since Chrome hides it in fullscreen).
 - **Shorts** are skipped. **Live streams** show "not supported" without calling the API.
+- **Partial tracks:** while the API is still processing, each cumulative snapshot replaces the track and plays right away; a small "Preparing more signs…" note shows the progress.
+- **Buffering and robustness:** `waiting`/`stalled` freeze the avatar until `playing`; a hidden tab re-samples on return; a minimized panel stops rendering; a URL poll backs up `yt-navigate-finish`; a replaced `<video>` is followed.
 
 - **Data:** sign tracks are the shared `SignTrack` type and are fetched with the shared `createApiClient().getSignTrack` in the worker (`background/sign-track-source.ts`). Every message between the content script, side panel and worker is validated with zod (`src/messages.ts`); track requests carry a request id, and the client reconnects if the worker is suspended mid-request.
 
 ## Waiting on teammates
 
 - **`src/avatar/player.ts`** uses Hasan's `createAvatarPlayer` as soon as `@signstream/player` exports it, and owns the PLAN §4.4 `AvatarPlayer` type until that package exports it. Until then, a placeholder labelled "Placeholder" prints the current gloss as text.
-- **Sign assets:** the build copies `packages/sign-assets` to `sign-assets/` (not `assets/`, which Vite uses for its chunks), and the player gets `assetsBaseUrl: chrome.runtime.getURL("sign-assets/")`.
+- **Sign assets:** the build copies `packages/sign-assets` to `assets/` (Vite's own chunks go to `chunks/`), and the player gets `assetsBaseUrl: chrome.runtime.getURL("assets/")`.
