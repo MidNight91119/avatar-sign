@@ -66,8 +66,9 @@ Bun runtime, Hono, `youtubei.js`, **`exa-js`** (sponsor), `zod`, `bun:sqlite` (o
 
 - [ ] Endpoints from PLAN §4.3, with every response validated by the shared zod schema
 - [ ] CORS: `https://www.youtube.com`, `chrome-extension://<id>`, the Vercel domain, `localhost`
-- [ ] Job pipeline: a cache miss → status `processing` → `getCaptions` + `getVideoContext` (Exa) in parallel → `textToSigns` (Durgesh's module, on Cerebras) → store → `ready`. Update `progress` after each batch. An in-memory job map is fine. Two requests for the same `videoId` must share one job, not start two
-- [ ] Cache: key = `videoId:lang`, value = the `SignTrack` JSON. Add a `?refresh=1` admin flag (protected by a secret) to rebuild a track after Durgesh improves the prompt
+- [x] Job pipeline: a cache miss → status `processing` → `getCaptions` + `getVideoContext` (Exa) in parallel → `textToSigns` (Durgesh's module, on Cerebras) → store → `ready`. Update `progress` after each batch. An in-memory job map is fine. Two requests for the same `videoId` must share one job, not start two
+  - Done in `pipeline.ts` + `jobs.ts`. Change: Exa context starts once the transcript step has the video title (Exa needs it), so it runs after captions rather than in parallel; it is capped at 4s. Gloss runs in batches of 40 captions for progress. Error tracks are cached for 10 minutes; videos over `MAX_VIDEO_SECONDS` give `VIDEO_TOO_LONG`
+- [x] Cache: key = `videoId:lang`, value = the `SignTrack` JSON. Add a `?refresh=1` admin flag (protected by a secret) to rebuild a track after Durgesh improves the prompt
 - [ ] `/api/signs`: reads Hasan's `packages/sign-assets/dictionary.json`
 - [ ] **`/api/discover?q=`** (Exa): `exa.search(q, { type: "auto", includeDomains: ["youtube.com"], numResults: 10, contents: { highlights: true } })` → keep only `/watch?v=` URLs, pull the `videoId` → return `{ videoId, title, url, snippet, thumbnail }[]` (snippet = first highlight; thumbnail = `https://i.ytimg.com/vi/<id>/hqdefault.jpg`). Stretch: mark which results have captions. Cache by query for 1 hour
 - [ ] **`/api/sign-reference?word=`** (Exa): `exa.search("how to sign " + word + " in ASL", { type: "auto", includeDomains: ["handspeak.com", "lifeprint.com", "signingsavvy.com", "signasl.org"], numResults: 3, contents: { highlights: true } })` → `{ title, url, source, highlight }[]`. Cache forever
@@ -79,7 +80,7 @@ Bun runtime, Hono, `youtubei.js`, **`exa-js`** (sponsor), `zod`, `bun:sqlite` (o
 ## 4. Hours 12–18: Hardening
 
 - [ ] **Pre-warm the cache** for all 5 demo videos, and rebuild it after each change Durgesh makes to the prompt
-- [ ] Logging: one line per job (videoId, number of captions, number of signs, % fingerspelled, Exa time, **Cerebras time**, total time). Durgesh uses this for tuning
+- [x] Logging: one line per job (videoId, number of captions, number of signs, % fingerspelled, Exa time, **Cerebras time**, total time). Durgesh uses this for tuning
 - [ ] Stream partial results (stretch): mark the first N segments as ready so the avatar can start before the whole video is done
 - [ ] Help Ayush with integration bugs related to the API
 
