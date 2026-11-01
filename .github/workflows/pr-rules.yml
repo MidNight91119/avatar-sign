@@ -19,14 +19,22 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
-      - run: git fetch --no-tags origin main:refs/remotes/origin/main
+      - run: |
+          git fetch --no-tags origin main:refs/remotes/origin/main
+          git fetch --no-tags origin "$PR_BASE:refs/remotes/origin/$PR_BASE"
+        env:
+          PR_BASE: ${{ github.event.pull_request.base.ref }}
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      - uses: oven-sh/setup-bun@v2
+      - name: Test the PR rules script
+        run: bun test ./.github/scripts
       - name: Run PR rules
         run: node .github/scripts/pr-check.ts
         env:
           PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+          PR_BASE: ${{ github.event.pull_request.base.ref }}
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
           PR_LABELS: ${{ toJson(github.event.pull_request.labels.*.name) }}
           PR_BODY: ${{ github.event.pull_request.body }}
