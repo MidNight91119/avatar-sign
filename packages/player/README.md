@@ -50,7 +50,7 @@ bounce or wobble, near-critically damped springs, and orientation eased by quate
 
 - ASL only. `lang` is accepted but ISL tracks are signed with ASL handshapes. Digits are preserved one at a time with existing ONE–NINE poses; zero explicitly fingerspells Z-E-R-O because no native zero pose exists. Mixed identifiers retain their letter/digit order. This is literal digit playback, not a new compound-number grammar.
 - `assetsBaseUrl` is unused (no assets).
-- One avatar (Sara, light backdrop) is fixed in `src/index.ts` (`AVATAR`). The engine has three; choosing one needs a contract option.
+- Three avatars, `AVATARS` = Suki, Sara, Sasha. Pick one with `createAvatarPlayer(el, { avatar: 2 })`; the default is Sara. `avatar` is an optional addition to the PLAN §4.4 options, so hosts that don't pass it are unchanged.
 - `packages/sign-assets/dictionary.json` now registers exactly the engine's native inventory. Keys are uppercase with spaces replaced by hyphens (`THANK-YOU`, `ICE-CREAM`, `I-LOVE-YOU`). Values are `procedural:<engine sign>` identifiers, not downloaded clip files; `letters` has A–Z and 0–9 `procedural:FS:<character>` identifiers.
 - Regenerate after lexicon changes with `bun packages/player/src/sync-dictionary.ts` from the repo root. Tests check manifest equality and that every entry resolves to a finite playable pose. This makes no claim that every sign has been linguistically reviewed.
 

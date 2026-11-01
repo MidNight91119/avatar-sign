@@ -24,6 +24,7 @@ Keep this file up to date when you change the look, a component, or a page.
 | `@repo/ui/styles.css`      | All panel/wordmark styles, `ss-` prefixed. Import once per host                                             |
 | `@repo/ui/caption`         | `captionAt(track, t)`, `splitAtGloss(text, gloss)`, `trackErrorMessage(code)`, `SPEEDS`/`nextSpeed`           |
 | `@repo/ui/youtube`         | `parseVideoId(link)` (watch / youtu.be / embed links or a bare ID), `formatClock(seconds)`                    |
+| `@repo/ui/avatar-picker`   | `AvatarPicker` (Suki / Sara / Sasha, for `SignPanel`'s `headerAction`) and `useAvatar()`, which remembers the choice in localStorage |
 | `@repo/ui/use-sign-track`  | `useSignTrack(api, videoId, lang)`: track + progress + error, partial snapshots, cancels stale requests       |
 
 `SignPanel` is presentational: the host passes `mode` (`none` / `idle` / `signing`), texts, the caption at the
