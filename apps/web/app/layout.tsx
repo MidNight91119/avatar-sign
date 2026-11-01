@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Inter_Tight, Instrument_Serif } from "next/font/google";
-import Link from "next/link";
-import { Wordmark } from "@repo/ui/sign-panel";
+import { SiteFooter } from "../components/site/site-footer";
+import { SiteNav } from "../components/site/site-nav";
 import "@repo/ui/styles.css";
 import "./globals.css";
 
@@ -27,29 +27,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           Skip to content
         </a>
         <div className="frame">
-          <nav aria-label="Main" className="site-nav">
-            <div className="site-nav-pill">
-              <Link href="/" className="site-nav-brand" aria-label="signside home">
-                <span className="site-nav-mark">
-                  {/* eslint-disable-next-line @next/next/no-img-element -- tiny static logo */}
-                  <img src="/brand/hand.png" alt="" width={24} height={24} />
-                </span>
-                <Wordmark />
-              </Link>
-              <Link href="/#why">Why signing</Link>
-              <Link href="/signs">Signs</Link>
-              <Link href="/watch" className="site-nav-cta">
-                Try it
-              </Link>
-            </div>
-          </nav>
+          <SiteNav />
           <div id="main">{children}</div>
-          <footer className="site-footer">
-            <Wordmark className="site-footer-mark" />
-            <span>
-              Sign language beside every video. Glossing by Cerebras, video context and sign references by Exa.
-            </span>
-          </footer>
+          <SiteFooter />
         </div>
       </body>
     </html>

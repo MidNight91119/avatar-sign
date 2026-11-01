@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
-import { SIGN_LANGS, type SignLang, type SignReference } from "@signstream/shared";
+import { useState, type FormEvent } from "react";
+import type { SignReference } from "@signstream/shared";
+import { knownSigns, unitsFor } from "@signstream/player";
+import { AvatarCanvas } from "@repo/ui/avatar-canvas";
 import { SignPanel } from "@repo/ui/sign-panel";
 import { api, apiUrl } from "../../lib/api";
 
@@ -11,33 +13,29 @@ interface Refs {
   error?: boolean;
 }
 
+/** Every word the avatar signs (ASL). Anything else is fingerspelled. */
+const SIGNS = knownSigns();
+
+/** /signs: browse and search the avatar's signs; unknown words are fingerspelled, with Exa "how to sign it" links. */
 export function SignsView() {
-  const [lang, setLang] = useState<SignLang>("ASL");
-  const [signs, setSigns] = useState<{ lang: SignLang; list?: string[]; error?: boolean }>();
   const [query, setQuery] = useState("");
-  const [selected, setSelected] = useState<{ gloss: string; at: number }>();
+  const [selected, setSelected] = useState<{ gloss: string; key: number }>();
   const [refs, setRefs] = useState<Refs>();
 
-  useEffect(() => {
-    const ctrl = new AbortController();
-    api.getSigns(lang, ctrl.signal).then(
-      (list) => setSigns({ lang, list }),
-      () => !ctrl.signal.aborted && setSigns({ lang, error: true }),
-    );
-    return () => ctrl.abort();
-  }, [lang]);
-
-  const list = signs?.lang === lang ? signs.list : undefined;
   const q = query.trim().toUpperCase();
-  const shown = list?.filter((g) => g.includes(q));
-  const play = (gloss: string) => setSelected({ gloss, at: Date.now() });
+  const shown = SIGNS.filter((g) => g.includes(q));
+  const play = (gloss: string) => setSelected({ gloss, key: Date.now() });
 
   // References only on submit, never per keystroke: each lookup can cost an Exa call.
   function onSearch(e: FormEvent) {
     e.preventDefault();
-    const word = q.replace(/[^A-Z0-9'-]/g, "");
+    const word = q.replace(/[^A-Z' -]/g, "").trim();
     if (!word) return;
-    if (list?.includes(word)) return play(word);
+    const units = unitsFor(word);
+    if (units.length && units.every((u) => "sign" in u)) {
+      setRefs(undefined);
+      return play(word);
+    }
     play(`FS:${word}`);
     setRefs({ word });
     api.signReference(word.toLowerCase()).then(
@@ -63,7 +61,7 @@ export function SignsView() {
             onChange={(e) => setQuery(e.target.value)}
             autoComplete="off"
           />
-          <button type="submit">Find</button>
+          <button type="submit">Sign it</button>
         </form>
 
         {refs ? (
@@ -94,49 +92,38 @@ export function SignsView() {
           </section>
         ) : null}
 
-        {signs?.error && signs.lang === lang ? (
-          <p role="alert">Couldn&apos;t load the sign list. Check your connection and reload.</p>
-        ) : !shown ? (
-          <p>Loading signs…</p>
-        ) : list!.length === 0 ? (
-          <p>No {lang} signs yet: everything is fingerspelled for now.</p>
-        ) : (
-          <>
-            <p className="signs-count" aria-live="polite">
-              {shown.length} of {list!.length} signs{apiUrl ? "" : " (demo list)"}
-            </p>
-            <ul className="sign-grid">
-              {shown.map((g) => (
-                <li key={g}>
-                  <button type="button" aria-pressed={selected?.gloss === g} onClick={() => play(g)}>
-                    {g}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
+        <p className="signs-count" aria-live="polite">
+          {shown.length} of {SIGNS.length} signs
+        </p>
+        <ul className="sign-grid">
+          {shown.map((g) => (
+            <li key={g}>
+              <button type="button" aria-pressed={selected?.gloss === g} onClick={() => play(g)}>
+                {g}
+              </button>
+            </li>
+          ))}
+        </ul>
       </div>
 
       <div className="signs-panel">
         <SignPanel
           mode={selected ? "signing" : "idle"}
+          avatar={<AvatarCanvas sign={selected} />}
           logoSrc="/brand/hand.png"
-          langs={SIGN_LANGS}
-          lang={lang}
-          onLang={(l) => setLang(l as SignLang)}
+          langs={["ASL"]}
+          lang="ASL"
           head="Pick a sign."
-          sub="Click any sign to see it, or search for a word."
-          sourceLabel={`${lang} sign library`}
-          sourceDetail={list ? `${list.length} signs + fingerspelling` : "Loading…"}
+          sub="Click any sign to see it, or type a word and press Sign it."
+          sourceLabel="ASL sign library"
+          sourceDetail={`${SIGNS.length} signs + A–Z fingerspelling`}
           caption={
             selected
-              ? { text: fs ? `Fingerspelled: ${fs}` : selected.gloss, gloss: selected.gloss, signStart: selected.at, progress: 1 }
+              ? { text: fs ? `Fingerspelled: ${fs}` : selected.gloss, gloss: selected.gloss, signStart: selected.key, progress: 1 }
               : undefined
           }
-          onToggle={selected ? () => setSelected(undefined) : list?.[0] ? () => play(list[0]!) : undefined}
+          onToggle={selected ? () => setSelected(undefined) : () => play("HELLO")}
         />
-        <p className="signs-panel-note">Preview avatar: the 3D signer replaces it once the first clips land.</p>
       </div>
     </div>
   );
