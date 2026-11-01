@@ -30,6 +30,8 @@ Each range covers whole caption sentences, from the start of the first quoted li
 - Linear Search: 26% of 255 words
 - Binary Search: 23% of 261 words
 
+How words are counted: join the text of every caption from the first quoted line to the last, lowercase it, and take each match of `/[a-z']+/g` as a word (digits and punctuation are dropped). A different tokenizer gives slightly different numbers (Raashed's recount in #23 got about 32% / 25% / 24%), but Loops stays highest either way.
+
 Expect a lot of fingerspelling until Hasan's clip library grows.
 
 ## Stage video and speed benchmarks
