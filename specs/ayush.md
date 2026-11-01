@@ -80,6 +80,16 @@ Hasan sets up the app, shared layout and theme by hour 2. You build these pages 
 - **Needs from Durgesh:** Cerebras speed numbers (hour 16).
 - **Needs from everyone:** their slide content by hour 19.
 
+## PR test cases
+Every PR must pass these before review (tick them in the PR description). Also see the PR rules in PLAN §9.
+
+- [ ] `/`, `/extension` and `/discover` pass a Lighthouse accessibility check with ≥ 90, and work with the keyboard only
+- [ ] All pages look right at phone width (375px) and desktop, in light and dark mode
+- [ ] `/discover`: a search shows results; clicking one opens `/watch?v=<id>`; an empty result and an API error show friendly messages
+- [ ] The `.zip` download link and every link on the landing page work (no 404s)
+- [ ] Open Graph preview looks right (test with a link preview tool)
+- [ ] For integration PRs: the full demo flow on all 5 demo videos, with results in the PR description
+
 ## Definition of done
 - [ ] `/`, `/extension` and `/discover` are live and match the rest of the site
 - [ ] The demo shows both sponsors live: Exa search on `/discover` and Cerebras speed on a new video

@@ -86,6 +86,18 @@ A player that takes a `SignTrack` and the current video time and makes a 3D avat
 
 ---
 
+## PR test cases
+Every PR must pass these before review (tick them in the PR description). Also see the PR rules in PLAN §9.
+
+- [ ] Player: `load` + `tick` with the mock track plays the right sign at 3 different times (unit test on the scheduling logic)
+- [ ] Seeking forward and backward jumps to the right sign; no stuck pose
+- [ ] `FS:BOB` fingerspells B-O-B; an unknown gloss falls back to fingerspelling, not an error
+- [ ] `destroy()` frees WebGL resources: mount/destroy 10 times with no growing memory in DevTools
+- [ ] Runs at ≥ 30 fps in a 300×400 panel on a normal laptop; the 2D fallback renders the same track
+- [ ] Every clip listed in `dictionary.json` exists and loads (test that checks the files)
+- [ ] Website `/watch`: plays, pauses, seeks and changes speed in sync; shows loading and error states; works at phone width
+- [ ] `/signs`: search works; a missing word shows Exa "How to sign it" links; keyboard navigation works
+
 ## Definition of done
 - [ ] The player package is used by both the extension and `/watch`, without changes between them
 - [ ] The avatar plays at least 100 signs + A–Z fingerspelling, crossfades smoothly, and handles seeking

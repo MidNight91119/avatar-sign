@@ -112,6 +112,18 @@ caption segments
 - ISL grammar (SOV order, different question rules) behind `lang: "ISL"`
 - A "learner mode" that also returns the gloss text for display under the avatar
 
+## PR test cases
+Every PR must pass these before review (tick them in the PR description). Also see the PR rules in PLAN §9.
+
+- [ ] `pnpm eval:gloss` runs; coverage (real signs, not fingerspelling) did not drop compared with main; paste the before/after numbers in the PR
+- [ ] Every sign in the output is in `dictionary.json` or starts with `FS:`
+- [ ] Timing: no two signs overlap, and every sign stays inside its caption window ±0.5s (unit tests)
+- [ ] An empty caption, a `[Music]`-only caption and a 40-word caption all work without errors
+- [ ] With `context` set to `undefined`, output is still valid; with context, the homonym/name eval cases pass
+- [ ] Invalid JSON from Cerebras → one retry, then the rule-only fallback (test with a mocked client)
+- [ ] An HTTP 429 from Cerebras → backoff and retry (test with a mocked client)
+- [ ] Unit tests don't call the real Cerebras API (they use a mock), so CI never spends credits
+
 ## Definition of done
 - [ ] `textToSigns` passes all its unit tests; the timing never produces overlapping signs
 - [ ] On the demo videos, **≥70% of the tokens are real signs** (not fingerspelled)

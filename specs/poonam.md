@@ -64,6 +64,18 @@ manifest.json
 - Popup "Find signed videos" search box that calls `/api/discover` (**Exa**) and opens the result on YouTube with SignStream on
 - While a new video is processing, show "Translating with Cerebras…" with the time taken, so the speed is visible
 
+## PR test cases
+Every PR must pass these before review (tick them in the PR description). Also see the PR rules in PLAN §9.
+
+- [ ] Load unpacked on a clean Chrome profile: no errors on the extensions page or the YouTube console
+- [ ] Open 5 videos in a row **without reloading**: the panel remounts for each, and the right track loads each time
+- [ ] Pause, seek forward/back, 0.5× and 2× speed: the avatar follows within ~0.5s
+- [ ] Fullscreen and theater mode: the panel stays visible; the drag position is kept after reload
+- [ ] An ad plays: the panel hides or pauses and the avatar doesn't move
+- [ ] A video with no captions shows the error message; Shorts and live streams don't break the page
+- [ ] After 10 navigations, there is only one panel and no duplicate event listeners (check with DevTools)
+- [ ] The popup settings save and apply without reloading the page
+
 ## Definition of done
 - [ ] Works on all 5 demo videos, and when you navigate between them without reloading
 - [ ] The avatar stays within ~0.5s of the speech through pause, seek, 0.5×–2× speed and fullscreen

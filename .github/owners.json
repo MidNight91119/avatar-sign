@@ -1,0 +1,69 @@
+{
+  "$comment": "Who owns which files. Used by .github/scripts/pr-check.ts. Fill in each person's GitHub username. Patterns: ** = any depth, * = one path segment, a leading ! excludes.",
+  "sharedPaths": ["pnpm-lock.yaml"],
+  "teamPaths": ["PLAN.md", "specs/**", "AGENTS.md", "CLAUDE.md"],
+  "owners": {
+    "raashed": {
+      "github": "rshdhere",
+      "spec": "specs/raashed.md",
+      "paths": [
+        "apps/api/**",
+        "!apps/api/src/gloss/**",
+        "packages/shared/**",
+        "mocks/**",
+        "package.json",
+        "pnpm-workspace.yaml",
+        "tsconfig.base.json",
+        "biome.json",
+        "vitest.workspace.ts",
+        ".env.example",
+        "README.md",
+        ".gitignore",
+        ".gitattributes",
+        ".github/**",
+        ".agents/**",
+        ".claude/**",
+        ".codex/**",
+        "skills-lock.json"
+      ]
+    },
+    "durgesh": {
+      "github": "",
+      "spec": "specs/durgesh.md",
+      "paths": ["apps/api/src/gloss/**"]
+    },
+    "hasan": {
+      "github": "",
+      "spec": "specs/hasan.md",
+      "paths": [
+        "packages/player/**",
+        "packages/sign-assets/**",
+        "apps/web/**",
+        "!apps/web/app/page.tsx",
+        "!apps/web/app/extension/**",
+        "!apps/web/app/discover/**",
+        "!apps/web/components/landing/**",
+        "!apps/web/components/discover/**",
+        "!apps/web/public/landing/**"
+      ]
+    },
+    "poonam": {
+      "github": "",
+      "spec": "specs/poonam.md",
+      "paths": ["apps/extension/**"]
+    },
+    "ayush": {
+      "github": "",
+      "spec": "specs/ayush.md",
+      "paths": [
+        "apps/web/app/page.tsx",
+        "apps/web/app/extension/**",
+        "apps/web/app/discover/**",
+        "apps/web/components/landing/**",
+        "apps/web/components/discover/**",
+        "apps/web/public/landing/**",
+        "docs/pitch/**"
+      ]
+    }
+  }
+}

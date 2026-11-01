@@ -100,6 +100,17 @@ Node.js 20+, Hono (`@hono/node-server`), `youtubei.js`, **`exa-js`** (sponsor), 
 - Partial results (see §4)
 - `GET /api/sign-track/:videoId/vtt`: export the gloss as a subtitle track (useful for learners)
 
+## PR test cases
+Every PR must pass these before review (tick them in the PR description). Also see the PR rules in PLAN §9.
+
+- [ ] `packages/shared`: zod schemas parse `mocks/sign-track.sample.json` without errors, and reject a track with a missing `segments` field
+- [ ] `getCaptions` returns sorted, non-overlapping `{start, end, text}` for 2 demo videos; a video with no captions gives the `NO_CAPTIONS` error, not a crash
+- [ ] `GET /api/sign-track` on a new video returns `processing` with a `progress` value, then `ready`; two requests at once for the same video start only **one** job
+- [ ] A cached video returns in < 1s and makes **no** Cerebras or Exa call (check the logs)
+- [ ] With `EXA_API_KEY` removed, glossing still finishes (context is `undefined`)
+- [ ] `/api/discover` returns only YouTube `/watch` results; `/api/sign-reference` returns results only from the allowed sites
+- [ ] The rate limit returns HTTP 429 after the limit; no API key appears in any response or log
+
 ## Definition of done
 - [ ] Everyone was building against your contracts by hour 1
 - [ ] The API is deployed; cached demo videos load in < 1s; a new 3-minute video finishes in < 15s (Exa + Cerebras)

@@ -334,7 +334,23 @@ avatar/
 
 ## 9. Working agreements
 
-- **Branches:** `raashed/api`, `hasan/player`, `hasan/web`, `durgesh/gloss`, `poonam/extension`, `ayush/web-pages` → PR into `main`; one other person does a quick review (≤10 min)
+- **Branches:** always `<your-name>/<topic>`, for example `raashed/api`, `hasan/player`, `durgesh/gloss`, `poonam/extension`, `ayush/web-pages` → PR into `main`; one other person does a quick review (≤10 min)
+
+### PR rules (checked automatically on every PR)
+
+Every PR runs `.github/workflows/pr-checks.yml`. A PR can't be merged until it passes:
+
+| Rule | What it means | How to fix it |
+|---|---|---|
+| **Tests pass** | `pnpm lint`, `pnpm typecheck` and `pnpm test` pass, and you ran the **"PR test cases"** in your spec | Fix the failing tests; tick the test cases in the PR description |
+| **Up to date with main** | Your branch contains the latest `main`, so you built against the current plan and specs | `git fetch origin && git rebase origin/main`, then re-read PLAN.md and your spec |
+| **Your spec is updated** | If you changed code, you also updated `specs/<you>.md` (ticked finished tasks, noted changes) | Edit your spec, or add the `no-spec-change` label if it really isn't needed |
+| **Your own work only** | The branch is `<you>/…`, you opened the PR, and you only changed files in your area (`.github/owners.json`). This applies to AI-made changes too | Ask the owner to make the change, or add the `cross-team` label and get their review |
+| **No AI attribution** | No `Co-authored-by: Claude/Codex/...`, "Generated with ...", or 🤖 in commits or the PR | Reword the commits |
+
+- Run the same check locally before you push: `node .github/scripts/pr-check.ts`
+- AI coding agents get these rules from `AGENTS.md` (Codex, Cursor, others) and `CLAUDE.md` (Claude Code)
+- Fill in `.github/pull_request_template.md`, including which AI tool you used
 - Contracts in §4 are **frozen after hour 1** unless the whole team agrees
 - **Never wait on someone:** use the mock and keep building
 - **Update the team chat every 3 hours:** done / doing / blocked

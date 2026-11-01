@@ -1,0 +1,60 @@
+name: PR checks
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, edited, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-checks-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  rules:
+    name: PR rules (owner, up to date, spec, no AI attribution)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - run: git fetch --no-tags origin main:refs/remotes/origin/main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Run PR rules
+        run: node .github/scripts/pr-check.ts
+        env:
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_LABELS: ${{ toJson(github.event.pull_request.labels.*.name) }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+
+  tests:
+    name: Lint, typecheck and tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check whether the monorepo exists yet
+        id: repo
+        run: |
+          if [ -f package.json ]; then echo "ready=true" >> "$GITHUB_OUTPUT"; else echo "ready=false" >> "$GITHUB_OUTPUT"; echo "No package.json yet; skipping tests."; fi
+      - uses: pnpm/action-setup@v4
+        if: steps.repo.outputs.ready == 'true'
+      - uses: actions/setup-node@v4
+        if: steps.repo.outputs.ready == 'true'
+        with:
+          node-version: 24
+          cache: pnpm
+      - if: steps.repo.outputs.ready == 'true'
+        run: pnpm install --frozen-lockfile
+      - if: steps.repo.outputs.ready == 'true'
+        run: pnpm -r --if-present lint
+      - if: steps.repo.outputs.ready == 'true'
+        run: pnpm -r --if-present typecheck
+      - if: steps.repo.outputs.ready == 'true'
+        run: pnpm -r --if-present test
