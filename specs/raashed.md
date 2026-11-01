@@ -29,7 +29,8 @@ Node.js 20+, Hono (`@hono/node-server`), `youtubei.js`, **`exa-js`** (sponsor), 
   ```
 - [ ] `mocks/sign-track.sample.json`: about 60s of a real video, written by hand, with real glosses (`HELLO`, `MY`, `NAME`, `FS:...`). Add a `MOCK=1` mode to the client that returns the mock, so Hasan and Poonam can build before the API exists
 - [ ] Stub for Durgesh: `apps/api/src/gloss/index.ts` with the `textToSigns` signature from PLAN §4.2 that returns dummy signs, so the API compiles from day one
-- [ ] Get the **Cerebras** key (free trial at https://cloud.cerebras.ai) and the **Exa** key (https://dashboard.exa.ai); ask both sponsor booths about hackathon credits; share the keys in the team password manager. Check the free-tier rate limits of both and note them in the README
+- [ ] **Sponsor keys (see PLAN §2.2):** activate your $5 Cerebras credit and create the **production** Cerebras key; make sure the account is on the **Developer tier** (1,000 requests/min) and not the free trial (5 requests/min). Create the **production** Exa key on the $100 credit. Put both in the team password manager and in the deploy's env variables only. Everyone else uses their own Cerebras dev key
+- [ ] Turn on usage alerts in both dashboards if they offer them; note spend in the team chat at each checkpoint
 - [ ] `.env.example` (`CEREBRAS_API_KEY`, `CEREBRAS_MODEL`, `EXA_API_KEY`, `DATABASE_URL`, `ALLOWED_ORIGINS`), a short README "how to run", and branch protection on `main`
 - [ ] Post in the team chat: "Contracts are ready, start building."
 
@@ -81,6 +82,7 @@ Node.js 20+, Hono (`@hono/node-server`), `youtubei.js`, **`exa-js`** (sponsor), 
 
 - [ ] Set up the API **locally on the demo laptop** with the cache pre-loaded (the offline backup)
 - [ ] Pre-run the `/discover` queries Ayush will use in the demo, so they come from the cache
+- [ ] Pre-fetch `/api/sign-reference` for the 500 most common English words (~$5 of Exa credit) so `/signs` loads instantly
 - [ ] Export the cached tracks as a JSON file in `mocks/demo-cache/` so they can be loaded with no network
 - [ ] API section of the README: endpoints, env variables, how to run
 

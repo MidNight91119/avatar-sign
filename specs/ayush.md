@@ -69,7 +69,7 @@ Hasan sets up the app, shared layout and theme by hour 2. You build these pages 
 - [ ] Demo laptop: extension installed (from Poonam), local API + cache running (from Raashed), demo videos open in tabs, ads turned off (YouTube Premium or an ad-free account), notifications muted
 - [ ] If the extension fails → use the website `/watch` page. If the network fails → play the recording
 - [ ] Lead **2 full rehearsals** with a timer
-- [ ] Prepare answers for likely judge questions: accuracy, how big the dictionary is, ASL vs ISL, involving the Deaf community, cost per video, why Cerebras and Exa (speed; grounding in real web data)
+- [ ] Prepare answers for likely judge questions: accuracy, how big the dictionary is, ASL vs ISL, involving the Deaf community, cost per video (about **2 cents** per new video: ~$0.006 Cerebras + ~$0.012 Exa; see PLAN §2.2), why Cerebras and Exa (speed; grounding in real web data)
 
 ## Handoffs
 - **Gives Raashed:** the 5 demo videos (hour 3).

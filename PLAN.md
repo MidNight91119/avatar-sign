@@ -106,7 +106,41 @@ Both sponsors are part of the core product, not add-ons. Judges should see them 
 - **`outputSchema`:** search can return structured JSON that matches a schema, with citations. We use this for video context
 - **Answer:** `exa.answer(question)` / `exa.streamAnswer(question)`: a direct answer with sources (stretch: "Ask about this video" on `/watch`)
 - **Exa MCP server** (https://exa.ai/mcp): team members can connect it to their coding agents to search docs during the hackathon
-- Free API usage to start from https://dashboard.exa.ai; ask the Exa booth about hackathon credits
+- Keys and usage from https://dashboard.exa.ai
+
+### 2.2 Sponsor credits and budget
+
+**What we get:** **$5 of Cerebras credit per person** (5 × $5 = **$25**) and **$100 of Exa credit**. Prices below are from exa.ai/pricing and inference-docs.cerebras.ai (checked 2026-11-01). The Cerebras per-token price isn't on its pricing page; the $0.35 / $0.75 per million tokens figure for `gpt-oss-120b` comes from price trackers.
+
+| Call | What it costs | Cost per call |
+|---|---|---|
+| Cerebras gloss for a 3-min video (~2 calls, ~5k input + ~5k output tokens including reasoning) | $0.35/M input, $0.75/M output | **≈ $0.006** |
+| Exa video context: `search` auto, 5 results + highlights | $7 per 1k searches + $1 per 1k pages | **≈ $0.012** |
+| Exa `/discover`: 10 results + highlights | | ≈ $0.017 |
+| Exa `/sign-reference`: 3 results + highlights | | ≈ $0.010 |
+| Exa `answer` (stretch) | $5 per 1k | $0.005 |
+| **One new video end to end** | | **≈ $0.02** |
+
+**What the credits cover:** $25 of Cerebras is about **4,000 videos**, and $100 of Exa is about **5,000–8,000 calls**. Cost is not the constraint. **Rate limits are.**
+
+**Cerebras rate limits (the real constraint):**
+
+| Tier | `gpt-oss-120b` | `qwen-3.8-27b` |
+|---|---|---|
+| Free trial | **5 requests/min**, 30k uncached tokens/min, **1M tokens/day** | same |
+| Developer (pay as you go) | 1,000 requests/min, 1M uncached tokens/min, no daily limit | 300 requests/min, 150k uncached tokens/min |
+
+- Cerebras gives the $5 credit when you add a payment method, and it **expires 30 days after activation**. Activate it at kickoff, not before the event.
+- Five requests a minute is too few for the deployed API: one new video plus a judge trying a second one would hit the limit. **The production API key must be on the Developer tier**, using Raashed's account. Raashed should check at kickoff that the account moved to the Developer tier after adding the card and credit.
+- If the production key stays on the free trial, use larger batches (~60 segments per call, which fits a 3-min video in one call) and no parallel calls.
+
+**Budget rules:**
+1. **Separate keys:** one **production** Cerebras + Exa key, used only by the deployed API (Raashed). Each person uses **their own** $5 Cerebras key for local development. Store the Exa production key in the team password manager; for local work, use the Exa free tier ($10 a month per account) when possible.
+2. **Cache everything:** sign tracks, video context, discover queries and sign references. A cached request never calls a sponsor API.
+3. **Guard the public API:** per-IP rate limit, maximum video length 15 min, `/discover` limited to 30 searches per IP per hour.
+4. **Run evals locally** on your own key, never against production.
+5. **Check spend at every checkpoint** (hours 6, 12, 18) in both dashboards. If spend is above the plan, look for missing cache hits.
+6. **Use the spare Exa credit well:** pre-fetch sign references for the 500 most common English words (~$5) so the `/signs` page loads instantly.
 
 ---
 
@@ -257,7 +291,7 @@ avatar/
 
 | Hour | Milestone |
 |---|---|
-| **0–1** | Kickoff. Raashed sets up the monorepo + `packages/shared` + the mock. Everyone reads §4. |
+| **0–1** | Kickoff. Raashed sets up the monorepo + `packages/shared` + the mock. **Everyone activates their $5 Cerebras credit and makes a dev key; Raashed sets up the production Cerebras (Developer tier) and Exa keys.** Everyone reads §4. |
 | **1–6** | Everyone builds against the mock. |
 | **6** | **Checkpoint 1 (15 min):** each person shows their piece working on its own. |
 | **6–12** | Real data: live API, real clips, extension and website use the API. |
@@ -291,7 +325,8 @@ avatar/
 | Small dictionary → too much fingerspelling | Synonym mapping; choose demo videos with simple words | Durgesh |
 | YouTube captions are blocked or rate-limited | Pre-cache the demo videos; upload a manual `.vtt` | Raashed |
 | The extension breaks during the demo | Demo on the website `/watch` page instead | Ayush |
-| Cerebras rate limit or outage | Retry with backoff; fall back to rule-only gloss; demo videos are already cached | Durgesh |
+| Cerebras rate limit (free trial: 5 requests/min, 1M tokens/day) or outage | Production key on the Developer tier; retry with backoff; switch to `qwen-3.8-27b`; fall back to rule-only gloss; demo videos are already cached | Durgesh + Raashed |
+| A teammate's $5 Cerebras credit runs out | Unlikely (~800 videos each); that person borrows another teammate's dev key | Raashed |
 | Exa quota or slow response | Cache every Exa result; context is optional, so glossing continues without it; pre-run the `/discover` queries used in the demo | Raashed |
 | Venue Wi-Fi fails | Backup screen recording; run the API locally (Raashed sets it up on the demo laptop) | Ayush |
 

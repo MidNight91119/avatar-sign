@@ -71,10 +71,11 @@ caption segments
   });
   ```
   Strict mode needs `additionalProperties: false` on **every** object in the schema. On a validation failure, retry once, then fall back to a rule-only gloss (drop stopwords, keep word order).
-- **Batch** about 20 segments per call, keyed by segment index so results come back in the right order.
+- **Batch** about 20 segments per call, keyed by segment index so results come back in the right order. Make the batch size a setting: on the Cerebras free trial (5 requests/min), use ~60 segments per call so a 3-min video needs only one call.
+- **Budget:** your own $5 Cerebras key is for development and evals (about 800 videos' worth, so plenty). Never point evals at the production key. Log the token count per call so Raashed can track spend.
 - Put the **dictionary list in the system prompt** and tell the model to use only those words, or `FS:` for anything else.
 - On a rate-limit error (HTTP 429), retry with exponential backoff (3 tries), then use the rule-only fallback for that batch.
-- Use `p-limit` for concurrency (about 4 calls in parallel) so long videos finish fast.
+- Use `p-limit` for concurrency (about 4 calls in parallel on the Developer tier, 1 on the free trial) so long videos finish fast.
 
 ### Step 4: Timing algorithm
 - Weight of each sign: normal sign = 1.0; `FS:WORD` = 0.35 × number of letters; short signs (`I`, `YOU`, `MY`) = 0.6
