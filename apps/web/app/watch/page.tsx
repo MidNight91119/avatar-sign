@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { parseVideoId } from "@repo/ui/youtube";
 import { LinkForm } from "../../components/link-form";
-import { WatchView } from "./watch-view";
+import { WatchView } from "../../components/watch/watch-view";
 
 export const metadata: Metadata = { title: "Watch with signing" };
 

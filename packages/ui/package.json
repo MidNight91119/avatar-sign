@@ -4,11 +4,12 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./sign-panel": "./src/sign-panel.tsx",
+    "./avatar-canvas": "./src/avatar-canvas.tsx",
     "./caption": "./src/caption.ts",
-    "./youtube": "./src/youtube.ts",
+    "./sign-panel": "./src/sign-panel.tsx",
+    "./styles.css": "./src/styles.css",
     "./use-sign-track": "./src/use-sign-track.ts",
-    "./styles.css": "./src/styles.css"
+    "./youtube": "./src/youtube.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
@@ -26,6 +27,7 @@
     "typescript": "7.0.2"
   },
   "dependencies": {
+    "@signstream/player": "workspace:*",
     "@signstream/shared": "workspace:*",
     "react": "19.2.8",
     "react-dom": "19.2.8"

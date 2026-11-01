@@ -124,6 +124,9 @@ importers:
       '@repo/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@signstream/player':
+        specifier: workspace:*
+        version: link:../../packages/player
       '@signstream/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -245,6 +248,9 @@ importers:
 
   packages/ui:
     dependencies:
+      '@signstream/player':
+        specifier: workspace:*
+        version: link:../player
       '@signstream/shared':
         specifier: workspace:*
         version: link:../shared
