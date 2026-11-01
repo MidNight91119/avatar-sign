@@ -15,9 +15,10 @@ import {
   type SignReference,
 } from "@signstream/shared";
 import { cacheKeys, type Cache } from "./cache";
-import { normalizeCaptions, parseVtt } from "./captions";
+import { normalizeCaptions, parseVtt, toVtt } from "./captions";
 import type { Env } from "./env";
 import type { JobManager } from "./jobs";
+import { rateLimitInfo } from "./provider-budget";
 import { createRateLimiter, type RateLimiter } from "./rate-limit";
 
 export interface AppServices {
@@ -30,6 +31,8 @@ export interface AppServices {
   signReference?: (word: string) => Promise<SignReference[]>;
   limits?: { newVideos?: RateLimiter; discover?: RateLimiter };
   log?: (line: string) => void;
+  /** Longest wait for one Exa search before answering 504 (default 8s). */
+  exaTimeoutMs?: number;
 }
 
 const HOUR = 60 * 60 * 1000;
@@ -49,11 +52,60 @@ function clientIp(c: Context): string {
 
 const bad = (c: Context, message: string) => c.json({ error: "BAD_REQUEST", message }, 400);
 
+class UpstreamTimeout extends Error {}
+function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
+  return Promise.race([
+    p,
+    new Promise<never>((_, reject) => (timer = setTimeout(() => reject(new UpstreamTimeout(`timed out after ${ms}ms`)), ms))),
+  ]).finally(() => clearTimeout(timer));
+}
+
+/** Empty Exa answers are cached briefly, so one bad moment doesn't stick for an hour (or forever). */
+const EMPTY_TTL_SECONDS = 5 * 60;
+
 export function createApp(services: AppServices) {
   const { env, cache, jobs } = services;
   const log = services.log ?? console.log;
   const newVideos = services.limits?.newVideos ?? createRateLimiter(env.RATE_LIMIT_NEW_VIDEOS_PER_HOUR, HOUR);
   const discoverLimit = services.limits?.discover ?? createRateLimiter(env.RATE_LIMIT_DISCOVER_PER_HOUR, HOUR);
+  const exaTimeoutMs = services.exaTimeoutMs ?? 8000;
+  /** In-flight Exa searches by cache key: identical requests that arrive together share one paid call. */
+  const pending = new Map<string, Promise<unknown>>();
+
+  /** Cached, deduplicated, time-limited Exa lookup with friendly errors (spec R-I8). */
+  async function exaLookup<T>(
+    c: Context,
+    opts: { key: string; ttlSeconds?: number; label: string; run?: () => Promise<T[]>; schema: z.ZodType<T>; allow?: () => boolean },
+  ) {
+    const cached = cache.get<T[]>(opts.key);
+    if (cached) return c.json(cached);
+    if (!opts.run) return c.json({ error: "EXA_DISABLED", message: `${opts.label} is not configured` }, 503);
+    let job = pending.get(opts.key) as Promise<T[]> | undefined;
+    if (!job) {
+      if (opts.allow && !opts.allow()) {
+        return c.json({ error: "RATE_LIMITED", message: "Too many searches from this address; try again later" }, 429);
+      }
+      job = withTimeout(opts.run(), exaTimeoutMs).then((r) => z.array(opts.schema).parse(r));
+      pending.set(opts.key, job);
+      void job
+        .then((results) => cache.set(opts.key, results, results.length ? opts.ttlSeconds : EMPTY_TTL_SECONDS))
+        .catch(() => {})
+        .finally(() => pending.delete(opts.key));
+    }
+    try {
+      return c.json(await job);
+    } catch (e) {
+      log(`exa ${opts.label.toLowerCase()} failed: ${(e as Error).message}`);
+      if (e instanceof UpstreamTimeout) return c.json({ error: "UPSTREAM_TIMEOUT", message: `${opts.label} took too long; try again` }, 504);
+      if (rateLimitInfo(e).limited) {
+        c.header("retry-after", "60");
+        return c.json({ error: "UPSTREAM_BUSY", message: `${opts.label} is busy right now; try again in a minute` }, 503);
+      }
+      return c.json({ error: "UPSTREAM_ERROR", message: `${opts.label} failed; try again` }, 502);
+    }
+  }
+
   const isAdmin = (c: Context) => Boolean(env.ADMIN_SECRET) && c.req.header("x-admin-secret") === env.ADMIN_SECRET;
 
   const app = new Hono();
@@ -94,6 +146,23 @@ export function createApp(services: AppServices) {
       found = jobs.lookup(videoId.data, lang.data, { refresh });
     }
     return c.json(SignTrackSchema.parse(found!.track));
+  });
+
+  // Gloss as a subtitle track for learners. Only serves tracks that already exist, so it never spends credits.
+  app.get("/api/sign-track/:videoId/vtt", (c) => {
+    const videoId = VideoIdSchema.safeParse(c.req.param("videoId"));
+    if (!videoId.success) return bad(c, videoId.error.issues[0]!.message);
+    const lang = SignLangSchema.safeParse(c.req.query("lang") ?? "ASL");
+    if (!lang.success) return bad(c, "lang must be ASL or ISL");
+    const track = jobs.lookup(videoId.data, lang.data, { allowStart: false })?.track;
+    if (!track || track.status === "error") {
+      return c.json({ error: "NOT_FOUND", message: "No sign track for this video yet; request /api/sign-track first" }, 404);
+    }
+    if (track.status !== "ready") return c.json({ error: "NOT_READY", message: "The sign track is still processing" }, 409);
+    return c.body(toVtt(track.segments), 200, {
+      "content-type": "text/vtt; charset=utf-8",
+      "content-disposition": `inline; filename="${videoId.data}.${lang.data.toLowerCase()}.vtt"`,
+    });
   });
 
   app.post("/api/captions/:videoId", async (c) => {
@@ -139,21 +208,15 @@ export function createApp(services: AppServices) {
   app.get("/api/discover", async (c) => {
     const q = z.string().trim().min(2).max(100).safeParse(c.req.query("q") ?? "");
     if (!q.success) return bad(c, "q must be 2–100 characters");
-    const key = cacheKeys.discover(q.data);
-    const cached = cache.get<DiscoverResult[]>(key);
-    if (cached) return c.json(cached);
-    if (!services.discover) return c.json({ error: "EXA_DISABLED", message: "Search is not configured" }, 503);
-    if (!discoverLimit.hit(clientIp(c))) {
-      return c.json({ error: "RATE_LIMITED", message: "Too many searches from this address; try again later" }, 429);
-    }
-    try {
-      const results = z.array(DiscoverResultSchema).parse(await services.discover(q.data));
-      cache.set(key, results, 60 * 60);
-      return c.json(results);
-    } catch (e) {
-      log(`exa discover failed: ${(e as Error).message}`);
-      return c.json({ error: "UPSTREAM_ERROR", message: "Search failed; try again" }, 502);
-    }
+    const discover = services.discover;
+    return exaLookup<DiscoverResult>(c, {
+      key: cacheKeys.discover(q.data),
+      ttlSeconds: 60 * 60,
+      label: "Search",
+      schema: DiscoverResultSchema,
+      run: discover && (() => discover(q.data)),
+      allow: () => discoverLimit.hit(clientIp(c)),
+    });
   });
 
   app.get("/api/sign-reference", async (c) => {
@@ -163,18 +226,13 @@ export function createApp(services: AppServices) {
       .regex(/^[A-Za-z][A-Za-z' -]{0,39}$/)
       .safeParse(c.req.query("word") ?? "");
     if (!word.success) return bad(c, "word must be 1–40 letters");
-    const key = cacheKeys.signReference(word.data);
-    const cached = cache.get<SignReference[]>(key);
-    if (cached) return c.json(cached);
-    if (!services.signReference) return c.json({ error: "EXA_DISABLED", message: "Sign references are not configured" }, 503);
-    try {
-      const results = z.array(SignReferenceSchema).parse(await services.signReference(word.data));
-      cache.set(key, results);
-      return c.json(results);
-    } catch (e) {
-      log(`exa sign-reference failed: ${(e as Error).message}`);
-      return c.json({ error: "UPSTREAM_ERROR", message: "Lookup failed; try again" }, 502);
-    }
+    const signReference = services.signReference;
+    return exaLookup<SignReference>(c, {
+      key: cacheKeys.signReference(word.data),
+      label: "Sign reference lookup",
+      schema: SignReferenceSchema,
+      run: signReference && (() => signReference(word.data)),
+    });
   });
 
   app.notFound((c) => c.json({ error: "NOT_FOUND", message: `${c.req.method} ${c.req.path}` }, 404));

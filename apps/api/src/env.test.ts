@@ -18,6 +18,17 @@ describe("loadEnv", () => {
     expect(env.EXA_API_KEY).toBeUndefined();
   });
 
+  it("treats blank optional settings as unset", () => {
+    const env = loadEnv({ CEREBRAS_MODEL: "", CEREBRAS_TIER: " ", CEREBRAS_REQUESTS_PER_MINUTE: "" });
+    expect(env.CEREBRAS_MODEL).toBe("gpt-oss-120b");
+    expect(env.CEREBRAS_TIER).toBeUndefined();
+    expect(env.CEREBRAS_REQUESTS_PER_MINUTE).toBeUndefined();
+    expect(loadEnv({ CEREBRAS_REQUESTS_PER_MINUTE: "30", CEREBRAS_MAX_CONCURRENT: "2" })).toMatchObject({
+      CEREBRAS_REQUESTS_PER_MINUTE: 30,
+      CEREBRAS_MAX_CONCURRENT: 2,
+    });
+  });
+
   it("throws a readable error for invalid values", () => {
     expect(() => loadEnv({ PORT: "not-a-number" })).toThrow(/PORT/);
   });

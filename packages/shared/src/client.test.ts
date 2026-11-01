@@ -118,3 +118,66 @@ describe("partial results", () => {
     expect(done.segments).toHaveLength(3);
   });
 });
+
+describe("host semantics (R-I5)", () => {
+  const seg = (start: number) => ({ start, end: start + 1, text: "x", signs: [{ gloss: "HELLO", start, duration: 0.5 }] });
+
+  it("a cached track returns at once: no onPartial, onProgress(1), one request", async () => {
+    const { fn, urls } = fakeFetch([{ body: track({ status: "ready", progress: 1, segments: [seg(0), seg(1)] }) }]);
+    const partials: number[] = [];
+    const progress: number[] = [];
+    const client = createApiClient({ baseUrl: "http://api.test", fetch: fn, mock: false });
+    const done = await client.getSignTrack("abc", "ASL", { onPartial: (t) => partials.push(t.segments.length), onProgress: (p) => progress.push(p) });
+    expect(done.segments).toHaveLength(2);
+    expect(partials).toEqual([]);
+    expect(progress).toEqual([1]);
+    expect(urls).toHaveLength(1);
+  });
+
+  it("partials are cumulative snapshots: each one holds every segment so far, in order", async () => {
+    const { fn } = fakeFetch([
+      { body: track({ status: "processing", progress: 0.5, segments: [seg(0)] }) },
+      { body: track({ status: "processing", progress: 0.8, segments: [seg(0), seg(1)] }) },
+      { body: track({ status: "ready", segments: [seg(0), seg(1), seg(2)] }) },
+    ]);
+    const snapshots: number[][] = [];
+    const client = createApiClient({ baseUrl: "http://api.test", fetch: fn, mock: false });
+    await client.getSignTrack("abc", "ASL", { pollIntervalMs: 1, onPartial: (t) => snapshots.push(t.segments.map((s) => s.start)) });
+    expect(snapshots).toEqual([[0], [0, 1]]);
+  });
+
+  it("an error after partials returns the error track with no segments, so hosts drop the partial schedule", async () => {
+    const { fn } = fakeFetch([
+      { body: track({ status: "processing", progress: 0.5, segments: [seg(0)] }) },
+      { body: track({ status: "error", error: "GLOSS_FAILED" }) },
+    ]);
+    const client = createApiClient({ baseUrl: "http://api.test", fetch: fn, mock: false });
+    const done = await client.getSignTrack("abc", "ASL", { pollIntervalMs: 1, onPartial: () => {} });
+    expect(done).toMatchObject({ status: "error", error: "GLOSS_FAILED", segments: [] });
+  });
+
+  it("aborting a stale request (new video in the tab) stops polling and fires no more callbacks", async () => {
+    const { fn, urls } = fakeFetch(Array.from({ length: 5 }, () => ({ body: track({ status: "processing", progress: 0.3, segments: [seg(0)] }) })));
+    const controller = new AbortController();
+    let partials = 0;
+    const client = createApiClient({ baseUrl: "http://api.test", fetch: fn, mock: false });
+    const pending = client.getSignTrack("abc", "ASL", { pollIntervalMs: 50, signal: controller.signal, onPartial: () => partials++ });
+    await new Promise((r) => setTimeout(r, 10));
+    controller.abort(new Error("navigated away"));
+    await expect(pending).rejects.toThrow("navigated away");
+    await new Promise((r) => setTimeout(r, 80));
+    expect(urls).toHaveLength(1);
+    expect(partials).toBe(1);
+  });
+
+  it("passes the signal to fetch, so an in-flight request is cancelled too", async () => {
+    let seen: AbortSignal | undefined;
+    const fn = (async (_input: string | URL | Request, init?: RequestInit) => {
+      seen = init?.signal ?? undefined;
+      return new Response(JSON.stringify(track({})));
+    }) as typeof fetch;
+    const controller = new AbortController();
+    await createApiClient({ baseUrl: "http://api.test", fetch: fn, mock: false }).getSignTrack("abc", "ASL", { signal: controller.signal });
+    expect(seen).toBe(controller.signal);
+  });
+});

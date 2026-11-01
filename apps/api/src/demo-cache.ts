@@ -6,6 +6,7 @@ import type { DiscoverResult, SignLang, SignReference, SignTrack, VideoContext }
 import { SignTrackSchema } from "@signstream/shared";
 import { cacheKeys, type Cache } from "./cache";
 import type { JobManager } from "./jobs";
+import { sameRevision, type TrackRevision } from "./revision";
 
 /** Runs `fn` over `items` with at most `limit` in flight. */
 export async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
@@ -38,6 +39,23 @@ export async function warmVideos(jobs: JobManager, videoIds: string[], lang: Sig
     results.push({ videoId, status: track.status, error: track.error, segments: track.segments.length, fromCache: found.cached });
   }
   return results;
+}
+
+export interface StaleTrack {
+  videoId: string;
+  lang: SignLang;
+  /** Undefined for tracks built before revisions were recorded. */
+  builtWith?: TrackRevision;
+}
+
+/** Ready tracks built with an older gloss module, dictionary or model than `current(lang)`. */
+export function findStaleTracks(cache: Cache, current: (lang: SignLang) => TrackRevision): StaleTrack[] {
+  return cache
+    .keys("track:")
+    .map((k) => cache.get<SignTrack>(k))
+    .filter((t): t is SignTrack => t?.status === "ready")
+    .map((t) => ({ videoId: t.videoId, lang: t.lang, builtWith: cache.get<TrackRevision>(cacheKeys.revision(t.videoId, t.lang)) }))
+    .filter((t) => !sameRevision(t.builtWith, current(t.lang)));
 }
 
 /** Runs Discover queries now so the demo searches come from the cache (1 hour TTL, like the API). */
@@ -83,12 +101,16 @@ export interface DemoCacheFile {
   contexts: Record<string, VideoContext>;
   discover: Record<string, DiscoverResult[]>;
   signReferences: Record<string, SignReference[]>;
+  /** What the export was made from (run log). Optional for files made before it existed. */
+  build?: { commit?: string; revision: TrackRevision };
+  /** Per track (`videoId:lang`): what it was built from. */
+  revisions?: Record<string, TrackRevision>;
 }
 
 const suffix = (key: string, prefix: string) => key.slice(prefix.length);
 
 /** Exports ready tracks, contexts, Discover results and sign references. Error tracks are left out. */
-export function exportCache(cache: Cache, now = new Date()): DemoCacheFile {
+export function exportCache(cache: Cache, now = new Date(), build?: DemoCacheFile["build"]): DemoCacheFile {
   const tracks = cache
     .keys("track:")
     .map((k) => cache.get<SignTrack>(k))
@@ -101,6 +123,8 @@ export function exportCache(cache: Cache, now = new Date()): DemoCacheFile {
     contexts: pick<VideoContext>("context:"),
     discover: pick<DiscoverResult[]>("discover:"),
     signReferences: pick<SignReference[]>("signref:"),
+    ...(build ? { build } : {}),
+    revisions: pick<TrackRevision>("rev:"),
   };
 }
 
@@ -114,6 +138,7 @@ export function importCache(cache: Cache, file: DemoCacheFile) {
   for (const [videoId, ctx] of Object.entries(file.contexts)) cache.set(cacheKeys.context(videoId), ctx);
   for (const [q, results] of Object.entries(file.discover)) cache.set(cacheKeys.discover(q), results);
   for (const [word, refs] of Object.entries(file.signReferences)) cache.set(cacheKeys.signReference(word), refs);
+  for (const [key, rev] of Object.entries(file.revisions ?? {})) cache.set(`rev:${key}`, rev);
   return {
     tracks: file.tracks.length,
     contexts: Object.keys(file.contexts).length,

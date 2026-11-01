@@ -5,6 +5,7 @@
 import type { SignLang, SignTrack } from "@signstream/shared";
 import { cacheKeys, type Cache } from "./cache";
 import { buildSignTrack, formatMetrics, type PipelineDeps } from "./pipeline";
+import type { TrackRevision } from "./revision";
 import type { Transcript } from "./transcript";
 
 export interface JobManagerOptions {
@@ -13,6 +14,8 @@ export interface JobManagerOptions {
   log?: (line: string) => void;
   /** How long to remember errors (so a broken video isn't retried on every poll). */
   errorTtlSeconds?: number;
+  /** What a track is built from right now; stored next to each ready track so stale ones can be found. */
+  revision?: (lang: SignLang) => TrackRevision;
 }
 
 export interface TrackLookup {
@@ -22,7 +25,7 @@ export interface TrackLookup {
   cached: boolean;
 }
 
-export function createJobManager({ cache, deps, log = console.log, errorTtlSeconds = 600 }: JobManagerOptions) {
+export function createJobManager({ cache, deps, log = console.log, errorTtlSeconds = 600, revision }: JobManagerOptions) {
   const running = new Map<string, { track: SignTrack; done: Promise<SignTrack> }>();
 
   function start(videoId: string, lang: SignLang, manual?: Transcript): { track: SignTrack; done: Promise<SignTrack> } {
@@ -31,6 +34,7 @@ export function createJobManager({ cache, deps, log = console.log, errorTtlSecon
       track: { videoId, lang, source: manual ? "manual" : "youtube-captions", status: "processing", progress: 0, segments: [] } as SignTrack,
       done: Promise.resolve(undefined as unknown as SignTrack),
     };
+    const rev = revision?.(lang);
     const jobDeps = manual ? { ...deps, getTranscript: async () => manual } : deps;
     job.done = buildSignTrack(
       videoId,
@@ -43,6 +47,7 @@ export function createJobManager({ cache, deps, log = console.log, errorTtlSecon
     )
       .then(({ track, metrics }) => {
         cache.set(key, track, track.status === "ready" ? undefined : errorTtlSeconds);
+        if (track.status === "ready" && rev) cache.set(cacheKeys.revision(videoId, lang), rev);
         log(formatMetrics(metrics));
         return track;
       })

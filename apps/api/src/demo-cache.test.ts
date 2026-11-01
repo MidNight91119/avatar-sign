@@ -1,8 +1,9 @@
 import { describe, expect, it } from "bun:test";
 import type { SignTrack } from "@signstream/shared";
 import { createSqliteCache } from "./cache";
-import { exportCache, importCache, mapLimit, prefetchSignReferences, prerunDiscover, warmVideos } from "./demo-cache";
+import { exportCache, findStaleTracks, importCache, mapLimit, prefetchSignReferences, prerunDiscover, warmVideos } from "./demo-cache";
 import { createJobManager } from "./jobs";
+import { dictionaryRevision, glossRevision } from "./revision";
 import { COMMON_WORDS } from "./scripts/common-words";
 import { VIDEO, fakeDeps } from "./test-helpers";
 
@@ -95,5 +96,63 @@ describe("COMMON_WORDS", () => {
     expect(COMMON_WORDS).toHaveLength(500);
     expect(new Set(COMMON_WORDS).size).toBe(500);
     expect(COMMON_WORDS.every((w) => /^[a-z]+$/.test(w))).toBe(true);
+  });
+});
+
+describe("stale tracks (R-I6)", () => {
+  it("finds tracks built with an older dictionary, and a refresh brings in the new signs", async () => {
+    let signs = ["HELLO"];
+    const deps = fakeDeps({ dictionary: () => signs });
+    const cache = createSqliteCache(":memory:");
+    const current = (_lang: "ASL" | "ISL") => ({ gloss: "g1", dictionary: dictionaryRevision(signs), model: "m" });
+    const jobs = createJobManager({ cache, deps, log: () => {}, revision: current });
+
+    await warmVideos(jobs, [VIDEO, OTHER]);
+    expect(findStaleTracks(cache, current)).toEqual([]);
+    const before = cache.get<SignTrack>("track:" + VIDEO + ":ASL")!;
+    expect(before.segments.flatMap((s) => s.signs.map((x) => x.gloss))).toContain("FS:NAME");
+
+    signs = ["HELLO", "NAME"]; // Hasan adds a clip
+    const stale = findStaleTracks(cache, current);
+    expect(stale.map((t) => t.videoId).sort()).toEqual([OTHER, VIDEO].sort());
+    expect(stale[0]!.builtWith?.dictionary).toBe(dictionaryRevision(["HELLO"]));
+
+    await warmVideos(jobs, [VIDEO], "ASL", true);
+    const after = cache.get<SignTrack>("track:" + VIDEO + ":ASL")!;
+    expect(after.segments.flatMap((s) => s.signs.map((x) => x.gloss))).toContain("NAME");
+    expect(findStaleTracks(cache, current).map((t) => t.videoId)).toEqual([OTHER]);
+  });
+
+  it("treats tracks without a recorded revision as stale, and a gloss code change too", async () => {
+    const cache = createSqliteCache(":memory:");
+    const jobs = createJobManager({ cache, deps: fakeDeps(), log: () => {} }); // no revision recorded
+    await warmVideos(jobs, [VIDEO]);
+    const rev = { gloss: "g1", dictionary: "d1", model: "m" };
+    expect(findStaleTracks(cache, () => rev)[0]?.builtWith).toBeUndefined();
+    cache.set("rev:" + VIDEO + ":ASL", rev);
+    expect(findStaleTracks(cache, () => rev)).toEqual([]);
+    expect(findStaleTracks(cache, () => ({ ...rev, gloss: "g2" }))).toHaveLength(1);
+  });
+
+  it("export records the build and per-track revisions, and import restores them", async () => {
+    const cache = createSqliteCache(":memory:");
+    const rev = { gloss: "g1", dictionary: "d1", model: "m" };
+    const jobs = createJobManager({ cache, deps: fakeDeps(), log: () => {}, revision: () => rev });
+    await warmVideos(jobs, [VIDEO]);
+    const file = exportCache(cache, new Date(0), { commit: "abc123", revision: rev });
+    expect(file.build).toEqual({ commit: "abc123", revision: rev });
+    expect(file.revisions).toEqual({ [VIDEO + ":ASL"]: rev });
+    const laptop = createSqliteCache(":memory:");
+    importCache(laptop, JSON.parse(JSON.stringify(file)));
+    expect(findStaleTracks(laptop, () => rev)).toEqual([]);
+  });
+});
+
+describe("revision hashes", () => {
+  it("change when the dictionary or the gloss source changes, not with order", () => {
+    expect(dictionaryRevision(["A", "B"])).toBe(dictionaryRevision(["B", "A"]));
+    expect(dictionaryRevision(["A"])).not.toBe(dictionaryRevision(["A", "B"]));
+    expect(glossRevision()).toMatch(/^[0-9a-f]{12}$/);
+    expect(glossRevision()).toBe(glossRevision());
   });
 });
