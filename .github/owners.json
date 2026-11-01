@@ -28,6 +28,7 @@
         "README.md",
         ".gitignore",
         ".gitattributes",
+        ".dockerignore",
         ".github/**",
         ".agents/**",
         ".claude/**",
