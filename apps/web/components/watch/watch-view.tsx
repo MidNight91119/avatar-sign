@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { SIGN_LANGS, type SignLang } from "@signstream/shared";
 import { AvatarCanvas } from "@repo/ui/avatar-canvas";
+import { AvatarPicker, useAvatar } from "@repo/ui/avatar-picker";
 import { captionAt, nextSpeed, trackErrorMessage } from "@repo/ui/caption";
 import { SignPanel } from "@repo/ui/sign-panel";
 import { useSignTrack } from "@repo/ui/use-sign-track";
@@ -16,6 +17,7 @@ export function WatchView({ videoId }: { videoId: string }) {
   const time = usePolledTime(yt.getTime);
   const [lang, setLang] = useState<SignLang>("ASL");
   const [signing, setSigning] = useState(true);
+  const [avatar, setAvatar] = useAvatar();
   const { track, progress, error } = useSignTrack(api, videoId, lang);
 
   const pct = Math.round((progress ?? 0) * 100);
@@ -35,7 +37,8 @@ export function WatchView({ videoId }: { videoId: string }) {
       <div className="watch-panel">
         <SignPanel
           mode={mode}
-          avatar={<AvatarCanvas track={mode === "signing" ? track : undefined} getTime={yt.getTime} paused={yt.paused} />}
+          avatar={<AvatarCanvas track={mode === "signing" ? track : undefined} getTime={yt.getTime} paused={yt.paused} avatar={avatar} />}
+          headerAction={<AvatarPicker value={avatar} onChange={setAvatar} />}
           logoSrc="/brand/hand.png"
           langs={SIGN_LANGS}
           lang={lang}

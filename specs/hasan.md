@@ -167,6 +167,10 @@ not mean local work must be discarded. Do not duplicate already implemented clip
 - **H-I9 (ticked):** `/signs` lists the player's own signs (`knownSigns()`, ASL) instead of `/api/signs`, because `dictionary.json` is still empty. Known words play with `playSign`; unknown words fingerspell and show Exa links.
 - **Handoff to Durgesh and Raashed:** fill `packages/sign-assets/dictionary.json` `signs` from `knownSigns()` so the gloss prompt can use them. Multi-word keys (`THANK YOU`) need a hyphen convention agreed with Durgesh first, and the clip-path values would become sign names (PLAN §4.5 shape kept).
 
+#### Progress notes (2026-11-01, branch `hasan/avatar-picker`)
+
+- **Stretch: avatar choices (done):** all three painted avatars (Suki, Sara, Sasha) can be picked from the panel header on `/watch`, `/signs` and the extension; the choice is remembered per browser. The player takes an optional `avatar` option (default Sara), an addition to the PLAN §4.4 options that existing hosts can ignore.
+
 ### Concrete player semantics
 
 - `tick(t)` samples media seconds; neither `setSpeed` nor mixer timeScale may

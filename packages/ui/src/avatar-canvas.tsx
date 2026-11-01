@@ -18,6 +18,8 @@ export interface AvatarCanvasProps {
   /** Preview speed. Track signing follows `getTime` and is never rescaled. */
   rate?: number;
   showGloss?: boolean;
+  /** Which painted avatar (index into `AVATARS` from `@signstream/player`); defaults to Sara. */
+  avatar?: number;
   className?: string;
 }
 
@@ -25,7 +27,7 @@ export interface AvatarCanvasProps {
  * The signing avatar as a React component: mounts `createAvatarPlayer` (PLAN §4.4), ticks it with
  * `getTime()` every frame without React state, and destroys it on unmount. Put it in `SignPanel`'s `avatar`.
  */
-export function AvatarCanvas({ track, getTime, paused = false, sign, rate = 1, showGloss, className = "" }: AvatarCanvasProps) {
+export function AvatarCanvas({ track, getTime, paused = false, sign, rate = 1, showGloss, avatar, className = "" }: AvatarCanvasProps) {
   const host = useRef<HTMLDivElement>(null);
   const player = useRef<AvatarPlayer | null>(null);
   const clock = useRef(getTime);
@@ -34,7 +36,7 @@ export function AvatarCanvas({ track, getTime, paused = false, sign, rate = 1, s
   });
 
   useEffect(() => {
-    const p = createAvatarPlayer(host.current!, { showGloss });
+    const p = createAvatarPlayer(host.current!, { showGloss, avatar });
     player.current = p;
     let raf = 0;
     const loop = () => {
@@ -48,14 +50,14 @@ export function AvatarCanvas({ track, getTime, paused = false, sign, rate = 1, s
       p.destroy();
       player.current = null;
     };
-  }, [showGloss]);
+  }, [showGloss, avatar]);
 
-  useEffect(() => player.current?.load(track ?? EMPTY), [track, showGloss]);
-  useEffect(() => (paused ? player.current?.pause() : player.current?.play()), [paused, showGloss]);
-  useEffect(() => player.current?.setSpeed(rate), [rate, showGloss]);
+  useEffect(() => player.current?.load(track ?? EMPTY), [track, showGloss, avatar]);
+  useEffect(() => (paused ? player.current?.pause() : player.current?.play()), [paused, showGloss, avatar]);
+  useEffect(() => player.current?.setSpeed(rate), [rate, showGloss, avatar]);
   useEffect(() => {
     if (sign) player.current?.playSign(sign.gloss);
-  }, [sign, showGloss]);
+  }, [sign, showGloss, avatar]);
 
   return <div ref={host} className={`ss-avatar-canvas ${className}`} aria-hidden="true" />;
 }

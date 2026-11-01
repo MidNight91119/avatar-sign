@@ -116,6 +116,16 @@
   font-weight: 500;
   box-shadow: 0 2px 6px -2px rgba(0, 0, 0, 0.18);
 }
+/* Avatar choice in the header (AvatarPicker): a smaller segmented control. */
+.ss-avatars {
+  padding: 3px;
+  background: rgba(255, 255, 255, 0.5);
+}
+.ss-avatars button {
+  height: 30px;
+  padding: 0 10px;
+  font-size: 12.5px;
+}
 .ss-chip {
   height: 32px;
   padding: 0 12px;

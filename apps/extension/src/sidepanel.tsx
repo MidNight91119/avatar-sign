@@ -8,6 +8,7 @@ import { StrictMode, useCallback, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { createApiClient, SIGN_LANGS, type SignLang } from "@signstream/shared";
 import { AvatarCanvas } from "@repo/ui/avatar-canvas";
+import { AvatarPicker, useAvatar } from "@repo/ui/avatar-picker";
 import { captionAt, nextSpeed, trackErrorMessage } from "@repo/ui/caption";
 import { SignPanel } from "@repo/ui/sign-panel";
 import { useSignTrack } from "@repo/ui/use-sign-track";
@@ -22,6 +23,7 @@ function App() {
   const [tab, setTab] = useState<{ id?: number; videoId: string | null }>({ videoId: null });
   const [signing, setSigning] = useState(false);
   const [lang, setLang] = useState<SignLang>("ASL");
+  const [avatar, setAvatar] = useAvatar();
   const [clock, setClock] = useState<Clock>({ t: 0, rate: 1, paused: true, at: 0 });
   // The avatar reads a smooth clock every frame; React state only changes when the content script reports.
   const clockRef = useRef(clock);
@@ -63,7 +65,8 @@ function App() {
   return (
     <SignPanel
       mode={mode}
-      avatar={<AvatarCanvas track={mode === "signing" ? track : undefined} getTime={getTime} paused={clock.paused} />}
+      avatar={<AvatarCanvas track={mode === "signing" ? track : undefined} getTime={getTime} paused={clock.paused} avatar={avatar} />}
+      headerAction={<AvatarPicker value={avatar} onChange={setAvatar} />}
       logoSrc="/icons/48.png"
       langs={SIGN_LANGS}
       lang={lang}
