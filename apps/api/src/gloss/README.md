@@ -153,7 +153,7 @@ is attributed under its [published license](https://cs50.harvard.edu/x/2026/lice
 
 - Root `pnpm lint`, `pnpm check-types`, `pnpm test` and `pnpm build`: passed
   with workspace dependencies installed from the lockfile.
-- Gloss suite: 62 tests passed, including malformed JSON, indexed validation,
+- Gloss suite: 63 tests passed, including malformed JSON, indexed validation,
   429 backoff, free-tier batching, concurrency, context prompt forwarding,
   references and timing across dense/overlapping source windows, including
   overlapping long captions that are split before translation, portable model
@@ -260,3 +260,5 @@ covers valid non-overlapping input across the 40-caption split. Overlapping raw
 cues are also tested through the canonical normalizer used by both real ingress
 paths; no production boundary defect is claimed. Account-wide quota/deployed
 coordination remains pending; see the verification file.
+
+For immediate local demo startup, cache refresh and remaining player handoffs, see [MVP-HANDOFF.md](./MVP-HANDOFF.md).
