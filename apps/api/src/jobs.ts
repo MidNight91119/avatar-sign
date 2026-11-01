@@ -36,8 +36,8 @@ export function createJobManager({ cache, deps, log = console.log, errorTtlSecon
       videoId,
       lang,
       jobDeps,
-      (p) => {
-        job.track = { ...job.track, progress: Math.round(p * 100) / 100 };
+      (p, segments) => {
+        job.track = { ...job.track, progress: Math.round(p * 100) / 100, ...(segments ? { segments } : {}) };
       },
       manual ? "manual" : "youtube-captions",
     )

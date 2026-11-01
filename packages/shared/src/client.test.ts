@@ -100,3 +100,21 @@ describe("mock mode", () => {
     }
   });
 });
+
+describe("partial results", () => {
+  it("calls onPartial only when new segments arrive", async () => {
+    const seg = (start: number) => ({ start, end: start + 1, text: "x", signs: [] });
+    const { fn } = fakeFetch([
+      { body: track({ status: "processing", progress: 0.1 }) },
+      { body: track({ status: "processing", progress: 0.5, segments: [seg(0)] }) },
+      { body: track({ status: "processing", progress: 0.6, segments: [seg(0)] }) },
+      { body: track({ status: "processing", progress: 0.8, segments: [seg(0), seg(1)] }) },
+      { body: track({ status: "ready", segments: [seg(0), seg(1), seg(2)] }) },
+    ]);
+    const partials: number[] = [];
+    const client = createApiClient({ baseUrl: "http://api.test", fetch: fn, mock: false });
+    const done = await client.getSignTrack("abc", "ASL", { pollIntervalMs: 1, onPartial: (t) => partials.push(t.segments.length) });
+    expect(partials).toEqual([1, 2]);
+    expect(done.segments).toHaveLength(3);
+  });
+});

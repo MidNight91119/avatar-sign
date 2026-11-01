@@ -83,7 +83,8 @@ Bun runtime, Hono, `youtubei.js`, **`exa-js`** (sponsor), `zod`, `bun:sqlite` (o
 
 - [ ] **Pre-warm the cache** for all 5 demo videos, and rebuild it after each change Durgesh makes to the prompt
 - [x] Logging: one line per job (videoId, number of captions, number of signs, % fingerspelled, Exa time, **Cerebras time**, total time). Durgesh uses this for tuning
-- [ ] Stream partial results (stretch): mark the first N segments as ready so the avatar can start before the whole video is done
+- [x] Stream partial results (stretch): mark the first N segments as ready so the avatar can start before the whole video is done
+  - While `processing`, `/api/sign-track` returns the segments glossed so far (one batch of 40 captions at a time). Client: `getSignTrack(id, lang, { onPartial })` is called each time new segments arrive
 - [ ] Help Ayush with integration bugs related to the API
 
 ## 5. Hours 18–20: Demo readiness
