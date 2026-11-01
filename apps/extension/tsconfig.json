@@ -1,19 +1,24 @@
 {
-  "extends": "@repo/typescript-config/base.json",
+  "extends": "@repo/typescript-config/react-library.json",
   "compilerOptions": {
     "module": "Preserve",
     "moduleResolution": "bundler",
     "types": [
-      "bun"
+      "bun",
+      "chrome"
     ],
     "noEmit": true,
     "declaration": false,
-    "declarationMap": false
+    "declarationMap": false,
+    "allowImportingTsExtensions": true
   },
   "include": [
-    "src"
+    "src",
+    "test",
+    "manifest.config.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "dist"
   ]
 }
