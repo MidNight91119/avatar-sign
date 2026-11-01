@@ -5,6 +5,7 @@
 import type { SignLang, SignTrack } from "@signstream/shared";
 import { cacheKeys, type Cache } from "./cache";
 import { buildSignTrack, formatMetrics, type PipelineDeps } from "./pipeline";
+import type { Transcript } from "./transcript";
 
 export interface JobManagerOptions {
   cache: Cache;
@@ -24,15 +25,22 @@ export interface TrackLookup {
 export function createJobManager({ cache, deps, log = console.log, errorTtlSeconds = 600 }: JobManagerOptions) {
   const running = new Map<string, { track: SignTrack; done: Promise<SignTrack> }>();
 
-  function start(videoId: string, lang: SignLang): { track: SignTrack; done: Promise<SignTrack> } {
+  function start(videoId: string, lang: SignLang, manual?: Transcript): { track: SignTrack; done: Promise<SignTrack> } {
     const key = cacheKeys.track(videoId, lang);
     const job = {
-      track: { videoId, lang, source: "youtube-captions", status: "processing", progress: 0, segments: [] } as SignTrack,
+      track: { videoId, lang, source: manual ? "manual" : "youtube-captions", status: "processing", progress: 0, segments: [] } as SignTrack,
       done: Promise.resolve(undefined as unknown as SignTrack),
     };
-    job.done = buildSignTrack(videoId, lang, deps, (p) => {
-      job.track = { ...job.track, progress: Math.round(p * 100) / 100 };
-    })
+    const jobDeps = manual ? { ...deps, getTranscript: async () => manual } : deps;
+    job.done = buildSignTrack(
+      videoId,
+      lang,
+      jobDeps,
+      (p) => {
+        job.track = { ...job.track, progress: Math.round(p * 100) / 100 };
+      },
+      manual ? "manual" : "youtube-captions",
+    )
       .then(({ track, metrics }) => {
         cache.set(key, track, track.status === "ready" ? undefined : errorTtlSeconds);
         log(formatMetrics(metrics));
@@ -54,6 +62,13 @@ export function createJobManager({ cache, deps, log = console.log, errorTtlSecon
       if (cached) return { track: cached, started: false, cached: true };
       if (opts.allowStart === false) return undefined;
       return { track: start(videoId, lang).track, started: true, cached: false };
+    },
+    /** Glosses uploaded captions (manual .vtt fallback), replacing any cached track. Returns undefined if a job is running. */
+    startManual(videoId: string, lang: SignLang, manual: Transcript): SignTrack | undefined {
+      const key = cacheKeys.track(videoId, lang);
+      if (running.has(key)) return undefined;
+      cache.delete(key);
+      return start(videoId, lang, manual).track;
     },
     /** Waits for a running job (tests, cache warming). */
     async wait(videoId: string, lang: SignLang): Promise<SignTrack | undefined> {
