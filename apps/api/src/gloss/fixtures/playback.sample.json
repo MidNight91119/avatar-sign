@@ -1,0 +1,180 @@
+{
+  "purpose": "Synthetic scheduler fixtures; gloss labels do not imply available or reviewed animation assets",
+  "tracks": [
+    {
+      "track": {
+        "videoId": "fixture-greeting",
+        "lang": "ASL",
+        "source": "manual",
+        "status": "ready",
+        "segments": [
+          {
+            "start": 0,
+            "end": 5,
+            "text": "Hello, my name is Bob",
+            "signs": [
+              {
+                "gloss": "HELLO",
+                "start": 0,
+                "duration": 0.8
+              },
+              {
+                "gloss": "NAME",
+                "start": 1,
+                "duration": 0.8
+              },
+              {
+                "gloss": "FS:BOB",
+                "start": 2,
+                "duration": 1.2
+              }
+            ]
+          }
+        ]
+      },
+      "checkpoints": [
+        {
+          "time": 0,
+          "gloss": "HELLO"
+        },
+        {
+          "time": 0.4,
+          "gloss": "HELLO"
+        },
+        {
+          "time": 0.8,
+          "gloss": null
+        },
+        {
+          "time": 1.4,
+          "gloss": "NAME"
+        },
+        {
+          "time": 2.6,
+          "gloss": "FS:BOB"
+        },
+        {
+          "time": 4,
+          "gloss": null
+        }
+      ]
+    },
+    {
+      "track": {
+        "videoId": "fixture-question-number",
+        "lang": "ASL",
+        "source": "manual",
+        "status": "ready",
+        "segments": [
+          {
+            "start": 0,
+            "end": 5,
+            "text": "What is your name? 23",
+            "signs": [
+              {
+                "gloss": "YOUR",
+                "start": 0.25,
+                "duration": 0.5
+              },
+              {
+                "gloss": "NAME",
+                "start": 0.75,
+                "duration": 0.5
+              },
+              {
+                "gloss": "WHAT",
+                "start": 1.25,
+                "duration": 0.5
+              },
+              {
+                "gloss": "FS:23",
+                "start": 3,
+                "duration": 0.8
+              }
+            ]
+          }
+        ]
+      },
+      "checkpoints": [
+        {
+          "time": 0,
+          "gloss": null
+        },
+        {
+          "time": 0.5,
+          "gloss": "YOUR"
+        },
+        {
+          "time": 1,
+          "gloss": "NAME"
+        },
+        {
+          "time": 1.5,
+          "gloss": "WHAT"
+        },
+        {
+          "time": 3.4,
+          "gloss": "FS:23"
+        },
+        {
+          "time": 4,
+          "gloss": null
+        }
+      ]
+    },
+    {
+      "track": {
+        "videoId": "fixture-negation",
+        "lang": "ASL",
+        "source": "manual",
+        "status": "ready",
+        "segments": [
+          {
+            "start": 0,
+            "end": 5,
+            "text": "I don't understand",
+            "signs": [
+              {
+                "gloss": "I",
+                "start": 0.25,
+                "duration": 0.4
+              },
+              {
+                "gloss": "UNDERSTAND",
+                "start": 0.65,
+                "duration": 0.8
+              },
+              {
+                "gloss": "NOT",
+                "start": 1.45,
+                "duration": 0.6
+              }
+            ]
+          }
+        ]
+      },
+      "checkpoints": [
+        {
+          "time": 0.1,
+          "gloss": null
+        },
+        {
+          "time": 0.4,
+          "gloss": "I"
+        },
+        {
+          "time": 1,
+          "gloss": "UNDERSTAND"
+        },
+        {
+          "time": 1.7,
+          "gloss": "NOT"
+        },
+        {
+          "time": 3,
+          "gloss": null
+        }
+      ]
+    }
+  ]
+}
