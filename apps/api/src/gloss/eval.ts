@@ -1,7 +1,9 @@
 import { createGlossTranslator } from "./index";
-import { argumentsForCli, readDictionary } from "./cli";
+import { argumentsForCli, readDictionary, readJson } from "./cli";
 import { EVAL_CASES } from "./eval-cases";
 import { normalizeTokens } from "./words";
+import { evaluateCorpus } from "./corpus";
+import { signCoverage } from "./vocabulary";
 
 export async function evaluate(
   live: boolean,
@@ -99,30 +101,51 @@ export async function evaluate(
       }
     }
     const tokens = cases.flatMap(({ actual }) => actual);
-    const realSigns = tokens.filter((token) => !token.startsWith("FS:")).length;
+    const coverage = signCoverage(tokens, new Set(dictionary));
+    const providerOnly = live && fallbackBatches === 0 && tokenCount > 0;
+    const exactMatches = cases.filter(({ exactMatch }) => exactMatch).length;
+    const contextImprovements = cases.filter(
+      ({ context, exactMatch, withoutContextMatch }) =>
+        context && exactMatch && !withoutContextMatch,
+    ).length;
+    const criteria = {
+      providerOnly,
+      coverage: coverage.coveragePercent >= 70,
+      exactGlosses: exactMatches === cases.length,
+      contextImprovement:
+        !cases.some(({ context }) => context) || contextImprovements > 0,
+    };
     reports.push({
-      mode: live ? "live" : "offline-rule-fallback",
+      mode: live
+        ? fallbackBatches > 0
+          ? "live-with-fallback"
+          : "live"
+        : "offline-rule-fallback",
+      providerOnly,
       model,
       elapsedMs: performance.now() - started,
       providerTokens: tokenCount,
       fallbackBatches,
       dictionarySize: dictionary.length,
       sentences: cases.length,
-      realSigns,
-      fingerspelled: tokens.length - realSigns,
-      coveragePercent: tokens.length ? (100 * realSigns) / tokens.length : 0,
-      exactMatches: cases.filter(({ exactMatch }) => exactMatch).length,
+      ...coverage,
+      exactMatches,
       contextMatches: cases.filter(
         ({ context, exactMatch }) => context && exactMatch,
       ).length,
-      contextImprovements: cases.filter(
-        ({ context, exactMatch, withoutContextMatch }) =>
-          context && exactMatch && !withoutContextMatch,
-      ).length,
+      contextImprovements,
       contextRegressions: cases.filter(
         ({ context, exactMatch, withoutContextMatch }) =>
           context && !exactMatch && withoutContextMatch,
       ).length,
+      acceptance: {
+        status: !live
+          ? "blocked"
+          : Object.values(criteria).every(Boolean)
+            ? "passed"
+            : "failed",
+        criteria,
+      },
       cases,
     });
   }
@@ -131,15 +154,22 @@ export async function evaluate(
 
 if (import.meta.main) {
   const args = argumentsForCli();
-  globalThis.console.log(
-    JSON.stringify(
-      await evaluate(
-        args.live,
-        await readDictionary(args.dictionary),
-        args.compare,
-      ),
-      null,
-      2,
-    ),
-  );
+  if (args.corpus && args.compare)
+    throw new Error(
+      "--compare evaluates the ten model-comparison sentences; omit --corpus",
+    );
+  const dictionary = await readDictionary(args.dictionary);
+  const report = args.corpus
+    ? await evaluateCorpus(await readJson(args.corpus), dictionary, {
+        live: args.live,
+        api: args.api,
+      })
+    : await evaluate(args.live, dictionary, args.compare);
+  globalThis.console.log(JSON.stringify(report, null, 2));
+  if (args.check) {
+    const passed = Array.isArray(report)
+      ? report.every(({ acceptance }) => acceptance.status === "passed")
+      : report.acceptance.status === "passed";
+    if (!passed) globalThis.process.exitCode = 1;
+  }
 }

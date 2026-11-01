@@ -84,6 +84,9 @@ a fluent ASL signer should review the live outputs and the actual animations.
 
 ## Evaluation and word priorities
 
+See [VERIFICATION.md](./VERIFICATION.md) for the full task-by-task audit and
+remaining acceptance evidence. The entire spec is not yet satisfied.
+
 Run these commands from the repository root:
 
 ```sh
@@ -91,6 +94,8 @@ bun test apps/api/src/gloss/index.test.ts
 pnpm eval:gloss
 pnpm eval:gloss --live --compare
 pnpm eval:gloss --live
+pnpm eval:gloss --corpus apps/api/src/gloss/fixtures/corpus.sample.json
+pnpm eval:gloss --corpus ./demo-corpus.json --live --api http://localhost:8787 --check
 pnpm signs:missing --captions ./demo-captions.json
 pnpm signs:missing --track ./sign-track.json --api http://localhost:8787
 ```
@@ -107,6 +112,15 @@ own background and are also evaluated without it to measure improvements and
 regressions. Each report includes coverage, exact expected-gloss matches,
 fallback counts, token usage and elapsed time. Exact matching is a diagnostic;
 ASL permits more than one correct formulation.
+
+`--corpus` accepts a `source` (`youtube-captions`, `manual` or `fixture`) and a
+`videos` array of distinct video IDs with timed captions and optional context.
+It reports per-video coverage, provider/fallback metrics, timing violations,
+corpus-wide priorities and missing-sign reference links. `--check` exits 1 if
+acceptance is failed or blocked. Offline, fixture and mocked runs cannot provide
+live evidence; fallback output cannot satisfy the speed target. Shorter-than-
+0.25s signs are explicitly flagged. Plain reports are diagnostics and exit zero.
+Use `pnpm --silent ... > report.json` when saving machine-readable reports.
 
 The missing-signs report accepts either an array of captions or a SignTrack
 object. It ranks fingerspelled words by frequency, and also returns 200 word
@@ -125,10 +139,11 @@ everyday ordering with measured demo frequencies.
 
 - Root `pnpm lint`, `pnpm check-types`, `pnpm test` and `pnpm build`: passed
   with workspace dependencies installed from the lockfile.
-- Gloss suite: 31 tests passed, including malformed JSON, indexed validation,
+- Gloss suite: 41 tests passed, including malformed JSON, indexed validation,
   429 backoff, free-tier batching, concurrency, context prompt forwarding,
   references and timing across dense/overlapping source windows, including
-  overlapping long captions that are split before translation.
+  overlapping long captions that are split before translation, portable model
+  schemas, phrase numbers, Unicode contractions and corpus acceptance gates.
 - Offline eval on the real dictionary: 30 sentences, 0 playable dictionary
   entries, 0 real signs / 93 fingerspelled tokens, **0% coverage**, 10 exact
   matches, 0 context matches, 0 provider tokens. This is a scaffold baseline,
@@ -153,7 +168,8 @@ forcing every sentence into one word order. The more specific demo examples
 follow the project's spec.
 
 [Cerebras structured outputs](https://inference-docs.cerebras.ai/capabilities/structured-outputs)
-documents strict JSON schema support. The schema is generated from the same zod
-validator used to check responses, with `additionalProperties: false` on every
-object. SDK usage follows the
+documents strict JSON schema support and its unsupported array constraints.
+The portable model shape and bounded local validator share their object/index
+definitions; local array/string length limits are omitted from the sent schema.
+Every object has `additionalProperties: false`. SDK usage follows the
 [official Node SDK](https://github.com/Cerebras/cerebras-cloud-sdk-node).

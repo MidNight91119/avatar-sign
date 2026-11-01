@@ -1,0 +1,40 @@
+{
+  "source": "fixture",
+  "videos": [
+    {
+      "videoId": "fixture-greetings",
+      "captions": [
+        { "start": 0, "end": 4, "text": "Hello, my name is Bob" },
+        { "start": 175, "end": 180, "text": "Thank you for watching" }
+      ]
+    },
+    {
+      "videoId": "fixture-school",
+      "captions": [
+        { "start": 0, "end": 5, "text": "We are going to school tomorrow" }
+      ]
+    },
+    {
+      "videoId": "fixture-shopping",
+      "captions": [
+        { "start": 0, "end": 5, "text": "I want to purchase a large book" }
+      ]
+    },
+    {
+      "videoId": "fixture-family",
+      "captions": [
+        { "start": 0, "end": 5, "text": "My mother and father are happy" }
+      ]
+    },
+    {
+      "videoId": "fixture-questions",
+      "captions": [
+        {
+          "start": 0,
+          "end": 5,
+          "text": "What is your name? I don’t understand"
+        }
+      ]
+    }
+  ]
+}

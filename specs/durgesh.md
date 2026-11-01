@@ -112,16 +112,20 @@ caption segments
 
 ### Implementation status (2026-11-01)
 
+**The entire spec is not yet complete.** Independent verification and the
+remaining acceptance inputs are tracked in
+[`apps/api/src/gloss/VERIFICATION.md`](../apps/api/src/gloss/VERIFICATION.md).
+
 - D1: `prompt.ts` is based on Lifeprint and preserves multiple valid ASL sign orders rather than forcing OSV; sources are in the module README.
 - D2: `apps/api/src/gloss/word-priorities.json` contains 200 provisional everyday priorities. The missing-signs CLI re-ranks them using supplied caption frequencies; five-video ranking remains pending because no demo captions or mocks exist yet.
-- D3: SDK integration, strict zod output validation, indexed batching, bounded concurrency, retry/fallback behavior and mocked sentence tests are implemented. Live two-model comparison remains pending a development key. Local PLAN-compatible types/schemas are temporary because Raashed's shared schemas have not landed.
-- D4: Synonyms live alongside word normalization in `words.ts` to keep the small post-pass together. Decimal/sign/percentage information is preserved as explicit fingerspelled tokens.
+- D3: SDK integration, portable strict model schema, bounded local zod validation, indexed batching, bounded concurrency, retry/fallback behavior and mocked sentence tests are implemented. The verifier found unsupported array limits in the sent schema; these are now enforced locally only. Live two-model comparison remains pending a development key. Local PLAN-compatible types/schemas are temporary because Raashed's shared schemas have not landed.
+- D4: Synonyms live alongside word normalization in `words.ts` to keep the small post-pass together. Decimal/sign/percentage information is preserved even inside phrase tokens, and Unicode contractions preserve negation. Both verifier-reported normalization defects have regression tests.
 - D5: Dense captions may use durations below 0.25 seconds after filler removal when the minimum cannot fit; this preserves content and avoids overlap. Overlapping input windows are clipped to the next caption start before long captions are split at 20 words, so split windows remain ordered.
 - D6: Module usage and integration requirements are documented in `apps/api/src/gloss/README.md`; real API/video validation remains pending Raashed's transcript and API wiring.
 - D6b: Five context fixtures and mocked context-forwarding tests are implemented. The evaluator compares each context case with and without background and reports improvements/regressions. Live semantic improvement has not been established.
-- D6c/D7: The SDK, zod and p-limit are installed through pnpm, with locked versions and root `pnpm eval:gloss` / `pnpm signs:missing` commands. The user authorized the manifest changes. Reference fetching is tested against a local mock endpoint; real demo reports still need captions and Raashed's Exa endpoint.
+- D6c/D7: The SDK, zod and p-limit are installed through pnpm, with locked versions and root `pnpm eval:gloss` / `pnpm signs:missing` commands. The user authorized the manifest changes. `eval:gloss --corpus` now produces per-video coverage/timing/provider evidence, combined priorities and missing-sign links; `--check` rejects offline, mocked, fixture, fallback and too-fast-sign evidence. Reference fetching is tested against a local mock endpoint; real demo reports still need captions and Raashed's Exa endpoint.
 - D8: General synonyms are included; demo-driven tuning is still pending the videos, captions and Hasan's animation dictionary.
-- Verification: root lint, type check, test and build passed with workspace dependencies installed. The gloss suite has 31 passing tests. Offline real-dictionary evaluation: 0 real signs / 93 fingerspelled tokens = 0% coverage (dictionary has zero entries); main has no evaluator for an equivalent baseline. Full results are in the module README rather than Raashed's root README. A PR needs the `cross-team` label and Raashed's review for the authorized manifest changes.
+- Verification: root lint, type check, test and build passed with workspace dependencies installed. The gloss suite has 41 passing tests after the independent audit fixes and corpus tooling. Offline real-dictionary evaluation: 0 real signs / 93 fingerspelled tokens = 0% coverage (dictionary has zero entries); main has no evaluator for an equivalent baseline. Full results are in the module README rather than Raashed's root README. GitHub quality checks pass; PR rules fail only on the missing `cross-team` label for the authorized manifest changes. Adding it through `gh` is permission-blocked; Raashed is already requested for review.
 
 ## Handoffs
 

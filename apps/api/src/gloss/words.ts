@@ -77,7 +77,7 @@ export function words(text: string): string[] {
     text
       .toUpperCase()
       .match(
-        /(?<!\p{L})[-+]?\d+(?:[.,]\d+)*%?|[\p{L}\p{N}]+(?:['’.-][\p{L}\p{N}]+)*/gu,
+        /(?<!\p{L})[-+]?(?:\d+(?:[.,]\d+)*|\.\d+)%?|[\p{L}\p{N}]+(?:['’.-][\p{L}\p{N}]+)*/gu,
       ) ?? []
   );
 }
@@ -85,6 +85,7 @@ export function words(text: string): string[] {
 export function fallbackTokens(text: string): string[] {
   return words(
     text
+      .replace(/[’‘]/g, "'")
       .replace(
         /\b(?:don't|doesn't|didn't|isn't|aren't|wasn't|weren't|can't|cannot|couldn't|won't|wouldn't|shouldn't)\b/gi,
         " NOT ",
@@ -103,18 +104,16 @@ export function normalizeTokens(
     const token = raw.trim().toUpperCase();
     if (!token) return [];
     const fingerspelled = token.startsWith("FS:");
-    const number = (fingerspelled ? token.slice(3) : token).match(
-      /^([-+]?)(\d[\d,]*)(?:\.(\d+))?(%)?$/,
-    );
-    if (number)
-      return [
-        ...(number[1] ? [`FS:${number[1] === "-" ? "MINUS" : "PLUS"}`] : []),
-        `FS:${number[2]!.replaceAll(",", "")}`,
-        ...(number[3] ? ["FS:POINT", `FS:${number[3]}`] : []),
-        ...(number[4] ? ["FS:PERCENT"] : []),
-      ];
     if (dictionary.has(token)) return [token];
     return words(fingerspelled ? token.slice(3) : token).flatMap((word) => {
+      const number = word.match(/^([-+]?)(\d[\d,]*)?(?:\.(\d+))?(%)?$/);
+      if (number)
+        return [
+          ...(number[1] ? [`FS:${number[1] === "-" ? "MINUS" : "PLUS"}`] : []),
+          `FS:${number[2]?.replaceAll(",", "") ?? "0"}`,
+          ...(number[3] ? ["FS:POINT", `FS:${number[3]}`] : []),
+          ...(number[4] ? ["FS:PERCENT"] : []),
+        ];
       if (!fingerspelled) {
         if (dictionary.has(word) && !/^\d/.test(word)) return [word];
         const synonym = SYNONYMS[word];

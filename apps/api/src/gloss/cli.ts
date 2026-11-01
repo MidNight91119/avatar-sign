@@ -8,10 +8,12 @@ export function argumentsForCli() {
     options: {
       dictionary: { type: "string" },
       captions: { type: "string" },
+      corpus: { type: "string" },
       track: { type: "string" },
       api: { type: "string" },
       live: { type: "boolean", default: false },
       compare: { type: "boolean", default: false },
+      check: { type: "boolean", default: false },
     },
   }).values;
 }

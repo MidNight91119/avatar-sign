@@ -35,10 +35,21 @@ export const optionsSchema = z.object({
   context: contextSchema.optional(),
 });
 
+const modelSegmentSchema = z.strictObject({
+  index: z.number().int().nonnegative(),
+  tokens: z.array(z.string()),
+});
+
+// Cerebras strict mode rejects array limits; string-length support varies by model.
+export const glossBatchJsonSchema = z.toJSONSchema(
+  z.strictObject({
+    segments: z.array(modelSegmentSchema),
+  }),
+);
+
 export const batchSchema = z.strictObject({
   segments: z.array(
-    z.strictObject({
-      index: z.number().int().nonnegative(),
+    modelSegmentSchema.extend({
       tokens: z.array(z.string().max(200)).max(100),
     }),
   ),

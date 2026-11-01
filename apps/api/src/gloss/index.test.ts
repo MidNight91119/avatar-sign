@@ -121,6 +121,36 @@ describe("caption cleanup and dictionary enforcement", () => {
       "THANK-YOU",
     ]);
   });
+  it("preserves numbers inside multiword provider tokens", () => {
+    expect(
+      normalizeTokens(["3.14 dogs", "FS:-0.5 50%", ".5"], new Set(["DOGS"])),
+    ).toEqual([
+      "FS:3",
+      "FS:POINT",
+      "FS:14",
+      "DOGS",
+      "FS:MINUS",
+      "FS:0",
+      "FS:POINT",
+      "FS:5",
+      "FS:50",
+      "FS:PERCENT",
+      "FS:0",
+      "FS:POINT",
+      "FS:5",
+    ]);
+  });
+  it("preserves negation in typographic contractions", () => {
+    expect(fallbackTokens("I don’t understand and she can’t hear")).toEqual([
+      "I",
+      "NOT",
+      "UNDERSTAND",
+      "AND",
+      "SHE",
+      "NOT",
+      "HEAR",
+    ]);
+  });
   it("splits long captions into contiguous proportional windows", () => {
     const split = prepareCaptions([
       caption(Array(40).fill("dog").join(" "), 2, 10),
@@ -216,6 +246,8 @@ describe("Cerebras translation", () => {
       const object = schema as Record<string, unknown>;
       if (object.type === "object")
         expect(object.additionalProperties).toBe(false);
+      for (const keyword of ["minItems", "maxItems", "minLength", "maxLength"])
+        expect(object).not.toHaveProperty(keyword);
       for (const value of Object.values(object))
         if (value && typeof value === "object") checkSchema(value);
     };
@@ -257,6 +289,8 @@ describe("Cerebras translation", () => {
     },
     { segments: [{ index: 0, tokens: [] }] },
     { segments: [{ index: 0, tokens: ["!!!"] }] },
+    { segments: [{ index: 0, tokens: Array(101).fill("DOG") }] },
+    { segments: [{ index: 0, tokens: ["A".repeat(201)] }] },
     { segments: [{ index: 0, tokens: "DOG" }] },
     { segments: [{ index: 0, tokens: ["DOG"], extra: true }] },
   ])("rejects malformed/missing/duplicate indexed output %#", async (value) => {
@@ -547,6 +581,8 @@ describe("handoff reports", () => {
     ).toHaveLength(5);
     expect(report?.contextImprovements).toBe(0);
     expect(report?.contextRegressions).toBe(0);
+    expect(report?.acceptance.status).toBe("blocked");
+    expect(report?.acceptance.criteria.contextImprovement).toBe(false);
   });
   it("counts missing words by frequency and does not fetch references unless requested", async () => {
     const segments = timeSigns(

@@ -1,7 +1,11 @@
 import Cerebras from "@cerebras/cerebras_cloud_sdk";
 import pLimit from "p-limit";
-import { z } from "zod";
-import { batchSchema, captionsSchema, optionsSchema } from "./schemas";
+import {
+  batchSchema,
+  captionsSchema,
+  optionsSchema,
+  glossBatchJsonSchema,
+} from "./schemas";
 import {
   cleanText,
   fallbackTokens,
@@ -106,7 +110,6 @@ export function createGlossTranslator(dependencies: Dependencies = {}) {
       .map((caption, index) => ({ index, text: cleanText(caption.text) }))
       .filter(({ text }) => text.length > 0);
     const limit = pLimit(concurrency);
-    const schema = z.toJSONSchema(batchSchema);
     let totalTokens = 0;
     let fallbackBatches = 0;
     // Keep the queue within this video. The API owner applies the account-wide request limit.
@@ -145,7 +148,7 @@ export function createGlossTranslator(dependencies: Dependencies = {}) {
                       json_schema: {
                         name: "gloss_batch",
                         strict: true,
-                        schema,
+                        schema: glossBatchJsonSchema,
                       },
                     },
                   });
