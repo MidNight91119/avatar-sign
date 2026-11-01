@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@signstream/shared": "workspace:*",
+    "exa-js": "^2.27.0",
     "hono": "^4.13.16",
     "youtubei.js": "^18.3.0",
     "zod": "^4.6.7"
