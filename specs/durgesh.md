@@ -4,6 +4,8 @@
 
 **Branch:** `durgesh/gloss`
 
+> PR #10 is merged as of the PLAN §10 baseline. The implementation below is retained; the new D-I tasks track remaining acceptance and integration.
+
 ## What you own
 
 `apps/api/src/gloss/`: a **pure TypeScript module**. Its input is caption segments and its output is timed signs. It has no HTTP code; Raashed calls it from the API.
@@ -11,7 +13,7 @@
 ```ts
 export function textToSigns(
   captions: { start: number; end: number; text: string }[],
-  opts: { lang: SignLang; dictionary: string[] },
+  opts: { lang: SignLang; dictionary: string[]; context?: VideoContext },
 ): Promise<Segment[]>;
 ```
 
@@ -80,7 +82,7 @@ caption segments
   });
   ```
   Strict mode needs `additionalProperties: false` on **every** object in the schema. On a validation failure, retry once, then fall back to a rule-only gloss (drop stopwords, keep word order).
-- **Batch** about 20 segments per call, keyed by segment index so results come back in the right order. Make the batch size a setting: on the Cerebras free trial (5 requests/min), use ~60 segments per call so a 3-min video needs only one call.
+- **Batch** about 20 segments per call, keyed by segment index so results come back in the right order. Make the batch size a setting: on the Cerebras free trial (5 requests/min), use up to ~60 prepared segments per call and coordinate the API outer batch with Raashed. Duration alone does not guarantee one call; quota pacing must cover the whole account.
 - **Budget:** your own $5 Cerebras key is for development and evals (about 800 videos' worth, so plenty). Never point evals at the production key. Log the token count per call so Raashed can track spend.
 - Put the **dictionary list in the system prompt** and tell the model to use only those words, or `FS:` for anything else.
 - On a rate-limit error (HTTP 429), retry with exponential backoff (3 tries), then use the rule-only fallback for that batch.
@@ -165,3 +167,33 @@ Every PR must pass these before review (tick them in the PR description). Also s
 ## Demo role
 
 During the pitch, explain in 30 seconds **why gloss is not word-for-word English**, using one before/after example on a slide.
+
+## Current integration work for your agent (D-I, 2026-11-01)
+
+Read PLAN §§10–13. Keep the merged implementation and the passing timing/schema
+regressions. Your output remains data; do not create the extension, player or
+another owner's clip files in order to make coverage look complete.
+
+| Task     | Implement / verify                                                                                                                                          | Evidence required                                                                                                                                                                          |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [ ] D-I1 | Resolve the crane context mismatch with a general context-sensitive prompt/post-pass approach, not an unconditional CRANE→BIRD synonym                      | Paired bird/construction-crane cases, undefined/wrong context controls, name cases and actual provider outputs; retain original/corrected scoring provenance                               |
+| [ ] D-I2 | Review dense-caption trimming for content and readability with Hasan; report omitted content and overcompressed FS before calling a track fully interpreted | Examples including negation, names, numbers and short windows; keep 0.25–1.2s floor/cap and all fractional-boundary regressions; agree any semantic simplification with a competent signer |
+| [ ] D-I3 | Provide three short, reviewed mock sequences to test H-I3/P-I3, plus FS:BOB and FS:23 with clear boundary/gap expectations                                  | Shared mock consumed as-is when possible; additional owned gloss fixtures may test schedules but cannot redefine shared contracts or advertise missing assets                              |
+| [ ] D-I4 | Coordinate R-I3/R-I4: outer batching, provider limits, next-caption boundary and whole-track validation                                                     | Real pipeline test across 40-caption boundary; no overlap in partial/final tracks; timings include queue waits and exclude fallback speed claims                                           |
+| [ ] D-I5 | Re-run all five CS50 videos against Hasan's actual growing dictionary and send measured priorities/reference report                                         | Per-video >=70% gate stays open until met; dictionary revision and existing clips identified; no fixture vocabulary counted as playable coverage                                           |
+| [ ] D-I6 | Complete live Exa-backed missing-sign links after R-I2; keep numeric/unsupported queries explicit                                                           | Actual allowlisted URLs for missing words; successful endpoint contract tests alone do not close D6c                                                                                       |
+| [ ] D-I7 | Agree a separate full >=180-second captioned benchmark with Ayush and measure gloss-only <10s using the current code, with actual provider/no fallback      | Full-video identity/duration/cue count, model/tier, quota waits, token usage and wall time; do not substitute the prior manual excerpt                                                     |
+| [ ] D-I8 | Refresh live acceptance evidence after timing/prompt/dictionary changes; hand the validated revision to Raashed for cache refresh                           | 30-case diagnostics and strict gates reported honestly; D6b/D6c and DoD checkboxes only ticked with new passing evidence                                                                   |
+
+Hasan needs the measured priorities now and later the readability review; Poonam
+needs stable timestamps, not a new renderer from this module. No new credentials
+are required for offline regressions. Use your personal key for intentional live
+evals; account-wide quota behavior belongs to the API coordination with Raashed.
+Keep historical pre-review live outputs labelled as historical.
+
+### Additional PR test cases
+
+- [ ] Context disambiguates both bird and machinery senses without a global synonym corrupting the other sense.
+- [ ] Dense-caption content loss is visible in evidence, and numerical validity alone is not reported as semantic correctness.
+- [ ] Whole API-produced tracks remain non-overlapping across outer-batch and partial-snapshot boundaries.
+- [ ] FS letters/digits and actual dictionary keys are playable by Hasan's renderer on both hosts before final coverage acceptance.
