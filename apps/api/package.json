@@ -8,7 +8,8 @@
     "start": "bun src/index.ts",
     "test": "bun test",
     "lint": "eslint . --max-warnings 0",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "demo": "bun src/scripts/demo.ts"
   },
   "dependencies": {
     "@signstream/shared": "workspace:*",
