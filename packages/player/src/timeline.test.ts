@@ -19,9 +19,12 @@ describe("unitsFor", () => {
     expect(unitsFor("EVERY-QZX")).toEqual([...unitsFor("EVERY"), { spell: "QZX" }]);
   });
 
-  test("digits and punctuation never throw", () => {
-    expect(unitsFor("FS:23")).toEqual([]);
-    expect(unitsFor("FS:R2D2")).toEqual([{ spell: "RD" }]);
+  test("preserves digits and mixed identifiers without inventing a zero pose", () => {
+    expect(unitsFor("FS:23")).toEqual([{ sign: "TWO" }, { sign: "THREE" }]);
+    expect(unitsFor("FS:0")).toEqual([{ spell: "ZERO" }]);
+    expect(unitsFor("FS:R2D2")).toEqual([{ spell: "R" }, { sign: "TWO" }, { spell: "D" }, { sign: "TWO" }]);
+    expect(unitsFor("R2D2")).toEqual(unitsFor("FS:R2D2"));
+    expect(unitsFor("FS:!!!")).toEqual([]);
   });
 });
 
@@ -53,6 +56,14 @@ describe("buildTimeline", () => {
     expect(pose(slot, 3.8)).toEqual(pose(slot, 10));
     expect(pose(slot, 2.9)).not.toEqual(pose(slot, 10));
     expect(naturalDuration("FS:BOB")).toBeGreaterThan(0.8);
+  });
+
+  test("numeric fingerspelling occupies its slot with finite poses", () => {
+    const number = buildTimeline({ segments: [{ start: 0, end: 2, text: "23", signs: [{ gloss: "FS:23", start: 0.2, duration: 1.2 }] }] });
+    expect(number.glossAt(0.8)).toBe("FS:23");
+    expect(naturalDuration("FS:23")).toBeGreaterThan(0);
+    expect(pose(number, 0.8).every(Number.isFinite)).toBe(true);
+    expect(pose(number, 0.8)).not.toEqual(pose(number, 5));
   });
 
   test("repeated glosses each play in their own slot", () => {

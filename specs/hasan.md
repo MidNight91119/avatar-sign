@@ -183,3 +183,17 @@ the inspected baseline, so either add the agreed setup or use existing CSS.
 - [ ] An early partial snapshot, late asset, failed asset and superseded load never show the previous video's sign.
 - [ ] Same built model/clip paths load inside the installed extension and `/watch`.
 - [ ] All advertised signs and A–Z/digit behavior are visually reviewed; performance/resource evidence includes device and renderer.
+
+### Approved MVP vocabulary/digit bridge
+
+The user explicitly authorized a focused cross-owner player/assets fix. The
+procedural engine remains unchanged; no VRM, clip files or new dependencies are
+introduced. Dictionary keys now use uppercase/hyphenated words and values are
+explicit `procedural:` identifiers rather than pretend clip URLs. The generator
+and tests keep the inventory aligned with `knownSigns()`.
+
+Numeric FS no longer disappears: 1–9 reuse existing numeric-word poses and zero
+spells ZERO when a native zero pose is unavailable. Mixed letter/digit names
+preserve order. A–Z and digits have finite-pose/slot tests; linguistic visual
+review and full-corpus coverage remain open. The earlier empty-dictionary/dropped-
+digits notes describe the original branch state and are superseded by this bridge.

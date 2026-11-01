@@ -214,3 +214,12 @@ Keep historical pre-review live outputs labelled as historical.
 - The fresh real API job for full Linear Search now completes in 8.658s including Exa/captions/gloss, zero fallback; actual localhost cached HTTP returns in 22.76ms. Private cache/export are prepared with existing commands, and a deterministic HTTP/client/partial/cache test is added.
 - See `apps/api/src/gloss/MVP-HANDOFF.md` and `mvp-readiness.json` for startup/refresh instructions and the precise backup segment. No additional service or scalability work is introduced.
 - Hasan's unmerged procedural player branch exposes 733 signs but still has an empty dictionary and drops digits. A live compatibility diagnostic reached 52.62% on Linear Search; this does not satisfy #17 or establish rendered/readable integration. The user approved a focused cross-owner vocabulary/digit bridge; rendered/linguistic acceptance still remains open.
+
+### Procedural vocabulary bridge (approved cross-owner scope)
+
+The user approved the focused player/assets bridge. Canonical dictionary keys
+are uppercase with hyphens for multi-word signs; `procedural:` values reference
+actual engine definitions, not nonexistent clip files. The native inventory and
+letter/digit fallback are validated in player tests. Coverage, cache refresh and
+rendered readability must be measured before #17 can close; the earlier live
+compatibility probe was 52.62%, below target.
