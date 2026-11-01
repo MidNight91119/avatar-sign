@@ -23,6 +23,9 @@ importers:
       '@signstream/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@signstream/sign-assets':
+        specifier: workspace:*
+        version: link:../../packages/sign-assets
       exa-js:
         specifier: ^2.27.0
         version: 2.27.0

@@ -43,7 +43,8 @@ Bun runtime, Hono, `youtubei.js`, **`exa-js`** (sponsor), `zod`, `bun:sqlite` (o
 - [x] Normalize: merge cues shorter than ~1s, split cues longer than ~8s at punctuation, decode HTML entities, remove `[Music]`-style tags
 - [x] Clear errors: `NO_CAPTIONS`, `VIDEO_UNAVAILABLE`, `LIVE_NOT_SUPPORTED` → these go into `SignTrack.error` so Poonam and Hasan can show useful messages
   - Done as `getTranscript(videoId, source)` (also returns title, description and duration for Exa and the length limit). YouTube's WEB clients now return UNPLAYABLE with no caption tracks for server requests; the IOS and ANDROID clients return them, so `youtubeSource()` tries IOS → ANDROID → WEB. The `.vtt` parser for the manual upload is in `captions.ts`; the endpoint comes with the API routes PR
-- [ ] Manual-upload fallback: `POST /api/captions/:videoId` accepts a `.vtt` file (parse it with a small TS VTT parser), in case YouTube blocks the server IP
+- [x] Manual-upload fallback: `POST /api/captions/:videoId` accepts a `.vtt` file (parse it with a small TS VTT parser), in case YouTube blocks the server IP
+  - `POST /api/captions/:videoId?lang=&title=` takes a raw `.vtt` body or a form field `file`, needs the `x-admin-secret` header, and builds a `manual` track
 - [x] **Exa video context** `apps/api/src/context.ts`: `getVideoContext(videoId, title, description) → VideoContext | undefined` (type from PLAN §4.2). Use Exa search with a schema, so Exa returns the structured result directly:
   ```ts
   import Exa from "exa-js";
@@ -64,16 +65,17 @@ Bun runtime, Hono, `youtubei.js`, **`exa-js`** (sponsor), `zod`, `bun:sqlite` (o
 
 ## 3. Hours 6–12: API
 
-- [ ] Endpoints from PLAN §4.3, with every response validated by the shared zod schema
-- [ ] CORS: `https://www.youtube.com`, `chrome-extension://<id>`, the Vercel domain, `localhost`
+- [x] Endpoints from PLAN §4.3, with every response validated by the shared zod schema
+- [x] CORS: `https://www.youtube.com`, `chrome-extension://<id>`, the Vercel domain, `localhost`
 - [x] Job pipeline: a cache miss → status `processing` → `getCaptions` + `getVideoContext` (Exa) in parallel → `textToSigns` (Durgesh's module, on Cerebras) → store → `ready`. Update `progress` after each batch. An in-memory job map is fine. Two requests for the same `videoId` must share one job, not start two
   - Done in `pipeline.ts` + `jobs.ts`. Change: Exa context starts once the transcript step has the video title (Exa needs it), so it runs after captions rather than in parallel; it is capped at 4s. Gloss runs in batches of 40 captions for progress. Error tracks are cached for 10 minutes; videos over `MAX_VIDEO_SECONDS` give `VIDEO_TOO_LONG`
 - [x] Cache: key = `videoId:lang`, value = the `SignTrack` JSON. Add a `?refresh=1` admin flag (protected by a secret) to rebuild a track after Durgesh improves the prompt
-- [ ] `/api/signs`: reads Hasan's `packages/sign-assets/dictionary.json`
-- [ ] **`/api/discover?q=`** (Exa): `exa.search(q, { type: "auto", includeDomains: ["youtube.com"], numResults: 10, contents: { highlights: true } })` → keep only `/watch?v=` URLs, pull the `videoId` → return `{ videoId, title, url, snippet, thumbnail }[]` (snippet = first highlight; thumbnail = `https://i.ytimg.com/vi/<id>/hqdefault.jpg`). Stretch: mark which results have captions. Cache by query for 1 hour
-- [ ] **`/api/sign-reference?word=`** (Exa): `exa.search("how to sign " + word + " in ASL", { type: "auto", includeDomains: ["handspeak.com", "lifeprint.com", "signingsavvy.com", "signasl.org"], numResults: 3, contents: { highlights: true } })` → `{ title, url, source, highlight }[]`. Cache forever
-- [ ] `/api/health` reports whether the Cerebras and Exa keys work
-- [ ] Rate limit (a simple per-IP counter, for example 20 new videos per hour) to protect the Cerebras and Exa credits; limit video length to ~15 min
+- [x] `/api/signs`: reads Hasan's `packages/sign-assets/dictionary.json`
+- [x] **`/api/discover?q=`** (Exa): `exa.search(q, { type: "auto", includeDomains: ["youtube.com"], numResults: 10, contents: { highlights: true } })` → keep only `/watch?v=` URLs, pull the `videoId` → return `{ videoId, title, url, snippet, thumbnail }[]` (snippet = first highlight; thumbnail = `https://i.ytimg.com/vi/<id>/hqdefault.jpg`). Stretch: mark which results have captions. Cache by query for 1 hour
+- [x] **`/api/sign-reference?word=`** (Exa): `exa.search("how to sign " + word + " in ASL", { type: "auto", includeDomains: ["handspeak.com", "lifeprint.com", "signingsavvy.com", "signasl.org"], numResults: 3, contents: { highlights: true } })` → `{ title, url, source, highlight }[]`. Cache forever
+- [x] `/api/health` reports whether the Cerebras and Exa keys work
+  - Reports whether each key is **set**, not whether it works: a live check on every health call would spend credits. Run one real request after deploying instead
+- [x] Rate limit (a simple per-IP counter, for example 20 new videos per hour) to protect the Cerebras and Exa credits; limit video length to ~15 min
 - [ ] Deploy (Railway / Render / Fly, anywhere with a persistent disk for SQLite) and share the URL by **hour 10**
 - [ ] Swap the gloss stub for Durgesh's real module (hour 10) and test end-to-end on one demo video
 
@@ -81,7 +83,8 @@ Bun runtime, Hono, `youtubei.js`, **`exa-js`** (sponsor), `zod`, `bun:sqlite` (o
 
 - [ ] **Pre-warm the cache** for all 5 demo videos, and rebuild it after each change Durgesh makes to the prompt
 - [x] Logging: one line per job (videoId, number of captions, number of signs, % fingerspelled, Exa time, **Cerebras time**, total time). Durgesh uses this for tuning
-- [ ] Stream partial results (stretch): mark the first N segments as ready so the avatar can start before the whole video is done
+- [x] Stream partial results (stretch): mark the first N segments as ready so the avatar can start before the whole video is done
+  - While `processing`, `/api/sign-track` returns the segments glossed so far (one batch of 40 captions at a time). Client: `getSignTrack(id, lang, { onPartial })` is called each time new segments arrive
 - [ ] Help Ayush with integration bugs related to the API
 
 ## 5. Hours 18–20: Demo readiness

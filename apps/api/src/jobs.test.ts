@@ -80,3 +80,27 @@ describe("job manager", () => {
     expect(deps.calls.transcript).toBe(0);
   });
 });
+
+describe("partial results", () => {
+  it("exposes the segments glossed so far while the job is processing", async () => {
+    let releaseSecond!: () => void;
+    const secondBatch = new Promise<void>((r) => (releaseSecond = r));
+    let batch = 0;
+    const base = fakeDeps();
+    const { jobs } = setup({
+      batchSize: 2,
+      textToSigns: async (captions, opts) => {
+        if (batch++ === 1) await secondBatch;
+        return base.textToSigns(captions, opts);
+      },
+    });
+    jobs.lookup(VIDEO, "ASL");
+    for (let i = 0; i < 20 && jobs.lookup(VIDEO, "ASL")!.track.segments.length === 0; i++) await Bun.sleep(1);
+    const partial = jobs.lookup(VIDEO, "ASL")!.track;
+    expect(partial.status).toBe("processing");
+    expect(partial.segments).toHaveLength(2);
+    expect(partial.progress).toBeGreaterThan(0.25);
+    releaseSecond();
+    expect((await jobs.wait(VIDEO, "ASL"))?.segments).toHaveLength(3);
+  });
+});

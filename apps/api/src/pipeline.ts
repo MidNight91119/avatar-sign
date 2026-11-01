@@ -50,14 +50,16 @@ export async function buildSignTrack(
   videoId: string,
   lang: SignLang,
   deps: PipelineDeps,
-  onProgress: (progress: number) => void = () => {},
+  /** `segments` = the segments glossed so far (partial results, so the avatar can start early). */
+  onProgress: (progress: number, segments?: Segment[]) => void = () => {},
+  source: SignTrack["source"] = "youtube-captions",
 ): Promise<{ track: SignTrack; metrics: JobMetrics }> {
   const now = deps.now ?? Date.now;
   const t0 = now();
   const metrics: JobMetrics = {
     videoId, lang, status: "processing", captions: 0, signs: 0, fingerspelled: 0, exaMs: 0, glossMs: 0, totalMs: 0, context: false,
   };
-  const base = { videoId, lang, source: "youtube-captions" as const };
+  const base = { videoId, lang, source };
 
   try {
     const transcript = await deps.getTranscript(videoId);
@@ -84,7 +86,7 @@ export async function buildSignTrack(
       } catch (e) {
         throw new PipelineError("GLOSS_FAILED", `Gloss failed: ${(e as Error).message}`);
       }
-      onProgress(0.25 + 0.75 * Math.min(1, (i + batch.length) / transcript.captions.length));
+      onProgress(0.25 + 0.75 * Math.min(1, (i + batch.length) / transcript.captions.length), [...segments]);
     }
     metrics.glossMs = now() - tGloss;
 

@@ -25,6 +25,11 @@ export interface ApiClientOptions {
 export interface GetSignTrackOptions {
   /** Called with 0–1 while the track is processing. */
   onProgress?: (progress: number) => void;
+  /**
+   * Called while processing with the segments glossed so far, so the avatar can start before
+   * the whole video is done. Only called when there are new segments.
+   */
+  onPartial?: (track: SignTrack) => void;
   /** Poll interval while processing. Default 2000 ms (PLAN §4.3). */
   pollIntervalMs?: number;
   /** Give up after this long. Default 5 minutes. */
@@ -103,6 +108,7 @@ export function createApiClient(options: ApiClientOptions) {
       const interval = opts.pollIntervalMs ?? 2000;
       const deadline = Date.now() + (opts.timeoutMs ?? 5 * 60_000);
       const path = `/api/sign-track?videoId=${encodeURIComponent(videoId)}&lang=${lang}`;
+      let partialCount = 0;
       for (;;) {
         const track = await get(path, SignTrackSchema, opts.signal);
         if (track.status !== "processing") {
@@ -110,6 +116,10 @@ export function createApiClient(options: ApiClientOptions) {
           return track;
         }
         opts.onProgress?.(track.progress ?? 0);
+        if (opts.onPartial && track.segments.length > partialCount) {
+          partialCount = track.segments.length;
+          opts.onPartial(track);
+        }
         if (Date.now() + interval > deadline) {
           throw new ApiClientError("TIMEOUT", `Sign track for ${videoId} was still processing after the timeout`);
         }
