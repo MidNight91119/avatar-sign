@@ -91,6 +91,42 @@ describe("GET /api/sign-track", () => {
   });
 });
 
+describe("GET /api/sign-track/:videoId/vtt", () => {
+  it("exports a ready track as WebVTT", async () => {
+    const { get, jobs } = setup();
+    await get(`/api/sign-track?videoId=${VIDEO}`);
+    await jobs.wait(VIDEO, "ASL");
+    const res = await get(`/api/sign-track/${VIDEO}/vtt`);
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/vtt");
+    const body = await res.text();
+    expect(body.startsWith("WEBVTT\n")).toBe(true);
+    expect(body).toContain("00:00:00.000 --> 00:00:02.000\nHELLO MY NAME fs-IS fs-BOB");
+  });
+
+  it("never starts a job: 404 for unknown videos, 409 while processing", async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((r) => (release = r));
+    const deps = fakeDeps({ gate });
+    const jobs = createJobManager({ cache: createSqliteCache(":memory:"), deps, log: () => {} });
+    const { get } = setup({ jobs });
+    const missing = await get(`/api/sign-track/${VIDEO}/vtt`);
+    expect(missing.status).toBe(404);
+    expect(deps.calls.transcript).toBe(0);
+    await get(`/api/sign-track?videoId=${VIDEO}`);
+    expect((await get(`/api/sign-track/${VIDEO}/vtt`)).status).toBe(409);
+    release();
+    await jobs.wait(VIDEO, "ASL");
+    expect((await get(`/api/sign-track/${VIDEO}/vtt`)).status).toBe(200);
+  });
+
+  it("validates videoId and lang", async () => {
+    const { get } = setup();
+    expect((await get("/api/sign-track/short/vtt")).status).toBe(400);
+    expect((await get(`/api/sign-track/${VIDEO}/vtt?lang=BSL`)).status).toBe(400);
+  });
+});
+
 describe("POST /api/captions/:videoId", () => {
   const vtt = "WEBVTT\n\n00:00:00.000 --> 00:00:02.000\nHello my name is Bob\n\n00:00:02.000 --> 00:00:04.000\nToday we learn\n";
 
@@ -157,6 +193,62 @@ describe("GET /api/sign-reference", () => {
     expect((await (await get("/api/sign-reference?word=volcano")).json())[0].source).toBe("handspeak.com");
     await get("/api/sign-reference?word=Volcano");
     expect(calls.signReference).toBe(1);
+  });
+});
+
+describe("Exa hardening (R-I8)", () => {
+  it("answers 504 with a friendly message when Exa hangs", async () => {
+    const { get } = setup({ exaTimeoutMs: 20, discover: () => new Promise(() => {}) });
+    const res = await get("/api/discover?q=volcanoes");
+    expect(res.status).toBe(504);
+    expect(await res.json()).toEqual({ error: "UPSTREAM_TIMEOUT", message: "Search took too long; try again" });
+  });
+
+  it("answers 503 with Retry-After when Exa rate-limits us", async () => {
+    const { get } = setup({ signReference: async () => Promise.reject(Object.assign(new Error("too many"), { status: 429 })) });
+    const res = await get("/api/sign-reference?word=volcano");
+    expect(res.status).toBe(503);
+    expect(res.headers.get("retry-after")).toBe("60");
+    expect((await res.json()).error).toBe("UPSTREAM_BUSY");
+  });
+
+  it("shares one paid call between identical requests that arrive together", async () => {
+    let calls = 0;
+    let release!: (r: DiscoverResult[]) => void;
+    const { get } = setup({
+      discover: () => {
+        calls++;
+        return new Promise((r) => (release = r));
+      },
+    });
+    const both = Promise.all([get("/api/discover?q=lava"), get("/api/discover?q=Lava")]);
+    await new Promise((r) => setTimeout(r, 5));
+    release([]);
+    const [a, b] = await both;
+    expect(calls).toBe(1);
+    expect(await a.json()).toEqual([]);
+    expect(await b.json()).toEqual([]);
+  });
+
+  it("caches empty answers for 5 minutes only", async () => {
+    let t = 0;
+    let calls = 0;
+    const { get } = setup({ cache: createSqliteCache(":memory:", () => t), signReference: async () => (calls++, []) });
+    await get("/api/sign-reference?word=zzz");
+    t = 4 * 60_000;
+    await get("/api/sign-reference?word=zzz");
+    expect(calls).toBe(1);
+    t = 6 * 60_000;
+    await get("/api/sign-reference?word=zzz");
+    expect(calls).toBe(2);
+  });
+
+  it("does not cache failures", async () => {
+    let calls = 0;
+    const { get } = setup({ discover: async () => (calls++, Promise.reject(new Error("down"))) });
+    await get("/api/discover?q=lava");
+    await get("/api/discover?q=lava");
+    expect(calls).toBe(2);
   });
 });
 

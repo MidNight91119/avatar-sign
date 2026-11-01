@@ -79,14 +79,22 @@ export async function buildSignTrack(
     const batchSize = deps.batchSize ?? 40;
     const dictionary = deps.dictionary(lang);
     const segments: Segment[] = [];
-    for (let i = 0; i < transcript.captions.length; i += batchSize) {
-      const batch = transcript.captions.slice(i, i + batchSize);
+    const captions = transcript.captions;
+    for (let i = 0; i < captions.length; i += batchSize) {
+      const batch = captions.slice(i, i + batchSize);
+      const next = captions[i + batchSize];
+      let glossed: Segment[];
       try {
-        segments.push(...(await deps.textToSigns(batch, { lang, dictionary, context })));
+        // The translator times each slice on its own; an empty look-ahead cue lets it time the
+        // slice's last caption against the real next caption, exactly as in a whole-track call.
+        glossed = await deps.textToSigns(next ? [...batch, lookAhead(next)] : batch, { lang, dictionary, context });
       } catch (e) {
         throw new PipelineError("GLOSS_FAILED", `Gloss failed: ${(e as Error).message}`);
       }
-      onProgress(0.25 + 0.75 * Math.min(1, (i + batch.length) / transcript.captions.length), [...segments]);
+      if (next && glossed.at(-1)?.text === "" && glossed.at(-1)?.start === next.start) glossed = glossed.slice(0, -1);
+      segments.push(...glossed);
+      clipOverlaps(segments, next?.start);
+      onProgress(0.25 + 0.75 * Math.min(1, (i + batch.length) / captions.length), [...segments]);
     }
     metrics.glossMs = now() - tGloss;
 
@@ -103,6 +111,34 @@ export async function buildSignTrack(
     metrics.totalMs = now() - t0;
     return { track: { ...base, status: "error", error: code, segments: [] }, metrics };
   }
+}
+
+/** An empty cue at the next caption's position: it gives the translator the next start time but is never sent to the model. */
+function lookAhead(next: Caption): Caption {
+  return { start: next.start, end: next.start, text: "" };
+}
+
+/**
+ * Safety net for batch boundaries and overlapping source captions (spec R-I4): no sign may run
+ * into the next sign, and none may pass `boundary` (the first caption not glossed yet), so a
+ * partial snapshot never shows a sign the final track would cut. Signs left with no time are dropped.
+ * Mutates and returns `segments`.
+ */
+export function clipOverlaps(segments: Segment[], boundary?: number): Segment[] {
+  const MIN = 0.05;
+  for (let s = segments.length - 1, nextStart = boundary ?? Infinity; s >= 0; s--) {
+    const seg = segments[s]!;
+    const signs = [];
+    for (let k = seg.signs.length - 1; k >= 0; k--) {
+      const sign = seg.signs[k]!;
+      const end = Math.min(sign.start + sign.duration, nextStart);
+      if (end - sign.start < MIN) continue;
+      signs.unshift(end === sign.start + sign.duration ? sign : { ...sign, duration: end - sign.start });
+      nextStart = sign.start;
+    }
+    if (signs.length !== seg.signs.length || signs.some((x, i) => x !== seg.signs[i])) segments[s] = { ...seg, signs };
+  }
+  return segments;
 }
 
 /** One log line per job (spec §4): no captions text, no keys. */

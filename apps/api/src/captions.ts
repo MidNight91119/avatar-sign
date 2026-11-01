@@ -66,6 +66,23 @@ export function parseVtt(vtt: string): Caption[] {
   return out;
 }
 
+function vttStamp(sec: number): string {
+  const ms = Math.round(Math.max(0, sec) * 1000);
+  const pad = (n: number, w = 2) => String(n).padStart(w, "0");
+  return `${pad(Math.floor(ms / 3_600_000))}:${pad(Math.floor(ms / 60_000) % 60)}:${pad(Math.floor(ms / 1000) % 60)}.${pad(ms % 1000, 3)}`;
+}
+
+/** Shows one gloss for learners: fingerspelling as `fs-WORD` (the usual ASL gloss notation). */
+const showGloss = (gloss: string) => (gloss.startsWith("FS:") ? `fs-${gloss.slice(3)}` : gloss);
+
+/** Exports a sign track's gloss as a WebVTT subtitle track: one cue per segment, empty segments skipped. */
+export function toVtt(segments: { start: number; end: number; signs: { gloss: string }[] }[]): string {
+  const cues = segments
+    .filter((s) => s.signs.length > 0 && s.end > s.start)
+    .map((s) => `${vttStamp(s.start)} --> ${vttStamp(s.end)}\n${s.signs.map((g) => showGloss(g.gloss)).join(" ")}`);
+  return ["WEBVTT", "", ...cues.flatMap((c) => [c, ""])].join("\n");
+}
+
 export interface NormalizeOptions {
   /** Merge cues shorter than this (seconds) into the next one. */
   minDuration?: number;
