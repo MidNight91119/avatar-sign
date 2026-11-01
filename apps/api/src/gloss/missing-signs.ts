@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SignReferenceSchema } from "@signstream/shared";
 import { createGlossTranslator } from "./index";
 import { argumentsForCli, readDictionary, readJson } from "./cli";
 import { captionsSchema, segmentSchema } from "./schemas";
@@ -6,11 +7,10 @@ import { rankWords } from "./vocabulary";
 import type { Segment } from "./types";
 
 const referencesSchema = z.array(
-  z.object({
-    title: z.string(),
-    url: z.url({ protocol: /^https?$/ }),
-    source: z.string(),
-  }),
+  SignReferenceSchema.refine(
+    ({ url }) => /^https?:\/\//.test(url),
+    "Reference URL must use HTTP or HTTPS",
+  ),
 );
 
 export function missingWords(segments: Segment[]) {
@@ -30,6 +30,22 @@ export function missingWords(segments: Segment[]) {
 export async function missingSignsReport(segments: Segment[], api?: string) {
   const report = [];
   for (const entry of missingWords(segments)) {
+    if (/^\d+$/.test(entry.word)) {
+      report.push({
+        ...entry,
+        references: [],
+        referenceStatus: "not-applicable",
+      });
+      continue;
+    }
+    if (!/^[A-Za-z][A-Za-z' -]{0,39}$/.test(entry.word)) {
+      report.push({
+        ...entry,
+        references: [],
+        referenceStatus: "unsupported-query",
+      });
+      continue;
+    }
     if (!api) {
       report.push({
         ...entry,

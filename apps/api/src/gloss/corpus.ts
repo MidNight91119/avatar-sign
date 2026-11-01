@@ -131,7 +131,8 @@ export async function evaluateCorpus(
     ),
     references: missing.every(
       ({ referenceStatus, references }) =>
-        referenceStatus === "ready" && references.length > 0,
+        referenceStatus === "not-applicable" ||
+        (referenceStatus === "ready" && references.length > 0),
     ),
     threeMinuteUnder10Seconds: videos.some(
       ({ durationSeconds, elapsedMs, providerOnly }) =>

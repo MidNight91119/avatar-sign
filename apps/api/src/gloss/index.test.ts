@@ -1,4 +1,4 @@
-import { describe, expect, it } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { createGlossTranslator, type GlossRequest } from "./index";
 import { EVAL_CASES, EVAL_DICTIONARY } from "./eval-cases";
 import {
@@ -12,6 +12,24 @@ import { evaluate } from "./eval";
 import { missingSignsReport, missingWords } from "./missing-signs";
 import { EVERYDAY_WORDS, rankWords } from "./vocabulary";
 import type { Caption, Segment } from "./types";
+
+const CONFIG_KEYS = [
+  "CEREBRAS_TIER",
+  "CEREBRAS_BATCH_SIZE",
+  "CEREBRAS_CONCURRENCY",
+] as const;
+let config: (string | undefined)[];
+beforeEach(() => {
+  config = CONFIG_KEYS.map((key) => globalThis.process.env[key]);
+  for (const key of CONFIG_KEYS) delete globalThis.process.env[key];
+});
+afterEach(() => {
+  CONFIG_KEYS.forEach((key, index) => {
+    const value = config[index];
+    if (value === undefined) delete globalThis.process.env[key];
+    else globalThis.process.env[key] = value;
+  });
+});
 
 const dictionary = [
   "I",
@@ -138,6 +156,22 @@ describe("caption cleanup and dictionary enforcement", () => {
       "FS:0",
       "FS:POINT",
       "FS:5",
+    ]);
+  });
+  it("maps inflections observed in the CS50 captions only to available signs", () => {
+    const terms = ["VARIABLES", "LOOPS", "VALUES", "COMPARING"];
+    expect(
+      normalizeTokens(terms, new Set(["VARIABLE", "LOOP", "VALUE", "COMPARE"])),
+    ).toEqual(["VARIABLE", "LOOP", "VALUE", "COMPARE"]);
+    expect(normalizeTokens(terms, new Set())).toEqual([
+      "FS:VARIABLES",
+      "FS:LOOPS",
+      "FS:VALUES",
+      "FS:COMPARING",
+    ]);
+    expect(normalizeTokens(["FS:Mauna Loa"], new Set())).toEqual([
+      "FS:MAUNA",
+      "FS:LOA",
     ]);
   });
   it("preserves negation in typographic contractions", () => {
@@ -623,12 +657,22 @@ describe("handoff reports", () => {
     try {
       const segments = timeSigns(
         [caption()],
-        [["FS:BOB", "FS:BOB", "FS:ALICE"]],
+        [["FS:BOB", "FS:BOB", "FS:ALICE", "FS:23", "FS:HTML5"]],
       );
       const report = await missingSignsReport(segments, server.url.href);
       expect(requested).toEqual(["BOB", "ALICE"]);
-      expect(report[0]?.references).toHaveLength(1);
-      expect(report[1]?.referenceStatus).toBe("unavailable");
+      expect(
+        report.find(({ word }) => word === "BOB")?.references,
+      ).toHaveLength(1);
+      expect(report.find(({ word }) => word === "ALICE")?.referenceStatus).toBe(
+        "unavailable",
+      );
+      expect(report.find(({ word }) => word === "23")?.referenceStatus).toBe(
+        "not-applicable",
+      );
+      expect(report.find(({ word }) => word === "HTML5")?.referenceStatus).toBe(
+        "unsupported-query",
+      );
     } finally {
       await server.stop(true);
     }

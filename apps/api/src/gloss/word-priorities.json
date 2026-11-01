@@ -1,1005 +1,1053 @@
 {
-  "source": "Provisional everyday vocabulary; demo captions are not yet available",
+  "source": "Five official CS50 shorts; frequencies from their actual YouTube English captions",
+  "attribution": {
+    "creator": "CS50, Harvard University",
+    "license": "CC BY-NC-SA 4.0",
+    "licenseUrl": "https://cs50.harvard.edu/x/2026/license/",
+    "modifications": "Timed captions cleaned and normalized by the transcript module"
+  },
+  "videos": [
+    {
+      "videoId": "Fc9htmvVZ9U",
+      "title": "Data Types",
+      "url": "https://youtu.be/Fc9htmvVZ9U",
+      "courseUrl": "https://cs50.harvard.edu/x/2026/shorts/data_types/",
+      "durationSeconds": 822,
+      "captionCount": 301
+    },
+    {
+      "videoId": "f1xZf4iJDWE",
+      "title": "Operators",
+      "url": "https://youtu.be/f1xZf4iJDWE",
+      "courseUrl": "https://cs50.harvard.edu/x/2026/shorts/operators/",
+      "durationSeconds": 741,
+      "captionCount": 244
+    },
+    {
+      "videoId": "WgX8e_O7eG8",
+      "title": "Loops",
+      "url": "https://youtu.be/WgX8e_O7eG8",
+      "courseUrl": "https://cs50.harvard.edu/x/2026/shorts/loops/",
+      "durationSeconds": 563,
+      "captionCount": 199
+    },
+    {
+      "videoId": "TwsgCHYmbbA",
+      "title": "Linear Search",
+      "url": "https://youtu.be/TwsgCHYmbbA",
+      "courseUrl": "https://cs50.harvard.edu/x/2026/shorts/linear_search/",
+      "durationSeconds": 170,
+      "captionCount": 61
+    },
+    {
+      "videoId": "T98PIp4omUA",
+      "title": "Binary Search",
+      "url": "https://youtu.be/T98PIp4omUA",
+      "courseUrl": "https://cs50.harvard.edu/x/2026/shorts/binary_search/",
+      "durationSeconds": 571,
+      "captionCount": 202
+    }
+  ],
   "words": [
     {
       "rank": 1,
-      "word": "I",
-      "captionCount": 0
+      "word": "WE",
+      "captionCount": 248
     },
     {
       "rank": 2,
-      "word": "YOU",
-      "captionCount": 0
+      "word": "AND",
+      "captionCount": 235
     },
     {
       "rank": 3,
-      "word": "MY",
-      "captionCount": 0
+      "word": "THAT",
+      "captionCount": 204
     },
     {
       "rank": 4,
-      "word": "YOUR",
-      "captionCount": 0
+      "word": "YOU",
+      "captionCount": 178
     },
     {
       "rank": 5,
-      "word": "WE",
-      "captionCount": 0
+      "word": "SO",
+      "captionCount": 177
     },
     {
       "rank": 6,
-      "word": "THEY",
-      "captionCount": 0
+      "word": "IT",
+      "captionCount": 168
     },
     {
       "rank": 7,
-      "word": "HE",
-      "captionCount": 0
+      "word": "IN",
+      "captionCount": 153
     },
     {
       "rank": 8,
-      "word": "SHE",
-      "captionCount": 0
+      "word": "IF",
+      "captionCount": 112
     },
     {
       "rank": 9,
-      "word": "IT",
-      "captionCount": 0
+      "word": "FOR",
+      "captionCount": 106
     },
     {
       "rank": 10,
-      "word": "HELLO",
-      "captionCount": 0
+      "word": "NOT",
+      "captionCount": 102
     },
     {
       "rank": 11,
-      "word": "THANK-YOU",
-      "captionCount": 0
+      "word": "THIS",
+      "captionCount": 84
     },
     {
       "rank": 12,
-      "word": "PLEASE",
-      "captionCount": 0
+      "word": "X",
+      "captionCount": 81
     },
     {
       "rank": 13,
-      "word": "YES",
-      "captionCount": 0
+      "word": "CAN",
+      "captionCount": 72
     },
     {
       "rank": 14,
-      "word": "NO",
-      "captionCount": 0
+      "word": "TRUE",
+      "captionCount": 72
     },
     {
       "rank": 15,
-      "word": "NOT",
-      "captionCount": 0
+      "word": "I",
+      "captionCount": 71
     },
     {
       "rank": 16,
-      "word": "WANT",
-      "captionCount": 0
+      "word": "VALUE",
+      "captionCount": 65
     },
     {
       "rank": 17,
-      "word": "NEED",
-      "captionCount": 0
+      "word": "LOOP",
+      "captionCount": 65
     },
     {
       "rank": 18,
-      "word": "LIKE",
-      "captionCount": 0
+      "word": "JUST",
+      "captionCount": 64
     },
     {
       "rank": 19,
-      "word": "LOVE",
-      "captionCount": 0
+      "word": "VARIABLE",
+      "captionCount": 61
     },
     {
       "rank": 20,
-      "word": "KNOW",
-      "captionCount": 0
+      "word": "HAVE",
+      "captionCount": 60
     },
     {
       "rank": 21,
-      "word": "UNDERSTAND",
-      "captionCount": 0
+      "word": "WHAT",
+      "captionCount": 60
     },
     {
       "rank": 22,
-      "word": "HELP",
-      "captionCount": 0
+      "word": "BUT",
+      "captionCount": 58
     },
     {
       "rank": 23,
-      "word": "GOOD",
-      "captionCount": 0
+      "word": "OR",
+      "captionCount": 57
     },
     {
       "rank": 24,
-      "word": "BAD",
-      "captionCount": 0
+      "word": "NUMBER",
+      "captionCount": 56
     },
     {
       "rank": 25,
-      "word": "BIG",
-      "captionCount": 0
+      "word": "ARRAY",
+      "captionCount": 52
     },
     {
       "rank": 26,
-      "word": "SMALL",
-      "captionCount": 0
+      "word": "AS",
+      "captionCount": 50
     },
     {
       "rank": 27,
-      "word": "MORE",
-      "captionCount": 0
+      "word": "GO",
+      "captionCount": 49
     },
     {
       "rank": 28,
-      "word": "ALL",
-      "captionCount": 0
+      "word": "NOW",
+      "captionCount": 49
     },
     {
       "rank": 29,
-      "word": "SAME",
-      "captionCount": 0
+      "word": "THAN",
+      "captionCount": 49
     },
     {
       "rank": 30,
-      "word": "DIFFERENT",
-      "captionCount": 0
+      "word": "USE",
+      "captionCount": 48
     },
     {
       "rank": 31,
-      "word": "HAVE",
-      "captionCount": 0
+      "word": "ON",
+      "captionCount": 47
     },
     {
       "rank": 32,
-      "word": "GO",
-      "captionCount": 0
+      "word": "AT",
+      "captionCount": 47
     },
     {
       "rank": 33,
-      "word": "COME",
-      "captionCount": 0
+      "word": "ELEMENT",
+      "captionCount": 47
     },
     {
       "rank": 34,
-      "word": "SEE",
-      "captionCount": 0
+      "word": "WITH",
+      "captionCount": 46
     },
     {
       "rank": 35,
-      "word": "LOOK",
-      "captionCount": 0
+      "word": "POINT",
+      "captionCount": 42
     },
     {
       "rank": 36,
-      "word": "WATCH",
-      "captionCount": 0
+      "word": "Y",
+      "captionCount": 41
     },
     {
       "rank": 37,
-      "word": "HEAR",
-      "captionCount": 0
+      "word": "MIGHT",
+      "captionCount": 40
     },
     {
       "rank": 38,
-      "word": "SAY",
-      "captionCount": 0
+      "word": "EQUALS",
+      "captionCount": 40
     },
     {
       "rank": 39,
-      "word": "TELL",
-      "captionCount": 0
+      "word": "TYPE",
+      "captionCount": 38
     },
     {
       "rank": 40,
-      "word": "ASK",
-      "captionCount": 0
+      "word": "LOOKING",
+      "captionCount": 38
     },
     {
       "rank": 41,
-      "word": "ANSWER",
-      "captionCount": 0
+      "word": "OVER",
+      "captionCount": 35
     },
     {
       "rank": 42,
-      "word": "NAME",
-      "captionCount": 0
+      "word": "ALL",
+      "captionCount": 34
     },
     {
       "rank": 43,
-      "word": "WHO",
-      "captionCount": 0
+      "word": "AGAIN",
+      "captionCount": 34
     },
     {
       "rank": 44,
-      "word": "WHAT",
-      "captionCount": 0
+      "word": "ABOUT",
+      "captionCount": 32
     },
     {
       "rank": 45,
-      "word": "WHERE",
-      "captionCount": 0
+      "word": "BOOLEAN",
+      "captionCount": 32
     },
     {
       "rank": 46,
-      "word": "WHEN",
-      "captionCount": 0
+      "word": "SEARCH",
+      "captionCount": 32
     },
     {
       "rank": 47,
-      "word": "WHY",
-      "captionCount": 0
+      "word": "WHICH",
+      "captionCount": 30
     },
     {
       "rank": 48,
-      "word": "HOW",
-      "captionCount": 0
+      "word": "RIGHT",
+      "captionCount": 30
     },
     {
       "rank": 49,
-      "word": "WHICH",
-      "captionCount": 0
+      "word": "WILL",
+      "captionCount": 30
     },
     {
       "rank": 50,
-      "word": "NOW",
-      "captionCount": 0
+      "word": "BY",
+      "captionCount": 30
     },
     {
       "rank": 51,
-      "word": "TODAY",
-      "captionCount": 0
+      "word": "TIMES",
+      "captionCount": 30
     },
     {
       "rank": 52,
-      "word": "TOMORROW",
-      "captionCount": 0
+      "word": "CODE",
+      "captionCount": 30
     },
     {
       "rank": 53,
-      "word": "YESTERDAY",
-      "captionCount": 0
+      "word": "WE'LL",
+      "captionCount": 29
     },
     {
       "rank": 54,
-      "word": "TIME",
-      "captionCount": 0
+      "word": "WHEN",
+      "captionCount": 28
     },
     {
       "rank": 55,
-      "word": "DAY",
-      "captionCount": 0
+      "word": "INTEGER",
+      "captionCount": 28
     },
     {
       "rank": 56,
-      "word": "WEEK",
-      "captionCount": 0
+      "word": "OPERATOR",
+      "captionCount": 28
     },
     {
       "rank": 57,
-      "word": "MONTH",
-      "captionCount": 0
+      "word": "MIDPOINT",
+      "captionCount": 28
     },
     {
       "rank": 58,
-      "word": "YEAR",
-      "captionCount": 0
+      "word": "KNOW",
+      "captionCount": 27
     },
     {
       "rank": 59,
-      "word": "MORNING",
-      "captionCount": 0
+      "word": "ONLY",
+      "captionCount": 27
     },
     {
       "rank": 60,
-      "word": "NIGHT",
-      "captionCount": 0
+      "word": "THEN",
+      "captionCount": 27
     },
     {
       "rank": 61,
-      "word": "BEFORE",
-      "captionCount": 0
+      "word": "PLUS",
+      "captionCount": 27
     },
     {
       "rank": 62,
-      "word": "AFTER",
-      "captionCount": 0
+      "word": "YOUR",
+      "captionCount": 26
     },
     {
       "rank": 63,
-      "word": "FINISH",
-      "captionCount": 0
+      "word": "DATA",
+      "captionCount": 26
     },
     {
       "rank": 64,
-      "word": "START",
-      "captionCount": 0
+      "word": "WANT",
+      "captionCount": 25
     },
     {
       "rank": 65,
-      "word": "AGAIN",
-      "captionCount": 0
+      "word": "HERE",
+      "captionCount": 25
     },
     {
       "rank": 66,
-      "word": "WAIT",
-      "captionCount": 0
+      "word": "CASE",
+      "captionCount": 25
     },
     {
       "rank": 67,
-      "word": "STOP",
-      "captionCount": 0
+      "word": "ONE",
+      "captionCount": 25
     },
     {
       "rank": 68,
-      "word": "WORK",
-      "captionCount": 0
+      "word": "EXPRESSION",
+      "captionCount": 25
     },
     {
       "rank": 69,
-      "word": "SCHOOL",
-      "captionCount": 0
+      "word": "SEE",
+      "captionCount": 24
     },
     {
       "rank": 70,
-      "word": "LEARN",
-      "captionCount": 0
+      "word": "FIRST",
+      "captionCount": 24
     },
     {
       "rank": 71,
-      "word": "TEACH",
-      "captionCount": 0
+      "word": "SOME",
+      "captionCount": 24
     },
     {
       "rank": 72,
-      "word": "TEACHER",
-      "captionCount": 0
+      "word": "WE'VE",
+      "captionCount": 24
     },
     {
       "rank": 73,
-      "word": "STUDENT",
-      "captionCount": 0
+      "word": "LESS",
+      "captionCount": 24
     },
     {
       "rank": 74,
-      "word": "READ",
-      "captionCount": 0
+      "word": "WHILE",
+      "captionCount": 24
     },
     {
       "rank": 75,
-      "word": "WRITE",
-      "captionCount": 0
+      "word": "SAY",
+      "captionCount": 23
     },
     {
       "rank": 76,
-      "word": "BOOK",
-      "captionCount": 0
+      "word": "WORK",
+      "captionCount": 23
     },
     {
       "rank": 77,
-      "word": "PAPER",
-      "captionCount": 0
+      "word": "THERE",
+      "captionCount": 23
     },
     {
       "rank": 78,
-      "word": "WORD",
-      "captionCount": 0
+      "word": "C",
+      "captionCount": 23
     },
     {
       "rank": 79,
-      "word": "LANGUAGE",
-      "captionCount": 0
+      "word": "THEY",
+      "captionCount": 22
     },
     {
       "rank": 80,
-      "word": "SIGN",
-      "captionCount": 0
+      "word": "ALSO",
+      "captionCount": 22
     },
     {
       "rank": 81,
-      "word": "ENGLISH",
-      "captionCount": 0
+      "word": "INT",
+      "captionCount": 22
     },
     {
       "rank": 82,
-      "word": "ASL",
-      "captionCount": 0
+      "word": "SOMETHING",
+      "captionCount": 22
     },
     {
       "rank": 83,
-      "word": "DEAF",
-      "captionCount": 0
+      "word": "START",
+      "captionCount": 21
     },
     {
       "rank": 84,
-      "word": "HEARING",
-      "captionCount": 0
+      "word": "LITTLE",
+      "captionCount": 21
     },
     {
       "rank": 85,
-      "word": "PERSON",
-      "captionCount": 0
+      "word": "WHAT'S",
+      "captionCount": 21
     },
     {
       "rank": 86,
-      "word": "PEOPLE",
-      "captionCount": 0
+      "word": "WELL",
+      "captionCount": 21
     },
     {
       "rank": 87,
-      "word": "CHILD",
-      "captionCount": 0
+      "word": "FALSE",
+      "captionCount": 21
     },
     {
       "rank": 88,
-      "word": "MAN",
-      "captionCount": 0
+      "word": "END",
+      "captionCount": 21
     },
     {
       "rank": 89,
-      "word": "WOMAN",
-      "captionCount": 0
+      "word": "REPEAT",
+      "captionCount": 21
     },
     {
       "rank": 90,
-      "word": "FRIEND",
-      "captionCount": 0
+      "word": "NEED",
+      "captionCount": 20
     },
     {
       "rank": 91,
-      "word": "FAMILY",
-      "captionCount": 0
+      "word": "THEM",
+      "captionCount": 20
     },
     {
       "rank": 92,
-      "word": "MOTHER",
-      "captionCount": 0
+      "word": "FIND",
+      "captionCount": 20
     },
     {
       "rank": 93,
-      "word": "FATHER",
-      "captionCount": 0
+      "word": "PROCESS",
+      "captionCount": 20
     },
     {
       "rank": 94,
-      "word": "BROTHER",
-      "captionCount": 0
+      "word": "SAME",
+      "captionCount": 19
     },
     {
       "rank": 95,
-      "word": "SISTER",
-      "captionCount": 0
+      "word": "FROM",
+      "captionCount": 19
     },
     {
       "rank": 96,
-      "word": "BABY",
-      "captionCount": 0
+      "word": "CALLED",
+      "captionCount": 19
     },
     {
       "rank": 97,
-      "word": "HOME",
-      "captionCount": 0
+      "word": "WHERE",
+      "captionCount": 18
     },
     {
       "rank": 98,
-      "word": "HOUSE",
-      "captionCount": 0
+      "word": "LET'S",
+      "captionCount": 18
     },
     {
       "rank": 99,
-      "word": "ROOM",
-      "captionCount": 0
+      "word": "THING",
+      "captionCount": 18
     },
     {
       "rank": 100,
-      "word": "DOOR",
-      "captionCount": 0
+      "word": "BECAUSE",
+      "captionCount": 18
     },
     {
       "rank": 101,
-      "word": "WINDOW",
-      "captionCount": 0
+      "word": "TWO",
+      "captionCount": 18
     },
     {
       "rank": 102,
-      "word": "TABLE",
-      "captionCount": 0
+      "word": "PRETTY",
+      "captionCount": 18
     },
     {
       "rank": 103,
-      "word": "CHAIR",
-      "captionCount": 0
+      "word": "CS50",
+      "captionCount": 17
     },
     {
       "rank": 104,
-      "word": "BED",
-      "captionCount": 0
+      "word": "TAKE",
+      "captionCount": 17
     },
     {
       "rank": 105,
-      "word": "BATHROOM",
-      "captionCount": 0
+      "word": "YOU'LL",
+      "captionCount": 17
     },
     {
       "rank": 106,
-      "word": "KITCHEN",
-      "captionCount": 0
+      "word": "NO",
+      "captionCount": 16
     },
     {
       "rank": 107,
-      "word": "STORE",
-      "captionCount": 0
+      "word": "LEFT",
+      "captionCount": 16
     },
     {
       "rank": 108,
-      "word": "BUY",
-      "captionCount": 0
+      "word": "REALLY",
+      "captionCount": 16
     },
     {
       "rank": 109,
-      "word": "MONEY",
-      "captionCount": 0
+      "word": "EXAMPLE",
+      "captionCount": 16
     },
     {
       "rank": 110,
-      "word": "COST",
-      "captionCount": 0
+      "word": "MORE",
+      "captionCount": 15
     },
     {
       "rank": 111,
-      "word": "PAY",
-      "captionCount": 0
+      "word": "THERE'S",
+      "captionCount": 15
     },
     {
       "rank": 112,
-      "word": "FOOD",
-      "captionCount": 0
+      "word": "LINE",
+      "captionCount": 15
     },
     {
       "rank": 113,
-      "word": "EAT",
-      "captionCount": 0
+      "word": "UNTIL",
+      "captionCount": 15
     },
     {
       "rank": 114,
-      "word": "DRINK",
-      "captionCount": 0
+      "word": "LINEAR",
+      "captionCount": 15
     },
     {
       "rank": 115,
-      "word": "WATER",
-      "captionCount": 0
+      "word": "LIKE",
+      "captionCount": 14
     },
     {
       "rank": 116,
-      "word": "COFFEE",
-      "captionCount": 0
+      "word": "TIME",
+      "captionCount": 14
     },
     {
       "rank": 117,
-      "word": "TEA",
-      "captionCount": 0
+      "word": "TYPES",
+      "captionCount": 14
     },
     {
       "rank": 118,
-      "word": "MILK",
-      "captionCount": 0
+      "word": "CREATE",
+      "captionCount": 14
     },
     {
       "rank": 119,
-      "word": "BREAD",
-      "captionCount": 0
+      "word": "INTO",
+      "captionCount": 14
     },
     {
       "rank": 120,
-      "word": "FRUIT",
-      "captionCount": 0
+      "word": "WAY",
+      "captionCount": 14
     },
     {
       "rank": 121,
-      "word": "APPLE",
-      "captionCount": 0
+      "word": "LOT",
+      "captionCount": 14
     },
     {
       "rank": 122,
-      "word": "BANANA",
-      "captionCount": 0
+      "word": "DOING",
+      "captionCount": 14
     },
     {
       "rank": 123,
-      "word": "RICE",
-      "captionCount": 0
+      "word": "THROUGH",
+      "captionCount": 14
     },
     {
       "rank": 124,
-      "word": "MEAT",
-      "captionCount": 0
+      "word": "BINARY",
+      "captionCount": 14
     },
     {
       "rank": 125,
-      "word": "FISH",
-      "captionCount": 0
+      "word": "AFTER",
+      "captionCount": 13
     },
     {
       "rank": 126,
-      "word": "VEGETABLE",
-      "captionCount": 0
+      "word": "UP",
+      "captionCount": 13
     },
     {
       "rank": 127,
-      "word": "HUNGRY",
-      "captionCount": 0
+      "word": "YOU'VE",
+      "captionCount": 13
     },
     {
       "rank": 128,
-      "word": "THIRSTY",
-      "captionCount": 0
+      "word": "WOULD",
+      "captionCount": 13
     },
     {
       "rank": 129,
-      "word": "FULL",
-      "captionCount": 0
+      "word": "NEXT",
+      "captionCount": 13
     },
     {
       "rank": 130,
-      "word": "HAPPY",
-      "captionCount": 0
+      "word": "SINGLE",
+      "captionCount": 13
     },
     {
       "rank": 131,
-      "word": "SAD",
-      "captionCount": 0
+      "word": "PART",
+      "captionCount": 13
     },
     {
       "rank": 132,
-      "word": "ANGRY",
-      "captionCount": 0
+      "word": "PROGRAM",
+      "captionCount": 13
     },
     {
       "rank": 133,
-      "word": "AFRAID",
-      "captionCount": 0
+      "word": "EQUAL",
+      "captionCount": 13
     },
     {
       "rank": 134,
-      "word": "EXCITED",
-      "captionCount": 0
+      "word": "LOGICAL",
+      "captionCount": 13
     },
     {
       "rank": 135,
-      "word": "TIRED",
-      "captionCount": 0
+      "word": "TARGET",
+      "captionCount": 13
     },
     {
       "rank": 136,
-      "word": "SICK",
-      "captionCount": 0
+      "word": "HOW",
+      "captionCount": 12
     },
     {
       "rank": 137,
-      "word": "HEALTHY",
-      "captionCount": 0
+      "word": "LONG",
+      "captionCount": 12
     },
     {
       "rank": 138,
-      "word": "FEEL",
-      "captionCount": 0
+      "word": "THINGS",
+      "captionCount": 12
     },
     {
       "rank": 139,
-      "word": "THINK",
-      "captionCount": 0
+      "word": "EXIST",
+      "captionCount": 12
     },
     {
       "rank": 140,
-      "word": "REMEMBER",
-      "captionCount": 0
+      "word": "VOID",
+      "captionCount": 12
     },
     {
       "rank": 141,
-      "word": "FORGET",
-      "captionCount": 0
+      "word": "NEW",
+      "captionCount": 12
     },
     {
       "rank": 142,
-      "word": "CAN",
-      "captionCount": 0
+      "word": "INSIDE",
+      "captionCount": 12
     },
     {
       "rank": 143,
-      "word": "CANNOT",
-      "captionCount": 0
+      "word": "GREATER",
+      "captionCount": 12
     },
     {
       "rank": 144,
-      "word": "TRY",
-      "captionCount": 0
+      "word": "LOOK",
+      "captionCount": 11
     },
     {
       "rank": 145,
-      "word": "USE",
-      "captionCount": 0
+      "word": "DOWN",
+      "captionCount": 11
     },
     {
       "rank": 146,
-      "word": "MAKE",
-      "captionCount": 0
+      "word": "TALK",
+      "captionCount": 11
     },
     {
       "rank": 147,
-      "word": "DO",
-      "captionCount": 0
+      "word": "LATER",
+      "captionCount": 11
     },
     {
       "rank": 148,
-      "word": "PLAY",
-      "captionCount": 0
+      "word": "THOSE",
+      "captionCount": 11
     },
     {
       "rank": 149,
-      "word": "WALK",
-      "captionCount": 0
+      "word": "NEGATIVE",
+      "captionCount": 11
     },
     {
       "rank": 150,
-      "word": "RUN",
-      "captionCount": 0
+      "word": "KEEP",
+      "captionCount": 11
     },
     {
       "rank": 151,
-      "word": "SIT",
-      "captionCount": 0
+      "word": "HALF",
+      "captionCount": 11
     },
     {
       "rank": 152,
-      "word": "STAND",
-      "captionCount": 0
+      "word": "LINES",
+      "captionCount": 11
     },
     {
       "rank": 153,
-      "word": "SLEEP",
-      "captionCount": 0
+      "word": "STOP",
+      "captionCount": 10
     },
     {
       "rank": 154,
-      "word": "WAKE",
-      "captionCount": 0
+      "word": "RUN",
+      "captionCount": 10
     },
     {
       "rank": 155,
-      "word": "LIVE",
-      "captionCount": 0
+      "word": "USING",
+      "captionCount": 10
     },
     {
       "rank": 156,
-      "word": "VISIT",
-      "captionCount": 0
+      "word": "GET",
+      "captionCount": 10
     },
     {
       "rank": 157,
-      "word": "MEET",
-      "captionCount": 0
+      "word": "ALWAYS",
+      "captionCount": 10
     },
     {
       "rank": 158,
-      "word": "TOGETHER",
-      "captionCount": 0
+      "word": "BITS",
+      "captionCount": 10
     },
     {
       "rank": 159,
-      "word": "ALONE",
-      "captionCount": 0
+      "word": "RANGE",
+      "captionCount": 10
     },
     {
       "rank": 160,
-      "word": "HERE",
-      "captionCount": 0
+      "word": "BASICALLY",
+      "captionCount": 10
     },
     {
       "rank": 161,
-      "word": "THERE",
-      "captionCount": 0
+      "word": "UNSIGNED",
+      "captionCount": 10
     },
     {
       "rank": 162,
-      "word": "NEAR",
-      "captionCount": 0
+      "word": "OUR",
+      "captionCount": 10
     },
     {
       "rank": 163,
-      "word": "FAR",
-      "captionCount": 0
+      "word": "SAYING",
+      "captionCount": 10
     },
     {
       "rank": 164,
-      "word": "LEFT",
-      "captionCount": 0
+      "word": "ONCE",
+      "captionCount": 10
     },
     {
       "rank": 165,
-      "word": "RIGHT",
-      "captionCount": 0
+      "word": "BOTH",
+      "captionCount": 10
     },
     {
       "rank": 166,
-      "word": "UP",
-      "captionCount": 0
+      "word": "OTHERWISE",
+      "captionCount": 10
     },
     {
       "rank": 167,
-      "word": "DOWN",
-      "captionCount": 0
+      "word": "OUT",
+      "captionCount": 9
     },
     {
       "rank": 168,
-      "word": "IN",
-      "captionCount": 0
+      "word": "KIND",
+      "captionCount": 9
     },
     {
       "rank": 169,
-      "word": "OUT",
-      "captionCount": 0
+      "word": "PROBABLY",
+      "captionCount": 9
     },
     {
       "rank": 170,
-      "word": "OPEN",
-      "captionCount": 0
+      "word": "USED",
+      "captionCount": 9
     },
     {
       "rank": 171,
-      "word": "CLOSE",
-      "captionCount": 0
+      "word": "COURSE",
+      "captionCount": 9
     },
     {
       "rank": 172,
-      "word": "CAR",
-      "captionCount": 0
+      "word": "ACTUALLY",
+      "captionCount": 9
     },
     {
       "rank": 173,
-      "word": "BUS",
-      "captionCount": 0
+      "word": "BIT",
+      "captionCount": 9
     },
     {
       "rank": 174,
-      "word": "TRAIN",
-      "captionCount": 0
+      "word": "POSITIVE",
+      "captionCount": 9
     },
     {
       "rank": 175,
-      "word": "AIRPLANE",
-      "captionCount": 0
+      "word": "GIVE",
+      "captionCount": 9
     },
     {
       "rank": 176,
-      "word": "BIKE",
-      "captionCount": 0
+      "word": "THESE",
+      "captionCount": 9
     },
     {
       "rank": 177,
-      "word": "ROAD",
-      "captionCount": 0
+      "word": "DECIMAL",
+      "captionCount": 9
     },
     {
       "rank": 178,
-      "word": "CITY",
-      "captionCount": 0
+      "word": "FLOAT",
+      "captionCount": 9
     },
     {
       "rank": 179,
-      "word": "COUNTRY",
-      "captionCount": 0
+      "word": "MAYBE",
+      "captionCount": 9
     },
     {
       "rank": 180,
-      "word": "WORLD",
-      "captionCount": 0
+      "word": "EVEN",
+      "captionCount": 9
     },
     {
       "rank": 181,
-      "word": "PLACE",
-      "captionCount": 0
+      "word": "SECOND",
+      "captionCount": 9
     },
     {
       "rank": 182,
-      "word": "MOVE",
-      "captionCount": 0
+      "word": "DONE",
+      "captionCount": 9
     },
     {
       "rank": 183,
-      "word": "TURN",
-      "captionCount": 0
+      "word": "STILL",
+      "captionCount": 9
     },
     {
       "rank": 184,
-      "word": "FAST",
-      "captionCount": 0
+      "word": "COMMON",
+      "captionCount": 9
     },
     {
       "rank": 185,
-      "word": "SLOW",
-      "captionCount": 0
+      "word": "PATH",
+      "captionCount": 9
     },
     {
       "rank": 186,
-      "word": "HOT",
-      "captionCount": 0
+      "word": "MIDDLE",
+      "captionCount": 9
     },
     {
       "rank": 187,
-      "word": "COLD",
-      "captionCount": 0
+      "word": "ALGORITHM",
+      "captionCount": 9
     },
     {
       "rank": 188,
-      "word": "WARM",
-      "captionCount": 0
+      "word": "CALCULATE",
+      "captionCount": 9
     },
     {
       "rank": 189,
-      "word": "COOL",
-      "captionCount": 0
+      "word": "GOOD",
+      "captionCount": 8
     },
     {
       "rank": 190,
-      "word": "RAIN",
-      "captionCount": 0
+      "word": "STRING",
+      "captionCount": 8
     },
     {
       "rank": 191,
-      "word": "SNOW",
-      "captionCount": 0
+      "word": "EVERY",
+      "captionCount": 8
     },
     {
       "rank": 192,
-      "word": "SUN",
-      "captionCount": 0
+      "word": "MEANS",
+      "captionCount": 8
     },
     {
       "rank": 193,
-      "word": "WIND",
-      "captionCount": 0
+      "word": "POWER",
+      "captionCount": 8
     },
     {
       "rank": 194,
-      "word": "TREE",
-      "captionCount": 0
+      "word": "VERY",
+      "captionCount": 8
     },
     {
       "rank": 195,
-      "word": "FLOWER",
-      "captionCount": 0
+      "word": "INSTEAD",
+      "captionCount": 8
     },
     {
       "rank": 196,
-      "word": "ANIMAL",
-      "captionCount": 0
+      "word": "TOO",
+      "captionCount": 8
     },
     {
       "rank": 197,
-      "word": "DOG",
-      "captionCount": 0
+      "word": "FACT",
+      "captionCount": 8
     },
     {
       "rank": 198,
-      "word": "CAT",
-      "captionCount": 0
+      "word": "EVER",
+      "captionCount": 8
     },
     {
       "rank": 199,
-      "word": "BIRD",
-      "captionCount": 0
+      "word": "EXECUTE",
+      "captionCount": 8
     },
     {
       "rank": 200,
-      "word": "COLOR",
-      "captionCount": 0
+      "word": "DIVIDED",
+      "captionCount": 8
     }
   ]
 }

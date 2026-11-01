@@ -23,9 +23,9 @@ increasing start times. Overlapping windows are shortened to the next start.
 Malformed input fails before any sponsor request. ISL throws an explicit unsupported
 language error; this implementation provides ASL only.
 
-The shared package currently exports only `SignLang`. `types.ts` and `schemas.ts`
-temporarily describe PLAN §4 locally. Replace them with Raashed's shared exports
-when those schemas land; the shared contracts have not been changed.
+Types and crossing-package validation use the published `@signstream/shared`
+contracts. The local schemas add only gloss-specific ordering, language and
+model-response validation. Raashed's transcript/API pipeline now calls this module.
 
 ## Installation
 
@@ -128,18 +128,31 @@ priorities ranked by caption frequency with everyday words filling the list.
 With `--api`, it requests `/api/sign-reference?word=...` once per distinct word
 and includes the returned Exa-backed links. Failed lookups remain visible as
 `unavailable`; without an API URL, links are marked `not-requested`.
+Numeric fingerspelling is `not-applicable` for word-reference searches. Payloads
+outside the API's 1–40 ASCII-letter query format are `unsupported-query` and
+remain visible as acceptance blockers rather than producing avoidable HTTP 400s.
 Offline caption mode is the default; `--live` opts into Cerebras translation.
 
-[word-priorities.json](./word-priorities.json) gives Hasan the initial 200 words.
-It is explicitly provisional: the five demo videos and captions do not exist in
-this checkout. Re-run the missing-signs report on those captions to replace the
-everyday ordering with measured demo frequencies.
+[word-priorities.json](./word-priorities.json) gives Hasan 200 measured priorities
+from 1,007 actual YouTube caption segments across five official CS50 shorts:
+Data Types, Operators, Loops, Linear Search and Binary Search. The artifact
+includes verified video/course URLs, durations, frequencies and attribution.
+
+```sh
+mkdir -p apps/api/src/gloss/data
+bun apps/api/src/gloss/cs50.ts > apps/api/src/gloss/data/cs50-corpus.json
+pnpm --silent eval:gloss --corpus apps/api/src/gloss/data/cs50-corpus.json > apps/api/src/gloss/data/cs50-report.json
+```
+
+The raw captions/reports stay in the ignored `data/` directory. `cs50.ts` uses
+Raashed's actual YouTube fetcher and rejects videos over 15 minutes. CS50 content
+is attributed under its [published license](https://cs50.harvard.edu/x/2026/license/).
 
 ## Verified results
 
 - Root `pnpm lint`, `pnpm check-types`, `pnpm test` and `pnpm build`: passed
   with workspace dependencies installed from the lockfile.
-- Gloss suite: 41 tests passed, including malformed JSON, indexed validation,
+- Gloss suite: 45 tests passed, including malformed JSON, indexed validation,
   429 backoff, free-tier batching, concurrency, context prompt forwarding,
   references and timing across dense/overlapping source windows, including
   overlapping long captions that are split before translation, portable model
@@ -148,16 +161,31 @@ everyday ordering with measured demo frequencies.
   entries, 0 real signs / 93 fingerspelled tokens, **0% coverage**, 10 exact
   matches, 0 context matches, 0 provider tokens. This is a scaffold baseline,
   not a quality or performance result for Cerebras.
-- Main has no gloss implementation/evaluator, so an equivalent before/after
-  evaluation is unavailable. The dictionary is empty on both branches.
+- Main's rule-only placeholder and the current offline fallback were compared
+  on the same five CS50 videos: **0% → 0%** dictionary coverage. This confirms
+  no coverage regression with the empty dictionary, not the 70% product target.
 - Ownership was checked directly: changes are in this folder,
   `specs/durgesh.md`, the two authorized
   package manifests and the shared lockfile. A PR needs the `cross-team` label
   and Raashed's review for the manifest changes.
 
-Pending: live model comparison, actual Exa context
-quality, five-video end-to-end validation, >=70% real-sign coverage and a timed
-three-minute live video. No sponsor key or real demo captions were supplied.
+Live evidence is recorded in [live-results.json](./live-results.json): both
+models matched 7/10 expected glosses using evaluation-only vocabulary;
+`gpt-oss-120b` took 1.4s versus 7.1s for `qwen-3.8-27b`, so the default stays
+`gpt-oss-120b`. Context selected COFFEE for Java and corrected MONA to MAUNA.
+With per-word name spelling scored correctly, 4/5 context cases match exactly;
+the crane case remains a mismatch. The runs used no fallback.
+
+Through the real API, full Linear Search processed in 5.4s, a 180-second Data
+Types caption excerpt in 2.9s, and full Loops (9:23) in 20.6s, all without
+fallback. The excerpt is not a full three-minute YouTube video benchmark.
+The supplied development key is limited to 5 requests/minute; paired context
+runs were paced accordingly. Never treat quota waits or fallback as fast
+provider evidence.
+
+Pending: Hasan's playable dictionary/animations (actual coverage is still 0%),
+real Exa-backed reference/context results, all strict live quality cases and
+the full three-minute-video speed acceptance target.
 
 ## Sources and prompt decisions
 

@@ -49,6 +49,20 @@ export const SYNONYMS: Readonly<Record<string, string>> = {
   YES: "YES",
   NOPE: "NO",
   OKAY: "OK",
+  ARRAYS: "ARRAY",
+  ELEMENTS: "ELEMENT",
+  VALUES: "VALUE",
+  NUMBERS: "NUMBER",
+  OPERATORS: "OPERATOR",
+  LOOPS: "LOOP",
+  FUNCTIONS: "FUNCTION",
+  VARIABLES: "VARIABLE",
+  INTEGERS: "INTEGER",
+  STRINGS: "STRING",
+  COMPARING: "COMPARE",
+  CHECKING: "CHECK",
+  REPEATING: "REPEAT",
+  SORTED: "SORT",
 };
 
 const STOPWORDS = new Set(

@@ -93,7 +93,7 @@ export const EVAL_CASES: EvalCase[] = [
   },
   {
     text: "We visited mona loa",
-    expected: ["WE", "VISIT", "FS:MAUNALOA"],
+    expected: ["WE", "VISIT", "FS:MAUNA", "FS:LOA"],
     context: {
       topic: "Hawaiian volcanoes",
       names: ["Mauna Loa"],

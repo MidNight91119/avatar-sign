@@ -1,16 +1,12 @@
 import { z } from "zod";
-import { SIGN_LANGS } from "@signstream/shared";
+import {
+  CaptionSchema,
+  VideoContextSchema,
+  SignLangSchema,
+  SegmentSchema,
+} from "@signstream/shared";
 
-export const captionSchema = z
-  .object({
-    start: z.number().finite().nonnegative(),
-    end: z.number().finite().nonnegative(),
-    text: z.string(),
-  })
-  .refine(
-    (caption) => caption.end >= caption.start,
-    "Caption end precedes start",
-  );
+export const captionSchema = CaptionSchema;
 
 export const captionsSchema = z
   .array(captionSchema)
@@ -23,14 +19,10 @@ export const captionsSchema = z
     "Caption starts must be strictly increasing",
   );
 
-export const contextSchema = z.object({
-  topic: z.string(),
-  names: z.array(z.string()),
-  terms: z.array(z.object({ term: z.string(), meaning: z.string() })),
-});
+export const contextSchema = VideoContextSchema;
 
 export const optionsSchema = z.object({
-  lang: z.enum(SIGN_LANGS),
+  lang: SignLangSchema,
   dictionary: z.array(z.string().regex(/^[A-Z][A-Z0-9_-]*$/)),
   context: contextSchema.optional(),
 });
@@ -56,18 +48,12 @@ export const batchSchema = z.strictObject({
 });
 
 export const dictionarySchema = z.object({
-  lang: z.enum(SIGN_LANGS),
+  lang: SignLangSchema,
   signs: z.record(z.string(), z.string()),
   letters: z.record(z.string(), z.string()),
 });
 
-export const segmentSchema = captionSchema.safeExtend({
-  signs: z.array(
-    z.object({
-      gloss: z.string().min(1),
-      start: z.number().finite().nonnegative(),
-      duration: z.number().finite().positive(),
-      nonManual: z.enum(["question", "negation", "emphasis"]).optional(),
-    }),
-  ),
-});
+export const segmentSchema = SegmentSchema.refine(
+  (segment) => segment.end >= segment.start,
+  "Caption end precedes start",
+);

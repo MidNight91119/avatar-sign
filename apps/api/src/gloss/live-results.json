@@ -1,0 +1,330 @@
+{
+  "date": "2026-11-01",
+  "selectedModel": "gpt-oss-120b",
+  "vocabulary": {
+    "kind": "evaluation-only fixture",
+    "entries": 60,
+    "note": "Model/context comparisons do not measure actual animation coverage"
+  },
+  "accountLimits": {
+    "requestsPerMinute": 5,
+    "tokensPerMinute": 30000
+  },
+  "models": [
+    {
+      "mode": "live",
+      "providerOnly": true,
+      "model": "gpt-oss-120b",
+      "elapsedMs": 1407.9193340000002,
+      "providerTokens": 1936,
+      "fallbackBatches": 0,
+      "dictionarySize": 60,
+      "sentences": 10,
+      "tokens": 30,
+      "realSigns": 29,
+      "fingerspelled": 1,
+      "coveragePercent": 96.66666666666667,
+      "exactMatches": 7,
+      "contextMatches": 0,
+      "contextImprovements": 0,
+      "contextRegressions": 0,
+      "acceptance": {
+        "status": "failed",
+        "criteria": {
+          "providerOnly": true,
+          "coverage": true,
+          "exactGlosses": false,
+          "contextImprovement": true
+        }
+      },
+      "mismatches": [
+        {
+          "text": "I like that movie",
+          "context": false,
+          "expected": ["MOVIE", "THAT", "I", "LIKE"],
+          "actual": ["THAT", "MOVIE", "I", "LIKE"],
+          "exactMatch": false
+        },
+        {
+          "text": "Please help me",
+          "context": false,
+          "expected": ["PLEASE", "HELP", "I"],
+          "actual": ["PLEASE", "HELP"],
+          "exactMatch": false
+        },
+        {
+          "text": "I want water",
+          "context": false,
+          "expected": ["I", "WANT", "WATER"],
+          "actual": ["WATER", "I", "WANT"],
+          "exactMatch": false
+        }
+      ]
+    },
+    {
+      "mode": "live",
+      "providerOnly": true,
+      "model": "qwen-3.8-27b",
+      "elapsedMs": 7135.7096249999995,
+      "providerTokens": 8332,
+      "fallbackBatches": 0,
+      "dictionarySize": 60,
+      "sentences": 10,
+      "tokens": 31,
+      "realSigns": 30,
+      "fingerspelled": 1,
+      "coveragePercent": 96.7741935483871,
+      "exactMatches": 7,
+      "contextMatches": 0,
+      "contextImprovements": 0,
+      "contextRegressions": 0,
+      "acceptance": {
+        "status": "failed",
+        "criteria": {
+          "providerOnly": true,
+          "coverage": true,
+          "exactGlosses": false,
+          "contextImprovement": true
+        }
+      },
+      "mismatches": [
+        {
+          "text": "I like that movie",
+          "context": false,
+          "expected": ["MOVIE", "THAT", "I", "LIKE"],
+          "actual": ["I", "MOVIE", "THAT", "LIKE"],
+          "exactMatch": false
+        },
+        {
+          "text": "Please help me",
+          "context": false,
+          "expected": ["PLEASE", "HELP", "I"],
+          "actual": ["HELP", "I", "PLEASE"],
+          "exactMatch": false
+        },
+        {
+          "text": "I want water",
+          "context": false,
+          "expected": ["I", "WANT", "WATER"],
+          "actual": ["I", "WATER", "WANT"],
+          "exactMatch": false
+        }
+      ]
+    }
+  ],
+  "context": {
+    "fallbackBatches": 0,
+    "originalExactMatches": 3,
+    "exactMatches": 4,
+    "exactImprovements": 3,
+    "regressions": 0,
+    "scoringCorrection": "Expected Mauna Loa spelling now uses FS:MAUNA FS:LOA, matching the word-based FS contract; raw model outputs were not changed",
+    "semanticObservations": [
+      "Context selected COFFEE instead of FS:JAVA",
+      "Context corrected MONA to MAUNA",
+      "Bank outputs differ in order but both already select RIVER",
+      "Crane still yields FS:CRANE instead of expected BIRD"
+    ],
+    "cases": [
+      {
+        "text": "The bat is flying",
+        "expected": ["BAT-ANIMAL", "FLY"],
+        "withContext": {
+          "tokens": ["BAT-ANIMAL", "FLY"],
+          "elapsedMs": 605.913875
+        },
+        "withoutContext": {
+          "tokens": ["BAT-ANIMAL", "FLY"],
+          "elapsedMs": 1139.7429169999996
+        },
+        "withContextMatch": true,
+        "withoutContextMatch": true,
+        "originalExpected": ["BAT-ANIMAL", "FLY"]
+      },
+      {
+        "text": "We sat by the bank",
+        "expected": ["WE", "SIT", "RIVER"],
+        "withContext": {
+          "tokens": ["WE", "SIT", "RIVER"],
+          "elapsedMs": 598.7790830000013
+        },
+        "withoutContext": {
+          "tokens": ["RIVER", "WE", "SIT"],
+          "elapsedMs": 638.4905419999996
+        },
+        "withContextMatch": true,
+        "withoutContextMatch": false,
+        "originalExpected": ["WE", "SIT", "RIVER"]
+      },
+      {
+        "text": "The crane is tall",
+        "expected": ["BIRD", "TALL"],
+        "withContext": {
+          "tokens": ["FS:CRANE", "TALL"],
+          "elapsedMs": 506.05591699999786
+        },
+        "withoutContext": {
+          "tokens": ["FS:CRANE", "TALL"],
+          "elapsedMs": 589.866915999999
+        },
+        "withContextMatch": false,
+        "withoutContextMatch": false,
+        "originalExpected": ["BIRD", "TALL"]
+      },
+      {
+        "text": "I like java",
+        "expected": ["I", "LIKE", "COFFEE"],
+        "withContext": {
+          "tokens": ["I", "LIKE", "COFFEE"],
+          "elapsedMs": 534.5872080000117
+        },
+        "withoutContext": {
+          "tokens": ["I", "LIKE", "FS:JAVA"],
+          "elapsedMs": 971.661042000007
+        },
+        "withContextMatch": true,
+        "withoutContextMatch": false,
+        "originalExpected": ["I", "LIKE", "COFFEE"]
+      },
+      {
+        "text": "We visited mona loa",
+        "expected": ["WE", "VISIT", "FS:MAUNA", "FS:LOA"],
+        "withContext": {
+          "tokens": ["WE", "VISIT", "FS:MAUNA", "FS:LOA"],
+          "elapsedMs": 574.1684169999935
+        },
+        "withoutContext": {
+          "tokens": ["WE", "VISIT", "FS:MONA", "FS:LOA"],
+          "elapsedMs": 608.1226250000036
+        },
+        "withContextMatch": true,
+        "withoutContextMatch": false,
+        "originalExpected": ["WE", "VISIT", "FS:MAUNALOA"]
+      }
+    ]
+  },
+  "api": {
+    "results": [
+      {
+        "kind": "full-video",
+        "videoId": "TwsgCHYmbbA",
+        "source": "youtube-captions",
+        "elapsedMs": 5415.933333,
+        "segments": 61,
+        "signs": 381,
+        "actualDictionarySize": 0
+      },
+      {
+        "kind": "180-second-caption-excerpt",
+        "videoId": "Fc9htmvVZ9U",
+        "source": "manual",
+        "clipStart": 0,
+        "clipEnd": 180,
+        "elapsedMs": 2934.8235409999998,
+        "segments": 60,
+        "signs": 307,
+        "actualDictionarySize": 0
+      }
+    ],
+    "fallbackBatches": 0,
+    "providerTokens": 16403
+  },
+  "longVideo": {
+    "kind": "full-video",
+    "videoId": "WgX8e_O7eG8",
+    "url": "https://youtu.be/WgX8e_O7eG8",
+    "durationSeconds": 563,
+    "elapsedMs": 20627.429917,
+    "segments": 199,
+    "signs": 1419,
+    "actualDictionarySize": 0,
+    "fallbackBatches": 0,
+    "speedTargetMet": false,
+    "providerTokens": 26901
+  },
+  "demoVideos": [
+    {
+      "videoId": "Fc9htmvVZ9U",
+      "title": "Data Types",
+      "courseUrl": "https://cs50.harvard.edu/x/2026/shorts/data_types/",
+      "url": "https://youtu.be/Fc9htmvVZ9U",
+      "durationSeconds": 822,
+      "captionTrack": {
+        "languageCode": "en",
+        "auto": false
+      },
+      "captionCount": 301
+    },
+    {
+      "videoId": "f1xZf4iJDWE",
+      "title": "Operators",
+      "courseUrl": "https://cs50.harvard.edu/x/2026/shorts/operators/",
+      "url": "https://youtu.be/f1xZf4iJDWE",
+      "durationSeconds": 741,
+      "captionTrack": {
+        "languageCode": "en",
+        "auto": false
+      },
+      "captionCount": 244
+    },
+    {
+      "videoId": "WgX8e_O7eG8",
+      "title": "Loops",
+      "courseUrl": "https://cs50.harvard.edu/x/2026/shorts/loops/",
+      "url": "https://youtu.be/WgX8e_O7eG8",
+      "durationSeconds": 563,
+      "captionTrack": {
+        "languageCode": "en",
+        "auto": false
+      },
+      "captionCount": 199
+    },
+    {
+      "videoId": "TwsgCHYmbbA",
+      "title": "Linear Search",
+      "courseUrl": "https://cs50.harvard.edu/x/2026/shorts/linear_search/",
+      "url": "https://youtu.be/TwsgCHYmbbA",
+      "durationSeconds": 170,
+      "captionTrack": {
+        "languageCode": "en",
+        "auto": false
+      },
+      "captionCount": 61
+    },
+    {
+      "videoId": "T98PIp4omUA",
+      "title": "Binary Search",
+      "courseUrl": "https://cs50.harvard.edu/x/2026/shorts/binary_search/",
+      "url": "https://youtu.be/T98PIp4omUA",
+      "durationSeconds": 571,
+      "captionTrack": {
+        "languageCode": "en",
+        "auto": false
+      },
+      "captionCount": 202
+    }
+  ],
+  "actualAnimationCoverage": {
+    "dictionaryEntries": 0,
+    "coveragePercent": 0,
+    "status": "blocked"
+  },
+  "coverageBaseline": {
+    "mainCommit": "98eecb93416defe9d612b05291c07e59b1ebd6f7",
+    "videos": 5,
+    "dictionaryEntries": 0,
+    "before": {
+      "mode": "main rule-only placeholder",
+      "realSigns": 0,
+      "fingerspelled": 7686,
+      "coveragePercent": 0
+    },
+    "after": {
+      "mode": "current offline fallback",
+      "realSigns": 0,
+      "fingerspelled": 7872,
+      "coveragePercent": 0
+    },
+    "note": "No dictionary-coverage regression (0% to 0%); the 70% real-sign goal remains blocked by the empty animation dictionary"
+  }
+}

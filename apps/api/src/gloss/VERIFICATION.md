@@ -4,18 +4,18 @@ Independent verification was requested for PR #10 on 2026-11-01. The complete
 spec is **not yet satisfied**. This table distinguishes implemented behavior
 from acceptance evidence that requires external inputs.
 
-| Task | Implementation and automated evidence                                                                                                 | Remaining acceptance evidence                                                                                |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| D1   | Grammar prompt, five examples, dictionary/context instructions and source links                                                       | Complete                                                                                                     |
-| D2   | 200 everyday priorities; corpus ranking uses combined caption frequencies                                                             | Five selected demo transcripts and the resulting ranked handoff to Hasan                                     |
-| D3   | Cerebras SDK, portable strict JSON schema, bounded local validation, batching/concurrency, retries/fallback and mocked sentence tests | Personal development key; live comparison of both models                                                     |
-| D4   | Synonyms, FS fallback, numbers in phrase tokens, decimal/sign/percentage handling and straight/curly contraction tests                | Complete for the documented post-pass                                                                        |
-| D5   | Weighted timing, filler removal, bounded gap overflow, centring and non-overlap tests, including overlapping long captions            | Dense captions can require sub-0.25s signs; corpus acceptance rejects these until content/pacing is reviewed |
-| D6   | Stable `textToSigns` entry point and API handoff docs; corpus runner processes separate timed videos                                  | Raashed's real transcript/API wiring and end-to-end video run                                                |
-| D6b  | Five context fixtures, prompt/data tests and paired with/without-context evaluation                                                   | Live semantic improvement on homonyms and names                                                              |
-| D6c  | Caption/track report; corpus-wide missing words, frequency order and Exa endpoint links; local endpoint tests                         | Actual demo reports and live Exa-backed references                                                           |
-| D7   | 30-sentence diagnostic, coverage, paired context results, model comparison command and explicit `--check` gate                        | Diagnostic implementation complete; live quality results pending                                             |
-| D8   | General synonyms and corpus-based priorities/missing-word reports                                                                     | Tune against the selected five demo videos and animated dictionary                                           |
+| Task | Implementation and automated evidence                                                                                              | Remaining acceptance evidence                                                                                |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| D1   | Grammar prompt, five examples, dictionary/context instructions and source links                                                    | Complete                                                                                                     |
+| D2   | 200 measured priorities from five official CS50 shorts / 1,007 actual caption segments                                             | Complete; word list and source links ready for Hasan                                                         |
+| D3   | SDK/schema/retry tests and live two-model comparison; both 7/10 exact matches, GPT 1.4s vs Qwen 7.1s                               | Comparison complete; GPT selected; remaining strict linguistic cases disclosed                               |
+| D4   | Synonyms, FS fallback, numbers in phrase tokens, decimal/sign/percentage handling and straight/curly contraction tests             | Complete for the documented post-pass                                                                        |
+| D5   | Weighted timing, filler removal, bounded gap overflow, centring and non-overlap tests, including overlapping long captions         | Dense captions can require sub-0.25s signs; corpus acceptance rejects these until content/pacing is reviewed |
+| D6   | Real YouTube/API/Cerebras runs: full Linear Search and Loops, plus a manual 180-second caption excerpt; shared track validation    | Module/API integration complete; avatar playback still depends on Hasan                                      |
+| D6b  | Live paired context tests correct Java/coffee and Mauna Loa spelling; 4/5 exact matches after correcting word-boundary expectation | Crane case remains a mismatch; Exa fetch itself was not exercised                                            |
+| D6c  | Actual CS50 offline missing-sign frequencies and live endpoint integration contract tests                                          | Live Exa-backed reference links require Exa configuration                                                    |
+| D7   | 30-sentence diagnostic, coverage, paired context results, model comparison command and explicit `--check` gate                     | Diagnostic implementation complete; live quality results pending                                             |
+| D8   | 14 inflection mappings observed in CS50 captions; availability-only mapping tests and measured handoff priorities                  | Caption-driven tuning complete; rendered signs/coverage need Hasan's dictionary                              |
 
 ## Independent findings and corrections
 
@@ -34,6 +34,16 @@ from acceptance evidence that requires external inputs.
 - The PR description referred to keeping a draft after the PR was made ready
   for review. The revised description records its actual state and outstanding
   acceptance inputs.
+- Main now contains shared schemas and API/transcript services. The translator
+  imports those shared contracts instead of maintaining duplicate types.
+- Unit tests now isolate non-secret tier/batch/concurrency settings from local
+  `.env` configuration. Reference requests follow the real API query contract;
+  numeric FS entries are excluded from word searches, and unsupported queries
+  are reported explicitly.
+
+Live runs, exact model outputs, scoring corrections and timings are recorded
+in [live-results.json](./live-results.json). Model/context vocabulary is an
+evaluation fixture, not a claim that those signs have playable animations.
 
 ## Run the remaining acceptance checks
 
@@ -45,6 +55,9 @@ dictionary, rather than a fixture dictionary, for coverage targets.
 # Offline diagnostics; never sponsor evidence.
 pnpm eval:gloss
 pnpm eval:gloss --corpus apps/api/src/gloss/fixtures/corpus.sample.json
+mkdir -p apps/api/src/gloss/data
+bun apps/api/src/gloss/cs50.ts > apps/api/src/gloss/data/cs50-corpus.json
+pnpm eval:gloss --corpus apps/api/src/gloss/data/cs50-corpus.json
 
 # Deliberately exits 1: fixture/offline evidence must not pass acceptance.
 pnpm eval:gloss --corpus apps/api/src/gloss/fixtures/corpus.sample.json --check
@@ -78,12 +91,18 @@ Plain reports remain diagnostic and exit zero; `--check` is the acceptance path.
 - **PR rules:** the only failing rule is the missing `cross-team` label for
   the authorized root/API manifests. Adding it through `gh` returned HTTP 403.
   A maintainer must add the label; Raashed is already requested for review.
-- **Sponsor runs:** no development Cerebras key is available.
-- **Demo evidence:** the five selected videos/captions have not been supplied.
+- **Sponsor runs:** a personal development key was supplied and used; it has a
+  5-request/minute limit. Real Exa results still require Exa configuration.
+- **Demo evidence:** all five selected CS50 videos/captions are fetched and
+  measured. Only selected full-video/API runs, not all five live tracks, were
+  executed; all five have offline coverage/frequency reports.
 - **Coverage:** Hasan's real dictionary has zero signs; current coverage is 0%.
-- **Integration:** shared schemas, transcript wiring and the Exa endpoint are
-  Raashed's work and have not landed on main. Local PLAN-compatible schemas
-  remain a documented bridge; this PR does not alter shared contracts.
+- **Quality/speed:** four of five context cases match exactly; crane remains
+  unresolved. The 180-second excerpt took 2.9s, but the full 9:23 video took
+  20.6s. A full three-minute-video speed claim is not established by either.
+- **Integration:** shared schemas, transcript wiring and Exa endpoints are now
+  on main and reused. No shared contracts or other owners' implementation files
+  were edited by this integration.
 
 ## Optional stretch work
 
