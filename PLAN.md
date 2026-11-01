@@ -339,7 +339,7 @@ avatar/
 
 ### PR rules (checked automatically on every PR)
 
-Every PR runs `.github/workflows/pr-checks.yml` as five separate checks: **PR rules**, **Lint**, **Type check**, **Tests** and **Build**. All five are required, so a PR can't be merged until they pass:
+Every PR runs `.github/workflows/pr-rules.yml` and `.github/workflows/pr-quality.yml` as five separate checks: **PR rules**, **Lint**, **Type check**, **Tests** and **Build**. All five are required, so a PR can't be merged until they pass:
 
 | Rule | What it means | How to fix it |
 |---|---|---|

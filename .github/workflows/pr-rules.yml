@@ -1,4 +1,4 @@
-name: PR checks
+name: PR rules
 
 on:
   pull_request:
@@ -8,9 +8,8 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: pr-checks-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+# Runs on label and description changes too. No concurrency cancelling: it takes ~10s,
+# and a cancelled run shows up as a confusing cancelled check on the PR.
 
 jobs:
   rules:
@@ -33,35 +32,3 @@ jobs:
           PR_LABELS: ${{ toJson(github.event.pull_request.labels.*.name) }}
           PR_BODY: ${{ github.event.pull_request.body }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup
-      - run: pnpm turbo run lint --ui=stream
-
-  check-types:
-    name: Type check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup
-      - run: pnpm turbo run check-types --ui=stream
-
-  test:
-    name: Tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup
-      - run: pnpm turbo run test --ui=stream
-
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup
-      - run: pnpm turbo run build --ui=stream
