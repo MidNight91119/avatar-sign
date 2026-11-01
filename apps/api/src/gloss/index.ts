@@ -14,7 +14,7 @@ import {
   prepareCaptions,
 } from "./words";
 import { systemPrompt } from "./prompt";
-import { timeSigns } from "./timing";
+import { timeSigns, timingSummary } from "./timing";
 import type { Caption, GlossOptions, Segment } from "./types";
 
 export type {
@@ -39,6 +39,7 @@ interface Completion {
 
 export interface GlossRequest {
   model: string;
+  temperature: 0;
   messages: { role: "system" | "user"; content: string }[];
   response_format: {
     type: "json_schema";
@@ -137,6 +138,7 @@ export function createGlossTranslator(dependencies: Dependencies = {}) {
                 try {
                   const response = await complete({
                     model,
+                    temperature: 0,
                     messages: [
                       {
                         role: "system",
@@ -266,6 +268,7 @@ export function createGlossTranslator(dependencies: Dependencies = {}) {
       totalTokens,
       fallbackBatches,
       segments: segments.length,
+      ...timingSummary(allTokens, segments),
     });
     return segments;
   };

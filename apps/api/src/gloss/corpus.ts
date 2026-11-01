@@ -50,6 +50,10 @@ export async function evaluateCorpus(
     let fallbackBatches = 0;
     let providerCalls = 0;
     let providerTokens = 0;
+    let completionTokens = 0;
+    let droppedFillers = 0;
+    let droppedContent = 0;
+    let denseFingerspelling = 0;
     const translate = createGlossTranslator({
       ...dependencies,
       ...(!options.live && !dependencies.complete
@@ -60,10 +64,16 @@ export async function evaluateCorpus(
           }
         : {}),
       log: (event) => {
-        if (event.event === "gloss.call") providerCalls++;
+        if (event.event === "gloss.call") {
+          providerCalls++;
+          completionTokens += Number(event.completion_tokens ?? 0);
+        }
         if (event.event === "gloss.video") {
           fallbackBatches += Number(event.fallbackBatches);
           providerTokens += Number(event.totalTokens);
+          droppedFillers += Number(event.droppedFillers ?? 0);
+          droppedContent += Number(event.droppedContent ?? 0);
+          denseFingerspelling += Number(event.denseFingerspelling ?? 0);
         }
         if (options.live && mode !== "mock")
           globalThis.console.error(JSON.stringify(event));
@@ -100,6 +110,11 @@ export async function evaluateCorpus(
       elapsedMs,
       providerCalls,
       providerTokens,
+      completionTokens,
+      tokensPerSecond: completionTokens / Math.max(elapsedMs / 1000, 0.001),
+      droppedFillers,
+      droppedContent,
+      denseFingerspelling,
       fallbackBatches,
       ...signCoverage(
         signs.map(({ gloss }) => gloss),
@@ -128,6 +143,10 @@ export async function evaluateCorpus(
     timing: videos.every(
       ({ timingViolations, tooFastSigns, tooSlowSigns }) =>
         timingViolations === 0 && tooFastSigns === 0 && tooSlowSigns === 0,
+    ),
+    readableContent: videos.every(
+      ({ droppedContent, denseFingerspelling }) =>
+        droppedContent === 0 && denseFingerspelling === 0,
     ),
     references: missing.every(
       ({ referenceStatus, references }) =>
