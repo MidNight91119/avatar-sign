@@ -30,7 +30,7 @@ Each range covers whole caption sentences, from the start of the first quoted li
 - Linear Search: 26% of 255 words
 - Binary Search: 23% of 261 words
 
-How words are counted: join the text of every caption from the first quoted line to the last, lowercase it, and take each match of `/[a-z']+/g` as a word (digits and punctuation are dropped). A different tokenizer gives slightly different numbers (Raashed's recount in #23 got about 32% / 25% / 24%), but Loops stays highest either way.
+How words are counted: join the text of every caption with spaces, from the first quoted line to the last, lowercase it, and take each match of `/[a-z']+/g` as a word (digits and punctuation are dropped). A different tokenizer gives slightly different numbers (Raashed's recount in #23 got about 32% / 25% / 24%), but Loops stays highest either way.
 
 Expect a lot of fingerspelling until Hasan's clip library grows.
 
@@ -38,20 +38,21 @@ Expect a lot of fingerspelling until Hasan's clip library grows.
 
 PLAN §10 asks for one complete captioned video of about three minutes. None of the five corpus videos fits: Linear Search is 2:50 (170s), and the others are 9–14 minutes. So the benchmarks come from outside the corpus and add to it.
 
-| Role                                                                                                     | Video                                                                                                 | Length                              | Scope                                                                          | Measured                                                                                                      |
-| -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
-| **Stage video**: opened live from `/discover` (the Cerebras moment) and the full-video **API** benchmark | [How Do Volcanoes Work? - Behind the News](https://www.youtube.com/watch?v=w1vhSSu8Nxw) `w1vhSSu8Nxw` | 3:53, 74 manual-caption cues        | complete video, **cold** API job on a throwaway cache (captions + Exa + gloss) | **9.9s** total, 5.0s gloss ([#21](https://github.com/rshdhere/avatar-sign/issues/21#issuecomment-6555897857)) |
-| Full-video **gloss** benchmark                                                                           | [CS50 Defining Custom Types](https://youtu.be/96M4q0OnMfY) `96M4q0OnMfY`                              | 3:33 (213s), 69 manual-caption cues | complete video, captions + gloss, excludes Exa and avatar assets               | **3.91s** gloss, 4.84s captions + gloss (`apps/api/src/gloss/acceptance-results.json`)                        |
+| Role                                                                                                     | Video                                                                                                 | Length                              | Scope                                                                          | Measured                                                                                                                                                                                              |
+| -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Stage video**: opened live from `/discover` (the Cerebras moment) and the full-video **API** benchmark | [How Do Volcanoes Work? - Behind the News](https://www.youtube.com/watch?v=w1vhSSu8Nxw) `w1vhSSu8Nxw` | 3:53, 74 manual-caption cues        | complete video, **cold** API job on a throwaway cache (captions + Exa + gloss) | **9.9s** total, 5.0s gloss ([#21](https://github.com/rshdhere/avatar-sign/issues/21#issuecomment-6555897857))                                                                                         |
+| Full-video **gloss** benchmark                                                                           | [CS50 Defining Custom Types](https://youtu.be/96M4q0OnMfY) `96M4q0OnMfY`                              | 3:33 (213s), 69 manual-caption cues | complete video, captions + gloss, excludes Exa and avatar assets               | **3.91s** gloss, 4.84s captions + gloss (`apps/api/src/gloss/acceptance-results.json`); 2 provider calls, 0 fallback batches. A speed-only pass: 0% real-sign coverage, so it is not a quality result |
 
 Why the volcano video for the stage:
 
-- It's the only `/discover` candidate under 10s cold end to end. The other 3–4 min result with manual captions, "Binary search in 4 minutes" (`fDKIpRe8GW4`), took 14.1s.
+- Of the two measured 3–4 min manual-caption candidates, it's the only one under 10s cold end to end (one free-tier run). The other 3–4 min result with manual captions, "Binary search in 4 minutes" (`fDKIpRe8GW4`), took 14.1s.
 - It uses everyday words (kids' news), and it fits the "find accessible videos" story.
 
 Rules for the stage video:
 
 - Raashed keeps it out of every cache warm and export, so it is **uncached** on stage.
 - Run details: free Cerebras key (`CEREBRAS_TIER=free`), commit `d03fb20`, 0 fallback batches, 0 rate-limit errors (429s). The Exa context step hit its 4s cap and returned no context, so this run had none.
+- PLAN §10 targets: complete cold API job <15s (Raashed) and gloss-only <10s (Durgesh). Quote 9.9s against the <15s API target, not as the gloss gate.
 - All signs are fingerspelled until `dictionary.json` has clips (#20), and avatar asset loading is not included in these timings.
 
 ## `/discover` queries (pre-run by Raashed)
@@ -76,6 +77,6 @@ Do not quote any of these as "a 3-minute video in N seconds": Linear Search is u
 
 ## Still open
 
-- [ ] Raashed confirms the list and warms the 5 corpus videos only, never the stage video (#21)
+- [ ] Raashed warms the 5 corpus videos only and keeps `w1vhSSu8Nxw` out of every warm and export (#21)
 - [ ] Re-measure the stage video cold right before the pitch (same throwaway-cache method), once real clips exist
 - [ ] Hasan and Durgesh confirm the three segments are readable once real clips exist (G1/G3)
