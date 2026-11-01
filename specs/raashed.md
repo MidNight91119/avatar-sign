@@ -82,6 +82,7 @@ Bun runtime, Hono, `youtubei.js`, **`exa-js`** (sponsor), `zod`, `bun:sqlite` (o
 ## 4. Hours 12–18: Hardening
 
 - [ ] **Pre-warm the cache** for all 5 demo videos, and rebuild it after each change Durgesh makes to the prompt
+  - Tool ready: `pnpm --filter @signstream/api demo warm <id...>` (and `demo refresh <id...>` after a prompt change). Run it once the demo videos and keys exist
 - [x] Logging: one line per job (videoId, number of captions, number of signs, % fingerspelled, Exa time, **Cerebras time**, total time). Durgesh uses this for tuning
 - [x] Stream partial results (stretch): mark the first N segments as ready so the avatar can start before the whole video is done
   - While `processing`, `/api/sign-track` returns the segments glossed so far (one batch of 40 captions at a time). Client: `getSignTrack(id, lang, { onPartial })` is called each time new segments arrive
@@ -91,8 +92,11 @@ Bun runtime, Hono, `youtubei.js`, **`exa-js`** (sponsor), `zod`, `bun:sqlite` (o
 
 - [ ] Set up the API **locally on the demo laptop** with the cache pre-loaded (the offline backup)
 - [ ] Pre-run the `/discover` queries Ayush will use in the demo, so they come from the cache
+  - Tool ready: `demo discover "<query>"...`
 - [ ] Pre-fetch `/api/sign-reference` for the 500 most common English words (~$5 of Exa credit) so `/signs` loads instantly
+  - Tool ready: `demo sign-refs` (500 words in `src/scripts/common-words.ts`; cached words are skipped)
 - [ ] Export the cached tracks as a JSON file in `mocks/demo-cache/` so they can be loaded with no network
+  - Tool ready: `demo export` writes `mocks/demo-cache/cache.json`; `demo import` loads it on the demo laptop
 - [ ] API section of the README: endpoints, env variables, how to run
 
 ---
