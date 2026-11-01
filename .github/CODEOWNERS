@@ -1,0 +1,41 @@
+# Review requests go to the owner of the changed files. Keep in sync with .github/owners.json.
+# Later rules win over earlier ones.
+
+# Default and repo setup: Raashed
+*                                   @rshdhere
+
+# Team-wide files: everyone is asked to review
+/PLAN.md                            @rshdhere @xhxaidi @durgeshbg @PoonamMehan @MidNight91119
+/AGENTS.md                          @rshdhere @xhxaidi @durgeshbg @PoonamMehan @MidNight91119
+/CLAUDE.md                          @rshdhere @xhxaidi @durgeshbg @PoonamMehan @MidNight91119
+
+# Specs
+/specs/raashed.md                   @rshdhere
+/specs/hasan.md                     @xhxaidi
+/specs/durgesh.md                   @durgeshbg
+/specs/poonam.md                    @PoonamMehan
+/specs/ayush.md                     @MidNight91119
+
+# Backend (Raashed) and gloss module (Durgesh)
+/apps/api/                          @rshdhere
+/packages/shared/                   @rshdhere
+/mocks/                             @rshdhere
+/apps/api/src/gloss/                @durgeshbg
+
+# Avatar and website (Hasan); Ayush's pages
+/packages/player/                   @xhxaidi
+/packages/sign-assets/              @xhxaidi
+/apps/web/                          @xhxaidi
+/apps/web/app/page.tsx              @MidNight91119
+/apps/web/app/extension/            @MidNight91119
+/apps/web/app/discover/             @MidNight91119
+/apps/web/components/landing/       @MidNight91119
+/apps/web/components/discover/      @MidNight91119
+/apps/web/public/landing/           @MidNight91119
+/docs/pitch/                        @MidNight91119
+
+# Extension (Poonam)
+/apps/extension/                    @PoonamMehan
+
+# CI and PR rules (Raashed)
+/.github/                           @rshdhere

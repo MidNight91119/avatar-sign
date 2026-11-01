@@ -1,7 +1,14 @@
 {
-  "$comment": "Who owns which files. Used by .github/scripts/pr-check.ts. Fill in each person's GitHub username. Patterns: ** = any depth, * = one path segment, a leading ! excludes.",
-  "sharedPaths": ["pnpm-lock.yaml"],
-  "teamPaths": ["PLAN.md", "specs/**", "AGENTS.md", "CLAUDE.md"],
+  "$comment": "Who owns which files. Used by .github/scripts/pr-check.ts. Patterns: ** = any depth, * = one path segment, a leading ! excludes.",
+  "sharedPaths": [
+    "pnpm-lock.yaml"
+  ],
+  "teamPaths": [
+    "PLAN.md",
+    "specs/**",
+    "AGENTS.md",
+    "CLAUDE.md"
+  ],
   "owners": {
     "raashed": {
       "github": "rshdhere",
@@ -28,12 +35,14 @@
       ]
     },
     "durgesh": {
-      "github": "",
+      "github": "durgeshbg",
       "spec": "specs/durgesh.md",
-      "paths": ["apps/api/src/gloss/**"]
+      "paths": [
+        "apps/api/src/gloss/**"
+      ]
     },
     "hasan": {
-      "github": "",
+      "github": "xhxaidi",
       "spec": "specs/hasan.md",
       "paths": [
         "packages/player/**",
@@ -48,12 +57,14 @@
       ]
     },
     "poonam": {
-      "github": "",
+      "github": "PoonamMehan",
       "spec": "specs/poonam.md",
-      "paths": ["apps/extension/**"]
+      "paths": [
+        "apps/extension/**"
+      ]
     },
     "ayush": {
-      "github": "",
+      "github": "MidNight91119",
       "spec": "specs/ayush.md",
       "paths": [
         "apps/web/app/page.tsx",
