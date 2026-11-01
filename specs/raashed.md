@@ -44,7 +44,7 @@ Bun runtime, Hono, `youtubei.js`, **`exa-js`** (sponsor), `zod`, `bun:sqlite` (o
 - [x] Clear errors: `NO_CAPTIONS`, `VIDEO_UNAVAILABLE`, `LIVE_NOT_SUPPORTED` → these go into `SignTrack.error` so Poonam and Hasan can show useful messages
   - Done as `getTranscript(videoId, source)` (also returns title, description and duration for Exa and the length limit). YouTube's WEB clients now return UNPLAYABLE with no caption tracks for server requests; the IOS and ANDROID clients return them, so `youtubeSource()` tries IOS → ANDROID → WEB. The `.vtt` parser for the manual upload is in `captions.ts`; the endpoint comes with the API routes PR
 - [ ] Manual-upload fallback: `POST /api/captions/:videoId` accepts a `.vtt` file (parse it with a small TS VTT parser), in case YouTube blocks the server IP
-- [ ] **Exa video context** `apps/api/src/context.ts`: `getVideoContext(videoId, title, description) → VideoContext | undefined` (type from PLAN §4.2). Use Exa search with a schema, so Exa returns the structured result directly:
+- [x] **Exa video context** `apps/api/src/context.ts`: `getVideoContext(videoId, title, description) → VideoContext | undefined` (type from PLAN §4.2). Use Exa search with a schema, so Exa returns the structured result directly:
   ```ts
   import Exa from "exa-js";
   const exa = new Exa(); // reads EXA_API_KEY
@@ -59,6 +59,7 @@ Bun runtime, Hono, `youtubei.js`, **`exa-js`** (sponsor), `zod`, `bun:sqlite` (o
   const ctx = VideoContextSchema.safeParse(res.output?.content);
   ```
   Cache it by `videoId`. If Exa fails, is slow (> 4s) or returns something invalid, return `undefined` and continue. **Glossing must never wait on Exa for long.** If `outputSchema` doesn't work in time, fall back to `highlights` only and let Durgesh's prompt read the excerpts
+  - Done in `apps/api/src/exa.ts` together with the Discover and sign-reference search logic. Exa returns `output.content` as an object or a JSON string; both are handled. Invalid output falls back to the highlights as `topic`. Caching by `videoId` comes with the cache PR
 - [ ] Ayush picks the **5 demo videos** by hour 3. Fetch their captions and send them to Durgesh by **hour 4**
 
 ## 3. Hours 6–12: API
