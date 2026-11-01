@@ -48,10 +48,13 @@ const labels: string[] = JSON.parse(process.env.PR_LABELS || "[]");
 const prBody = process.env.PR_BODY ?? "";
 const head = process.env.HEAD_SHA || "HEAD";
 const base = "origin/main";
+/** The branch this PR merges into. For stacked PRs this is the PR below it, so only this PR's own changes are checked. */
+const prBase = `origin/${process.env.PR_BASE || "main"}`;
 
 if (!isCI) {
   try {
     git("fetch", "--quiet", "origin", "main");
+    if (prBase !== base) git("fetch", "--quiet", "origin", prBase.slice("origin/".length));
   } catch {
     warn("Could not fetch origin/main; using your local copy of origin/main.");
   }
@@ -109,7 +112,7 @@ try {
 }
 
 // ---------- 3. changed files inside the owner's area ----------
-const changed = git("diff", "--name-only", `${base}...${head}`).split("\n").filter(Boolean);
+const changed = git("diff", "--name-only", `${prBase}...${head}`).split("\n").filter(Boolean);
 if (changed.length === 0) warn("No changed files compared with main.");
 
 if (owner) {
@@ -159,13 +162,17 @@ if (owner) {
 }
 
 // ---------- 5. no AI attribution ----------
+// Only real attribution lines count: a trailer or "Generated with" line at the START of a line.
+// Text that merely mentions these words (like the PR template's checklist) is fine.
+const AI_TOOLS = "claude|anthropic|codex|openai|chatgpt|cursor|copilot|gemini|devin|aider|windsurf";
 const aiPatterns: RegExp[] = [
-  /co-authored-by:.*\b(claude|anthropic|codex|openai|chatgpt|cursor|copilot|gemini|devin|aider|windsurf)\b/i,
-  /generated (with|by|using) .*\b(claude|codex|cursor|copilot|chatgpt|gemini|ai)\b/i,
-  /created (with|by|using) .*\b(claude|codex|cursor|copilot|chatgpt|gemini)\b/i,
+  new RegExp(`^\\s*co-authored-by:[^\\n]*\\b(${AI_TOOLS})\\b`, "im"),
+  new RegExp(`^\\s*(🤖\\s*)?(generated|created) (with|by|using) \\[?(${AI_TOOLS}|ai)\\b`, "im"),
   /🤖/u,
 ];
-const messages = git("log", "--format=%H%n%B%n----END----", `${base}..${head}`);
+/** The PR template's checklist mentions the forbidden text in backticks; ignore inline code there. */
+const withoutInlineCode = (s: string) => s.replace(/`[^`\n]*`/g, "");
+const messages = git("log", "--format=%H%n%B%n----END----", `${prBase}..${head}`);
 for (const block of messages.split("----END----")) {
   const [sha, ...body] = block.trim().split("\n");
   const text = body.join("\n");
@@ -173,12 +180,12 @@ for (const block of messages.split("----END----")) {
     fail(`Commit ${sha.slice(0, 7)} has AI tool attribution in its message. Reword it (git rebase -i) without it.`);
   }
 }
-if (aiPatterns.some((p) => p.test(prBody))) {
+if (aiPatterns.some((p) => p.test(withoutInlineCode(prBody)))) {
   fail("The PR description has AI tool attribution. Remove it.");
 }
 
 // ---------- report ----------
-console.log(`PR check for branch "${branch}" (${changed.length} changed file(s))\n`);
+console.log(`PR check for branch "${branch}" into ${prBase} (${changed.length} changed file(s))\n`);
 for (const w of warnings) console.log(`⚠️  ${w}\n`);
 for (const e of errors) console.log(`❌ ${e}\n`);
 if (errors.length) {
