@@ -17,6 +17,8 @@ export const cacheKeys = {
   context: (videoId: string) => `context:${videoId}`,
   discover: (q: string) => `discover:${q.trim().toLowerCase()}`,
   signReference: (word: string) => `signref:${word.trim().toLowerCase()}`,
+  /** What a ready track was built from (see revision.ts). */
+  revision: (videoId: string, lang: string) => `rev:${videoId}:${lang}`,
 };
 
 export function createSqliteCache(path: string, now: () => number = Date.now): Cache {

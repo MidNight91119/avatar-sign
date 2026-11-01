@@ -196,6 +196,62 @@ describe("GET /api/sign-reference", () => {
   });
 });
 
+describe("Exa hardening (R-I8)", () => {
+  it("answers 504 with a friendly message when Exa hangs", async () => {
+    const { get } = setup({ exaTimeoutMs: 20, discover: () => new Promise(() => {}) });
+    const res = await get("/api/discover?q=volcanoes");
+    expect(res.status).toBe(504);
+    expect(await res.json()).toEqual({ error: "UPSTREAM_TIMEOUT", message: "Search took too long; try again" });
+  });
+
+  it("answers 503 with Retry-After when Exa rate-limits us", async () => {
+    const { get } = setup({ signReference: async () => Promise.reject(Object.assign(new Error("too many"), { status: 429 })) });
+    const res = await get("/api/sign-reference?word=volcano");
+    expect(res.status).toBe(503);
+    expect(res.headers.get("retry-after")).toBe("60");
+    expect((await res.json()).error).toBe("UPSTREAM_BUSY");
+  });
+
+  it("shares one paid call between identical requests that arrive together", async () => {
+    let calls = 0;
+    let release!: (r: DiscoverResult[]) => void;
+    const { get } = setup({
+      discover: () => {
+        calls++;
+        return new Promise((r) => (release = r));
+      },
+    });
+    const both = Promise.all([get("/api/discover?q=lava"), get("/api/discover?q=Lava")]);
+    await new Promise((r) => setTimeout(r, 5));
+    release([]);
+    const [a, b] = await both;
+    expect(calls).toBe(1);
+    expect(await a.json()).toEqual([]);
+    expect(await b.json()).toEqual([]);
+  });
+
+  it("caches empty answers for 5 minutes only", async () => {
+    let t = 0;
+    let calls = 0;
+    const { get } = setup({ cache: createSqliteCache(":memory:", () => t), signReference: async () => (calls++, []) });
+    await get("/api/sign-reference?word=zzz");
+    t = 4 * 60_000;
+    await get("/api/sign-reference?word=zzz");
+    expect(calls).toBe(1);
+    t = 6 * 60_000;
+    await get("/api/sign-reference?word=zzz");
+    expect(calls).toBe(2);
+  });
+
+  it("does not cache failures", async () => {
+    let calls = 0;
+    const { get } = setup({ discover: async () => (calls++, Promise.reject(new Error("down"))) });
+    await get("/api/discover?q=lava");
+    await get("/api/discover?q=lava");
+    expect(calls).toBe(2);
+  });
+});
+
 describe("CORS", () => {
   it("allows YouTube, extensions, localhost and configured origins only", () => {
     expect(isAllowedOrigin("https://www.youtube.com", [])).toBe(true);
