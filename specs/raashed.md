@@ -13,13 +13,13 @@
 Everyone depends on your **hour-1** work, so that comes first.
 
 ## Stack
-Node.js 20+, Hono (`@hono/node-server`), `youtubei.js`, **`exa-js`** (sponsor), `zod`, `better-sqlite3` (or Upstash Redis on serverless), `p-limit`, Vitest.
+Bun runtime, Hono, `youtubei.js`, **`exa-js`** (sponsor), `zod`, `bun:sqlite` (or Upstash Redis on serverless), `p-limit`, `bun test`. The workspace is Turborepo + pnpm.
 
 ---
 
 ## 1. Hour 0–1: Unblock everyone (top priority)
 
-- [ ] `pnpm` monorepo: `apps/{api,extension,web}`, `packages/{player,sign-assets,shared}`, `tsconfig.base.json` (strict), Biome, Vitest, root scripts (`pnpm dev`, `pnpm build`, `pnpm test`)
+- [x] Turborepo + pnpm monorepo: `apps/{api,extension,web}`, `packages/{player,sign-assets,shared,ui,typescript-config,eslint-config}`, strict TS, ESLint + Prettier, Bun for the API and tests, root scripts (`pnpm dev`, `pnpm build`, `pnpm test`, `pnpm pr-check`)
 - [ ] `packages/shared`: zod schemas + TS types from PLAN §4.1 (`SignTrack`, `Segment`, `Sign`, `SignLang`). Export the types with `z.infer` so they can't drift from the schemas
 - [ ] `packages/shared`: a typed API client:
   ```ts

@@ -20,11 +20,16 @@
 /apps/api/                          @rshdhere
 /packages/shared/                   @rshdhere
 /mocks/                             @rshdhere
+/packages/typescript-config/        @rshdhere
+/packages/eslint-config/            @rshdhere
+/turbo.json                         @rshdhere
+/package.json                       @rshdhere
 /apps/api/src/gloss/                @durgeshbg
 
 # Avatar and website (Hasan); Ayush's pages
 /packages/player/                   @xhxaidi
 /packages/sign-assets/              @xhxaidi
+/packages/ui/                       @xhxaidi
 /apps/web/                          @xhxaidi
 /apps/web/app/page.tsx              @MidNight91119
 /apps/web/app/extension/            @MidNight91119

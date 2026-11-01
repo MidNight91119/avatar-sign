@@ -12,7 +12,7 @@
 - [ ] I updated **my spec**: ticked the finished tasks and noted any change to the plan
 
 ## Test cases
-- [ ] `pnpm lint`, `pnpm typecheck` and `pnpm test` pass locally
+- [ ] `pnpm lint`, `pnpm check-types`, `pnpm test` and `pnpm build` pass locally
 - [ ] Every item in the **"PR test cases"** section of my spec passes (list any that don't, and why):
 - [ ] `node .github/scripts/pr-check.ts` passes locally
 

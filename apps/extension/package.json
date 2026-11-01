@@ -1,0 +1,21 @@
+{
+  "name": "@signstream/extension",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "eslint . --max-warnings 0",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@signstream/player": "workspace:*",
+    "@signstream/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/bun": "^1.4.4",
+    "eslint": "10.9.1",
+    "typescript": "7.0.2"
+  }
+}

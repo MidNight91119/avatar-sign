@@ -39,22 +39,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Check whether the monorepo exists yet
-        id: repo
-        run: |
-          if [ -f package.json ]; then echo "ready=true" >> "$GITHUB_OUTPUT"; else echo "ready=false" >> "$GITHUB_OUTPUT"; echo "No package.json yet; skipping tests."; fi
       - uses: pnpm/action-setup@v4
-        if: steps.repo.outputs.ready == 'true'
       - uses: actions/setup-node@v4
-        if: steps.repo.outputs.ready == 'true'
         with:
           node-version: 24
           cache: pnpm
-      - if: steps.repo.outputs.ready == 'true'
-        run: pnpm install --frozen-lockfile
-      - if: steps.repo.outputs.ready == 'true'
-        run: pnpm -r --if-present lint
-      - if: steps.repo.outputs.ready == 'true'
-        run: pnpm -r --if-present typecheck
-      - if: steps.repo.outputs.ready == 'true'
-        run: pnpm -r --if-present test
+      - uses: oven-sh/setup-bun@v2
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm turbo run lint check-types test build --ui=stream

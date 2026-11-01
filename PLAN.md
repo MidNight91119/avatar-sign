@@ -149,17 +149,18 @@ Both sponsors are part of the core product, not add-ons. Judges should see them 
 | Layer | Choice |
 |---|---|
 | Language | **TypeScript** (strict mode) in every package. No Python. |
-| Monorepo | `pnpm` workspaces, shared `tsconfig.base.json`, Biome (or ESLint + Prettier) |
+| Monorepo | **Turborepo** + **pnpm** workspaces (`pnpm install`, `pnpm dev`, `pnpm test` from the root). Shared configs in `packages/typescript-config` and `packages/eslint-config`; ESLint + Prettier |
+| Runtime | **Bun** inside individual packages: the API runs on Bun, and `api`, `shared`, `player` and the gloss module use `bun test`. The website (Next.js) and extension (Vite) use their own tools |
 | Validation | `zod`: the shared schemas are the single source of truth for the JSON formats |
-| Backend | Node.js 20+ with **Hono** |
+| Backend | **Hono** on **Bun** (`apps/api`) |
 | Transcript | `youtubei.js` (or `youtube-transcript`) |
 | LLM | **Cerebras** through `@cerebras/cerebras_cloud_sdk` (OpenAI-compatible, strict JSON schema output). Model: `gpt-oss-120b` (default) or `qwen-3.8-27b`, set with `CEREBRAS_MODEL` |
 | Web search | **Exa** through `exa-js`: `search` with `type: "auto"`, `includeDomains`, `contents.highlights` and `outputSchema` |
-| Cache | SQLite through `better-sqlite3` locally, or Upstash Redis when deployed |
+| Cache | SQLite through Bun's built-in `bun:sqlite`, or Upstash Redis when deployed |
 | Avatar | Three.js + `@pixiv/three-vrm` (VRM avatar); keyframe animation clips as JSON |
 | Extension | Chrome MV3, Vite + `@crxjs/vite-plugin`, React for the popup |
 | Website | Next.js (App Router) + Tailwind, deployed on Vercel |
-| Tests | Vitest |
+| Tests | `bun test` for Bun packages; `pnpm test` runs every package's tests through Turborepo |
 
 ---
 
@@ -342,7 +343,7 @@ Every PR runs `.github/workflows/pr-checks.yml`. A PR can't be merged until it p
 
 | Rule | What it means | How to fix it |
 |---|---|---|
-| **Tests pass** | `pnpm lint`, `pnpm typecheck` and `pnpm test` pass, and you ran the **"PR test cases"** in your spec | Fix the failing tests; tick the test cases in the PR description |
+| **Tests pass** | `pnpm lint`, `pnpm check-types`, `pnpm test` and `pnpm build` pass, and you ran the **"PR test cases"** in your spec | Fix the failing tests; tick the test cases in the PR description |
 | **Up to date with main** | Your branch contains the latest `main`, so you built against the current plan and specs | `git fetch origin && git rebase origin/main`, then re-read PLAN.md and your spec |
 | **Your spec is updated** | If you changed code, you also updated `specs/<you>.md` (ticked finished tasks, noted changes) | Edit your spec, or add the `no-spec-change` label if it really isn't needed |
 | **Your own work only** | The branch is `<you>/…`, you opened the PR, and you only changed files in your area (`.github/owners.json`). This applies to AI-made changes too | Ask the owner to make the change, or add the `cross-team` label and get their review |

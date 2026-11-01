@@ -91,7 +91,7 @@ caption segments
 |---|---|---|
 | D1 | Research the grammar rules (table above); write the system prompt v1 | 1.5 |
 | D2 | **Top-200 word list** ranked by how often the words appear in the captions of our 5 demo videos + common everyday words → give it to Hasan | **2** |
-| D3 | `textToSigns()` with a Cerebras call + zod validation, tested with Vitest on 5 sentences; compare 2 Cerebras models | 5 |
+| D3 | `textToSigns()` with a Cerebras call + zod validation, tested with `bun test` on 5 sentences; compare 2 Cerebras models | 5 |
 | D4 | Post-pass: synonym map (`synonyms.ts`, for example `LARGE/HUGE → BIG`, `PURCHASE → BUY`), FS fallback, number handling | 7 |
 | D5 | Timing algorithm + unit tests (signs never overlap; all signs stay inside their window ±0.5s) | 9 |
 | D6 | Hand the module to Raashed and test it end-to-end on a real video | 10 |
