@@ -27,6 +27,8 @@ export interface AppDeps {
   requestTrack: RequestTrack;
   createPlayer: CreatePlayer;
   assetsBaseUrl: string;
+  /** How often to check the URL in case YouTube navigates without firing yt-navigate-finish. */
+  urlPollMs?: number;
 }
 
 /**
@@ -65,8 +67,10 @@ export async function startApp(deps: AppDeps): Promise<() => void> {
     reporter = { link, videoId, stop: startVideoReporter(doc, (video) => link.post({ type: "video", video })) };
   };
 
+  let lastHref = "";
   const render = () => {
-    const route = parseRoute(win.location.href);
+    lastHref = win.location.href;
+    const route = parseRoute(lastHref);
     const video = route.kind === "watch" || route.kind === "live" ? route : undefined;
 
     buttonWait?.abort();
@@ -110,8 +114,14 @@ export async function startApp(deps: AppDeps): Promise<() => void> {
     });
   };
 
+  // yt-navigate-finish is a YouTube-specific hint (PLAN §11); a URL check on popstate and a slow poll is the fallback.
+  const renderIfUrlChanged = () => {
+    if (win.location.href !== lastHref) render();
+  };
   const listeners = new AbortController();
   doc.addEventListener(NAVIGATE_FINISH_EVENT, render, { signal: listeners.signal });
+  win.addEventListener("popstate", renderIfUrlChanged, { signal: listeners.signal });
+  const urlPoll = win.setInterval(renderIfUrlChanged, deps.urlPollMs ?? 1000);
   doc.addEventListener("fullscreenchange", render, { signal: listeners.signal });
   doc.addEventListener(PAGE_DATA_EVENT, postPage, { signal: listeners.signal });
   const unsubscribeSettings = deps.settings.subscribe((next) => {
@@ -131,6 +141,7 @@ export async function startApp(deps: AppDeps): Promise<() => void> {
 
   return () => {
     listeners.abort();
+    win.clearInterval(urlPoll);
     unsubscribeSettings();
     unsubscribeSidebar();
     buttonWait?.abort();

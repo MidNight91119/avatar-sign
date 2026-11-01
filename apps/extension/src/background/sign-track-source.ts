@@ -37,6 +37,8 @@ export interface LoadOptions {
   cache: TrackCache;
   signal: AbortSignal;
   onProgress?: (progress: number) => void;
+  /** Cumulative snapshots while processing (the shared client calls this when there are new segments). */
+  onPartial?: (track: SignTrack) => void;
   fetch?: typeof fetch;
   pollIntervalMs?: number;
   /** Network failures (the API down, offline) are retried this many times before giving up. */
@@ -69,6 +71,7 @@ export async function loadSignTrack(opts: LoadOptions): Promise<{ track: SignTra
       const track = await client.getSignTrack(videoId, lang, {
         signal,
         onProgress: opts.onProgress,
+        onPartial: opts.onPartial,
         pollIntervalMs: opts.pollIntervalMs,
         timeoutMs: TRACK_TIMEOUT_MS,
       });

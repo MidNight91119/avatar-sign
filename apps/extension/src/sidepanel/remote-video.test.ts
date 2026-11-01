@@ -7,6 +7,7 @@ const snap = (patch: Partial<VideoSnapshot> = {}): VideoSnapshot => ({
   event: "sync",
   currentTime: 0,
   paused: true,
+  buffering: false,
   playbackRate: 1,
   adShowing: false,
   sentAt: 1_000,
@@ -17,7 +18,7 @@ function setup() {
   let now = 0;
   const remote = new RemoteVideo(() => now);
   const events: string[] = [];
-  for (const type of ["play", "pause", "seeked", "ratechange", "adchange"]) {
+  for (const type of ["play", "pause", "seeked", "ratechange", "adchange", "waiting", "playing"]) {
     remote.addEventListener(type, () => events.push(type));
   }
   return { remote, events, advance: (ms: number) => (now += ms) };
@@ -95,5 +96,17 @@ describe("RemoteVideo", () => {
     expect(remote.paused).toBe(true);
     expect(remote.adShowing).toBe(false);
     expect(remote.currentTime).toBe(0);
+  });
+
+  it("holds the clock while YouTube buffers, and says so", () => {
+    const { remote, events, advance } = setup();
+    remote.apply(snap({ currentTime: 20, paused: false }), 1_000);
+    remote.apply(snap({ event: "waiting", currentTime: 20.2, paused: false, buffering: true }), 1_000);
+    advance(3_000);
+    expect(remote.currentTime).toBeCloseTo(20.2);
+    remote.apply(snap({ event: "playing", currentTime: 20.2, paused: false }), 1_000);
+    advance(500);
+    expect(remote.currentTime).toBeCloseTo(20.7);
+    expect(events).toEqual(["play", "waiting", "playing"]);
   });
 });

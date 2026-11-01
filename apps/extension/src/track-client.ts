@@ -8,6 +8,8 @@ import {
 
 export interface TrackHandlers {
   onProgress(progress: number): void;
+  /** A cumulative snapshot while processing: replace the current track with it (never append). */
+  onPartial(track: SignTrack): void;
   onReady(track: SignTrack, source: TrackSource): void;
   onError(code: string): void;
 }
@@ -73,6 +75,8 @@ export function createTrackClient(deps: TrackClientDeps = chromeDeps): RequestTr
         const update = parsed.data;
         if (update.type === "progress") {
           handlers.onProgress(update.progress);
+        } else if (update.type === "partial") {
+          handlers.onPartial(update.track);
         } else if (update.type === "ready") {
           finish();
           handlers.onReady(update.track, update.source);

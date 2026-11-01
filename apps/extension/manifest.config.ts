@@ -30,10 +30,10 @@ export default defineManifest({
   permissions: ["storage", "sidePanel"],
   // Only the API origin: the background worker calls it, so youtube.com's CORS rules never apply.
   host_permissions: [`${apiOrigin}/*`],
-  // Clips and the avatar model from packages/sign-assets, loaded by the player inside the YouTube page.
+  // The avatar model, clips and dictionary from packages/sign-assets, loaded by the player inside the YouTube page.
   web_accessible_resources: [
     {
-      resources: ["sign-assets/*"],
+      resources: ["assets/*"],
       matches: ["https://www.youtube.com/*"],
     },
   ],

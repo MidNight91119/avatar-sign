@@ -46,16 +46,16 @@ function harness(initial: Partial<Settings> = {}) {
     return () => void (request.cancelled = true);
   };
 
-  const players: { ticks: number[]; destroyed: boolean }[] = [];
+  const players: { ticks: number[]; loads: number[]; calls: string[]; destroyed: boolean }[] = [];
   const createPlayer: CreatePlayer = () => {
-    const record = { ticks: [] as number[], destroyed: false };
+    const record = { ticks: [] as number[], loads: [] as number[], calls: [] as string[], destroyed: false };
     players.push(record);
     const player: AvatarPlayer = {
-      load() {},
+      load: (track) => void record.loads.push(track.segments.length),
       tick: (t) => void record.ticks.push(t),
       setSpeed() {},
-      play() {},
-      pause() {},
+      play: () => void record.calls.push("play"),
+      pause: () => void record.calls.push("pause"),
       playSign() {},
       destroy: () => void (record.destroyed = true),
     };
@@ -74,8 +74,9 @@ function harness(initial: Partial<Settings> = {}) {
     await settle();
   };
 
-  const start = () =>
+  const start = (urlPollMs = 60_000) =>
     startApp({
+      urlPollMs,
       doc: document,
       win: window,
       settings: {
@@ -174,9 +175,10 @@ describe("content script app", () => {
     expect(h.requests.at(-1)?.videoId).toBe(ids[10 % ids.length]);
     expect(h.players.filter((p) => !p.destroyed).length).toBe(1);
 
-    // Play the current video's track: exactly one set of <video> listeners (play, pause, seeking, seeked, ratechange).
+    // Play the current video's track: exactly one set of <video> listeners
+    // (play, pause, seeking, seeked, ratechange, waiting, stalled, playing).
     h.requests.at(-1)!.handlers.onReady(sampleTrack(ids[0]), "cache");
-    expect(h.live.size).toBe(5);
+    expect(h.live.size).toBe(8);
   });
 
   it("doesn't remount when YouTube re-fires navigation for the same video", async () => {
@@ -344,6 +346,96 @@ describe("content script app", () => {
       const count = sidebar.posts.length;
       h.video.dispatchEvent(new Event("play"));
       expect(sidebar.posts.length).toBe(count);
+    });
+  });
+
+  describe("next integration work (P-I2/3/5/7/8)", () => {
+    it("plays partial snapshots as they arrive, replacing (not appending) the track, then the ready track", async () => {
+      const h = harness();
+      stop = await h.start();
+      await settle();
+      const full = sampleTrack(ids[0]);
+      const partial = (n: number) => ({ ...full, status: "processing" as const, segments: full.segments.slice(0, n) });
+      const req = h.requests[0]!;
+
+      req.handlers.onPartial(partial(3));
+      expect(h.shadow()?.querySelector<HTMLElement>(".status")?.hidden).toBe(true); // the avatar is visible already
+      expect(h.shadow()?.querySelector<HTMLElement>(".note")?.textContent).toBe("Preparing more signs…");
+      req.handlers.onProgress(0.5);
+      expect(h.shadow()?.querySelector<HTMLElement>(".note")?.textContent).toBe("Preparing more signs… 50%");
+      req.handlers.onPartial(partial(6));
+      req.handlers.onReady(full, "api");
+
+      expect(h.players[0]!.loads).toEqual([3, 6, full.segments.length]); // each load is the whole snapshot
+      expect(h.shadow()?.querySelector<HTMLElement>(".note")?.hidden).toBe(true);
+      expect(h.live.size).toBe(8); // one sync loop, not one per snapshot
+    });
+
+    it("stops rendering while the panel is minimized and resumes when restored", async () => {
+      const h = harness();
+      stop = await h.start();
+      await settle();
+      h.requests[0]!.handlers.onReady(sampleTrack(ids[0]), "cache");
+      const player = h.players[0]!;
+
+      h.shadow()!.querySelector<HTMLButtonElement>("button.minimize")!.click();
+      expect(player.calls.at(-1)).toBe("pause");
+      const ticks = player.ticks.length;
+      h.video.dispatchEvent(new Event("seeked"));
+      expect(player.ticks.length).toBe(ticks);
+
+      h.shadow()!.querySelector<HTMLButtonElement>("button.minimize")!.click();
+      expect(player.ticks.length).toBeGreaterThan(ticks);
+    });
+
+    it("notices a URL change even without yt-navigate-finish", async () => {
+      const h = harness();
+      stop = await h.start(20);
+      await settle();
+      history.pushState({}, "", `/watch?v=${ids[2]}`); // no YouTube event
+      await new Promise((r) => setTimeout(r, 60));
+      expect(h.requests.at(-1)?.videoId).toBe(ids[2]);
+      expect(document.querySelectorAll(`#${PANEL_HOST_ID}`).length).toBe(1);
+    });
+
+    it("follows YouTube replacing its <video> element", async () => {
+      const h = harness();
+      stop = await h.start();
+      await settle();
+      h.requests[0]!.handlers.onReady(sampleTrack(ids[0]), "cache");
+      const player = h.players[0]!;
+
+      const replacement = document.createElement("video");
+      replacement.className = "html5-main-video";
+      h.video.replaceWith(replacement);
+      await settle();
+      const ticks = player.ticks.length;
+      replacement.dispatchEvent(new Event("seeked"));
+      expect(player.ticks.length).toBe(ticks + 1);
+      h.video.dispatchEvent(new Event("seeked")); // the old element no longer drives the avatar
+      expect(player.ticks.length).toBe(ticks + 1);
+    });
+
+    it("reports buffering and the replacement <video> to the side panel", async () => {
+      const h = harness();
+      stop = await h.start();
+      const sidebar = await h.openSidebar();
+      h.video.dispatchEvent(new Event("waiting"));
+      let last = sidebar.posts.at(-1);
+      expect(last?.type === "video" && [last.video.event, last.video.buffering]).toEqual(["waiting", true]);
+      h.video.dispatchEvent(new Event("playing"));
+      last = sidebar.posts.at(-1);
+      expect(last?.type === "video" && last.video.buffering).toBe(false);
+
+      const replacement = document.createElement("video");
+      replacement.className = "html5-main-video";
+      h.video.replaceWith(replacement);
+      await settle();
+      const count = sidebar.posts.length;
+      replacement.dispatchEvent(new Event("pause"));
+      expect(sidebar.posts.length).toBe(count + 1);
+      h.video.dispatchEvent(new Event("pause"));
+      expect(sidebar.posts.length).toBe(count + 1);
     });
   });
 });

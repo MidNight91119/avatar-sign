@@ -36,6 +36,7 @@ function recorder() {
   const events: string[] = [];
   const handlers: TrackHandlers = {
     onProgress: (p) => events.push(`progress:${p}`),
+    onPartial: (track) => events.push(`partial:${track.segments.length}`),
     onReady: (track, source) => events.push(`ready:${track.videoId}:${source}`),
     onError: (code) => events.push(`error:${code}`),
   };
@@ -126,5 +127,18 @@ describe("createTrackClient", () => {
     await tick();
     expect(rt.ports.length).toBe(1);
     expect(events).toEqual([]);
+  });
+
+  it("passes partial snapshots through until the ready track arrives", () => {
+    const rt = fakeRuntime();
+    const { events, handlers } = recorder();
+    createTrackClient({ ...rt, reconnectDelayMs: 1 })("dQw4w9WgXcQ", "ASL", handlers);
+    const { requestId } = requestOf(rt.ports[0]!);
+    const full = sampleTrack();
+    const partial = (n: number) => ({ ...full, status: "processing", segments: full.segments.slice(0, n) });
+    rt.ports[0]!.deliver({ type: "partial", requestId, track: partial(2) });
+    rt.ports[0]!.deliver({ type: "partial", requestId, track: partial(5) });
+    rt.ports[0]!.deliver({ type: "ready", requestId, track: full, source: "api" });
+    expect(events).toEqual(["partial:2", "partial:5", `ready:dQw4w9WgXcQ:api`]);
   });
 });

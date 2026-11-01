@@ -24,6 +24,7 @@ async function handleRequest(port: chrome.runtime.Port, req: SignTrackRequest, s
       cache,
       signal,
       onProgress: (progress) => send({ type: "progress", requestId, progress }),
+      onPartial: (partial) => send({ type: "partial", requestId, track: partial }),
     });
     send({ type: "ready", requestId, track, source });
   } catch (err) {

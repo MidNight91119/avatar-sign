@@ -1,5 +1,5 @@
 import type { PageInfo, SidePanelUpdate, VideoSnapshot } from "../messages";
-import { isAdShowing, parseRoute, SELECTORS, waitForElement } from "./youtube";
+import { isAdShowing, parseRoute, SELECTORS, waitForElement, watchVideoElement } from "./youtube";
 
 /** The side panel's connection to this tab, as the content script sees it. */
 export interface SidebarLink {
@@ -61,6 +61,8 @@ const EVENTS: [keyof HTMLMediaElementEventMap, VideoSnapshot["event"]][] = [
   ["seeked", "seeked"],
   ["ratechange", "ratechange"],
   ["timeupdate", "sync"],
+  ["waiting", "waiting"],
+  ["playing", "playing"],
 ];
 
 /** Streams the <video>'s state to the side panel, which runs the avatar on its own clock between updates. */
@@ -72,20 +74,46 @@ export function startVideoReporter(doc: Document, post: (snapshot: VideoSnapshot
     waitForElement<HTMLVideoElement>(SELECTORS.video, { root: doc, signal }),
     waitForElement(SELECTORS.moviePlayer, { root: doc, signal }),
   ])
-    .then(([video, moviePlayer]) => {
+    .then(([first, moviePlayer]) => {
       if (signal.aborted) return;
+      let video = first;
       let adShowing = isAdShowing(moviePlayer);
+      let buffering = false;
+      let videoListeners = new AbortController();
+      signal.addEventListener("abort", () => videoListeners.abort(), { once: true });
+
       const send = (event: VideoSnapshot["event"]) =>
         post({
           event,
           currentTime: video.currentTime,
           paused: video.paused,
+          buffering,
           playbackRate: video.playbackRate,
           adShowing,
           sentAt: Date.now(),
         });
 
-      for (const [type, event] of EVENTS) video.addEventListener(type, () => send(event), { signal });
+      const bind = (target: HTMLVideoElement) => {
+        videoListeners.abort();
+        videoListeners = new AbortController();
+        video = target;
+        buffering = false;
+        for (const [type, event] of EVENTS) {
+          target.addEventListener(
+            type,
+            () => {
+              if (type === "waiting") buffering = true;
+              if (type === "playing") buffering = false;
+              send(event);
+            },
+            { signal: videoListeners.signal },
+          );
+        }
+        send("seeked"); // re-sample the clock on the new element
+      };
+
+      bind(first);
+      watchVideoElement(moviePlayer, first, bind, signal);
       // YouTube toggles classes on the player constantly (hover, autohide); only an ad change matters.
       const observer = new MutationObserver(() => {
         if (isAdShowing(moviePlayer) === adShowing) return;
@@ -94,7 +122,6 @@ export function startVideoReporter(doc: Document, post: (snapshot: VideoSnapshot
       });
       observer.observe(moviePlayer, { attributes: true, attributeFilter: ["class"] });
       signal.addEventListener("abort", () => observer.disconnect());
-      send("sync");
     })
     .catch(() => {}); // stopped while waiting
 

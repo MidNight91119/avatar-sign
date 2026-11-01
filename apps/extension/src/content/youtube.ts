@@ -67,3 +67,24 @@ export const isLiveStream = (doc: Document = document): boolean => doc.querySele
 
 /** YouTube sets the `dark` attribute on <html> in dark theme. */
 export const isDarkTheme = (doc: Document = document): boolean => doc.documentElement.hasAttribute("dark");
+
+/**
+ * YouTube can replace its <video> element without a navigation. Calls `onReplace` with the new element whenever
+ * the player's main video changes, until `signal` aborts.
+ */
+export function watchVideoElement(
+  moviePlayer: Element,
+  current: HTMLVideoElement,
+  onReplace: (video: HTMLVideoElement) => void,
+  signal: AbortSignal,
+): void {
+  let video = current;
+  const observer = new MutationObserver(() => {
+    const next = moviePlayer.querySelector<HTMLVideoElement>(SELECTORS.video) ?? moviePlayer.ownerDocument.querySelector<HTMLVideoElement>(SELECTORS.video);
+    if (!next || next === video) return;
+    video = next;
+    onReplace(next);
+  });
+  observer.observe(moviePlayer, { childList: true, subtree: true });
+  signal.addEventListener("abort", () => observer.disconnect(), { once: true });
+}

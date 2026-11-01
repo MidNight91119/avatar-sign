@@ -149,7 +149,22 @@ button:focus-visible {
 .gloss[hidden],
 .panel[data-minimized] .stage,
 .panel[data-minimized] .gloss,
-.panel[data-minimized] .resize {
+.panel[data-minimized] .note {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.note[hidden] {
+  display: none;
+}
+.resize {
   display: none;
 }
 .toast {
@@ -167,6 +182,21 @@ button:focus-visible {
   transition: opacity 0.3s ease;
 }
 .toast[hidden] {
+  display: none;
+}
+.note {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.note[hidden] {
   display: none;
 }
 .resize {

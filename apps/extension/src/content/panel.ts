@@ -44,6 +44,8 @@ export interface Panel {
   mount(parent: Element, bottomInset?: number): void;
   setStatus(status: PanelStatus): void;
   setGloss(text: string): void;
+  /** A small non-blocking note over the stage, e.g. "Preparing more signs… 40%" while a partial track plays. */
+  setNote(text: string): void;
   setShowGloss(show: boolean): void;
   setWidth(width: number): void;
   setTheme(theme: PanelTheme): void;
@@ -75,7 +77,8 @@ export function createPanel(opts: PanelOptions): Panel {
   const progress = h(doc, "div", { class: "progress", hidden: "" }, [progressFill]);
   const status = h(doc, "div", { class: "status", role: "status", "aria-live": "polite", hidden: "" }, [statusText, progress, statusSub]);
   const toastEl = h(doc, "div", { class: "toast", role: "status", hidden: "" });
-  const stage = h(doc, "div", { class: "stage" }, [playerContainer, status, toastEl]);
+  const noteEl = h(doc, "div", { class: "note", "aria-live": "polite", hidden: "" });
+  const stage = h(doc, "div", { class: "stage" }, [playerContainer, status, noteEl, toastEl]);
   const gloss = h(doc, "div", { class: "gloss", "aria-label": "Current sign" });
   const resizeHandle = h(doc, "div", { class: "resize", "aria-hidden": "true" });
   const panel = h(doc, "section", { class: "panel", role: "region", "aria-label": "SignStream sign language avatar" }, [
@@ -228,6 +231,10 @@ export function createPanel(opts: PanelOptions): Panel {
     },
     setGloss(text) {
       if (gloss.textContent !== text) gloss.textContent = text;
+    },
+    setNote(text) {
+      noteEl.hidden = !text;
+      if (noteEl.textContent !== text) noteEl.textContent = text;
     },
     setShowGloss(show) {
       if (gloss.hidden === !show) return;

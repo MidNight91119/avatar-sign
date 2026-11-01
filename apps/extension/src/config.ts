@@ -21,5 +21,6 @@ export const API_ORIGIN: string =
 /** Give up on a track that is still processing after 5 minutes (the shared client polls every 2s, PLAN §4.3). */
 export const TRACK_TIMEOUT_MS = 5 * 60_000;
 
-export const SIGN_ASSETS_PATH = "sign-assets/";
+/** Where packages/sign-assets lands in the build; the player resolves the model, clips and dictionary from here. */
+export const SIGN_ASSETS_PATH = "assets/";
 export const TOGGLE_COMMAND = "toggle-signstream";

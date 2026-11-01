@@ -22,6 +22,7 @@ describe("message schemas", () => {
     const track = sampleTrack();
     expect(SignTrackUpdateSchema.safeParse({ type: "ready", requestId: "r1", track, source: "cache" }).success).toBe(true);
     expect(SignTrackUpdateSchema.safeParse({ type: "progress", requestId: "r1", progress: 0.5 }).success).toBe(true);
+    expect(SignTrackUpdateSchema.safeParse({ type: "partial", requestId: "r1", track: { ...track, status: "processing" } }).success).toBe(true);
     expect(SignTrackUpdateSchema.safeParse({ type: "error", requestId: "r1", code: "NO_CAPTIONS" }).success).toBe(true);
 
     const broken = { ...track, segments: [{ start: 0, end: 1, text: "hi", signs: [{ gloss: "", start: 0, duration: 1 }] }] };
@@ -31,7 +32,7 @@ describe("message schemas", () => {
   });
 
   it("validate what the content script sends the side panel", () => {
-    const video = { event: "seeked", currentTime: 42, paused: true, playbackRate: 1, adShowing: false, sentAt: 1 };
+    const video = { event: "seeked", currentTime: 42, paused: true, buffering: false, playbackRate: 1, adShowing: false, sentAt: 1 };
     expect(SidePanelUpdateSchema.safeParse({ type: "video", video }).success).toBe(true);
     expect(SidePanelUpdateSchema.safeParse({ type: "video", video: { ...video, currentTime: -1 } }).success).toBe(false);
     expect(
