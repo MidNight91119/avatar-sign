@@ -147,7 +147,7 @@ export async function discoverVideos(search: ExaSearch, q: string): Promise<Disc
       videoId,
       title: r.title?.trim() || "Untitled video",
       url: `https://www.youtube.com/watch?v=${videoId}`,
-      snippet: r.highlights?.[0]?.trim() ?? "",
+      snippet: excerpt(r.highlights?.[0]) ?? "",
       thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
     });
   }
@@ -166,6 +166,22 @@ function domainOf(url: string): string | undefined {
 }
 
 /** How-to-sign pages for a word (`/api/sign-reference`), only from the trusted ASL sites. */
+/** Highlights can be whole pages; keep a short, readable excerpt (cut at a word boundary). */
+export function excerpt(text: string | undefined, max = 280): string | undefined {
+  const t = text?.replace(/\s+/g, " ").trim();
+  if (!t) return undefined;
+  if (t.length <= max) return t;
+  const cut = t.slice(0, max);
+  return `${cut.slice(0, Math.max(cut.lastIndexOf(" "), max * 0.6)).trimEnd()}…`;
+}
+
+/** A reference page is about the word when the word is in its title or URL (Exa returns near misses like "Z" for "zzqxv"). */
+function mentionsWord(r: ExaResult, word: string): boolean {
+  const w = word.trim().toLowerCase();
+  const url = decodeURIComponent(r.url).toLowerCase().replace(/[-_+]/g, " ");
+  return (r.title ?? "").toLowerCase().includes(w) || url.includes(w);
+}
+
 export async function findSignReferences(search: ExaSearch, word: string): Promise<SignReference[]> {
   const res = await search(`how to sign ${word} in ASL`, {
     type: "auto",
@@ -175,8 +191,8 @@ export async function findSignReferences(search: ExaSearch, word: string): Promi
   });
   return res.results.flatMap((r) => {
     const source = domainOf(r.url);
-    if (!source) return [];
-    const highlight = r.highlights?.[0]?.trim();
+    if (!source || !mentionsWord(r, word)) return [];
+    const highlight = excerpt(r.highlights?.[0]);
     return [{ title: r.title?.trim() || `How to sign "${word}"`, url: r.url, source, ...(highlight ? { highlight } : {}) }];
   });
 }

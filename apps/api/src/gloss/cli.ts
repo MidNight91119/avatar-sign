@@ -7,10 +7,13 @@ export function argumentsForCli() {
     args: globalThis.process.argv.slice(2),
     options: {
       dictionary: { type: "string" },
+      video: { type: "string" },
       captions: { type: "string" },
       corpus: { type: "string" },
       track: { type: "string" },
       api: { type: "string" },
+      limit: { type: "string" },
+      "context-only": { type: "boolean", default: false },
       live: { type: "boolean", default: false },
       compare: { type: "boolean", default: false },
       check: { type: "boolean", default: false },

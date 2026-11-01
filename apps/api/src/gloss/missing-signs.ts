@@ -4,6 +4,7 @@ import { createGlossTranslator } from "./index";
 import { argumentsForCli, readDictionary, readJson } from "./cli";
 import { captionsSchema, segmentSchema } from "./schemas";
 import { rankWords } from "./vocabulary";
+import { SIGN_REFERENCE_DOMAINS } from "../exa";
 import type { Segment } from "./types";
 
 const referencesSchema = z.array(
@@ -12,6 +13,13 @@ const referencesSchema = z.array(
     "Reference URL must use HTTP or HTTPS",
   ),
 );
+
+const SIGN_PATHS: Readonly<Record<string, RegExp>> = {
+  "lifeprint.com": /^\/asl101\/pages-signs\/[^/]+\/[^/]+\.html?$/i,
+  "handspeak.com": /^\/word\/\d+\/?$/,
+  "signingsavvy.com": /^\/sign\/[^/]+(?:\/[^/]+)*\/?$/i,
+  "signasl.org": /^\/sign\/[^/]+\/?$/,
+};
 
 export function missingWords(segments: Segment[]) {
   const counts = new Map<string, number>();
@@ -27,9 +35,18 @@ export function missingWords(segments: Segment[]) {
     .sort((a, b) => b.count - a.count || a.word.localeCompare(b.word));
 }
 
-export async function missingSignsReport(segments: Segment[], api?: string) {
+export async function missingSignsReport(
+  segments: Segment[],
+  api?: string,
+  limit?: number,
+) {
+  if (
+    limit !== undefined &&
+    (!Number.isInteger(limit) || limit < 1 || limit > 500)
+  )
+    throw new Error("Reference report limit must be an integer from 1 to 500");
   const report = [];
-  for (const entry of missingWords(segments)) {
+  for (const entry of missingWords(segments).slice(0, limit)) {
     if (/^\d+$/.test(entry.word)) {
       report.push({
         ...entry,
@@ -57,16 +74,41 @@ export async function missingSignsReport(segments: Segment[], api?: string) {
     const url = new URL("/api/sign-reference", api);
     if (!["http:", "https:"].includes(url.protocol))
       throw new Error("API URL must use HTTP or HTTPS");
-    url.searchParams.set("word", entry.word);
+    // Normal casing avoids search operators; a clearer phrase can recover generic results.
+    const queries = [
+      entry.word.toLowerCase(),
+      `the word ${entry.word.toLowerCase()}`,
+    ].filter((query) => query.length <= 40);
     try {
-      const response = await globalThis.fetch(url, {
-        signal: AbortSignal.timeout(10_000),
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      let references: z.infer<typeof referencesSchema> = [];
+      let query = queries[0]!;
+      for (query of queries) {
+        url.searchParams.set("word", query);
+        const response = await globalThis.fetch(url, {
+          signal: AbortSignal.timeout(10_000),
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        references = referencesSchema
+          .parse(await response.json())
+          .filter(({ url }) => {
+            const parsed = new URL(url);
+            const domain = SIGN_REFERENCE_DOMAINS.find(
+              (domain) =>
+                parsed.hostname === domain ||
+                parsed.hostname.endsWith(`.${domain}`),
+            );
+            return (
+              domain !== undefined &&
+              Boolean(SIGN_PATHS[domain]?.test(parsed.pathname))
+            );
+          });
+        if (references.length) break;
+      }
       report.push({
         ...entry,
-        references: referencesSchema.parse(await response.json()),
-        referenceStatus: "ready",
+        references,
+        referenceStatus: references.length ? "ready" : "unavailable",
+        query,
       });
     } catch {
       report.push({ ...entry, references: [], referenceStatus: "unavailable" });
@@ -77,6 +119,10 @@ export async function missingSignsReport(segments: Segment[], api?: string) {
 
 if (import.meta.main) {
   const args = argumentsForCli();
+  const reportLimit =
+    args.limit === undefined
+      ? undefined
+      : z.coerce.number().int().min(1).max(500).parse(args.limit);
   if (Boolean(args.captions) === Boolean(args.track))
     throw new Error(
       "Supply exactly one of --captions captions.json or --track sign-track.json",
@@ -106,6 +152,16 @@ if (import.meta.main) {
     : z
         .object({ segments: z.array(segmentSchema) })
         .parse(await readJson(args.track!)).segments;
+  const missing = await missingSignsReport(segments, args.api, reportLimit);
+  const distinctMissingWords = missingWords(segments).length;
+  const referencesReady =
+    Boolean(args.api) &&
+    missing.some((entry) => entry.referenceStatus === "ready") &&
+    missing.every(
+      (entry) =>
+        entry.referenceStatus === "ready" ||
+        entry.referenceStatus === "not-applicable",
+    );
   globalThis.console.log(
     JSON.stringify(
       {
@@ -114,11 +170,20 @@ if (import.meta.main) {
           : args.live
             ? "live"
             : "offline-rule-fallback",
-        missing: await missingSignsReport(segments, args.api),
+        missing,
+        distinctMissingWords,
+        reportLimit: reportLimit ?? null,
+        reportTruncated: missing.length < distinctMissingWords,
+        acceptance: {
+          scope:
+            "reference availability for reported words only; endpoint provenance requires a live run",
+          status: !args.api ? "blocked" : referencesReady ? "passed" : "failed",
+        },
         priorities: rankWords(captions ?? segments),
       },
       null,
       2,
     ),
   );
+  if (args.check && !referencesReady) globalThis.process.exitCode = 1;
 }

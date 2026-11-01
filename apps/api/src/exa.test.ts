@@ -3,6 +3,7 @@ import {
   SIGN_REFERENCE_DOMAINS,
   createExaSearch,
   discoverVideos,
+  excerpt,
   findSignReferences,
   getVideoContext,
   youtubeWatchId,
@@ -120,6 +121,39 @@ describe("findSignReferences", () => {
     expect(out.map((r) => r.source)).toEqual(["handspeak.com", "lifeprint.com"]);
     expect(out[0]!.highlight).toBe("Sign VOLCANO...");
     expect(out[1]).not.toHaveProperty("highlight");
+  });
+});
+
+describe("sign-reference relevance and excerpts (R-I8)", () => {
+  it("drops near misses that don't mention the word (seen live: 'zzqxv' returned the letter Z)", async () => {
+    const { search } = fakeSearch({
+      results: [
+        { title: "American Sign Language ASL Video Dictionary - zz", url: "https://www.signasl.org/sign/zz" },
+        { title: "Z • ASL Dictionary", url: "https://www.handspeak.com/word/2485/" },
+      ],
+    });
+    expect(await findSignReferences(search, "zzqxv")).toEqual([]);
+  });
+
+  it("keeps pages that name the word in the title or URL, including multi-word phrases", async () => {
+    const { search } = fakeSearch({
+      results: [
+        { title: "ARRAY • ASL Dictionary", url: "https://www.handspeak.com/word/2202/" },
+        { title: "Video Dictionary", url: "https://www.signasl.org/sign/array" },
+        { title: "Sign", url: "https://www.signasl.org/sign/thank-you" },
+      ],
+    });
+    expect((await findSignReferences(search, "array")).map((r) => r.url)).toHaveLength(2);
+    expect(await findSignReferences(search, "thank you")).toHaveLength(1);
+  });
+
+  it("cuts long highlights to a short excerpt at a word boundary", () => {
+    const long = "word ".repeat(200);
+    const out = excerpt(long)!;
+    expect(out.length).toBeLessThanOrEqual(281);
+    expect(out.endsWith("…")).toBe(true);
+    expect(excerpt("  short\n\n text ")).toBe("short text");
+    expect(excerpt(undefined)).toBeUndefined();
   });
 });
 

@@ -68,3 +68,26 @@ export function timeSigns(captions: Caption[], tokens: string[][]): Segment[] {
     return { ...caption, signs };
   });
 }
+
+/** Counts omitted signs without logging caption text or fingerspelled names. */
+export function timingSummary(tokens: string[][], segments: Segment[]) {
+  let droppedFillers = 0;
+  let droppedContent = 0;
+  let denseFingerspelling = 0;
+  for (const [index, segment] of segments.entries()) {
+    const before = tokens[index] ?? [];
+    const remainingFillers = segment.signs.filter(({ gloss }) =>
+      FILLERS.has(gloss),
+    ).length;
+    const fillers =
+      before.filter((gloss) => FILLERS.has(gloss)).length - remainingFillers;
+    droppedFillers += fillers;
+    droppedContent += before.length - segment.signs.length - fillers;
+    denseFingerspelling += segment.signs.filter(
+      ({ gloss, duration }) =>
+        gloss.startsWith("FS:") &&
+        duration / Array.from(gloss.slice(3)).length < 0.12,
+    ).length;
+  }
+  return { droppedFillers, droppedContent, denseFingerspelling };
+}
