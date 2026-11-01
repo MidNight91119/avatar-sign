@@ -138,6 +138,13 @@ not mean local work must be discarded. Do not duplicate already implemented clip
 | [ ] H-I9  | Build `/signs` using `/api/signs` and existing reference API; standalone preview returns to host timeline on next tick                                               | Known sign and FS preview, references/empty/error states, keyboard navigation, no duplicate renderer                                                 |
 | [ ] H-I10 | Implement and test the 2D renderer/fallback with the same schedule/clip data if VRM performance or availability blocks G1                                            | Compare schedule decisions across renderers; no public `style` parameter added unilaterally; measure >=30fps on demo laptop                          |
 
+#### Progress notes (2026-11-01, branch `hasan/signside-web`)
+
+- **B1:** shared layout, brand and pages landed with plain CSS instead of Tailwind/shadcn (the design is custom gradients/glass; PLAN §12 allows existing CSS). Vercel deploy not done yet. UI/frontend guide: [packages/ui/README.md](../packages/ui/README.md).
+- **Branding:** the UI says **signside** (logo + wordmark from the design); package names are unchanged.
+- **H-I8 (UI only, not ticked):** `/watch` uses the YouTube IFrame API, `useSignTrack` (progress, partial snapshots, cancellation, errors) and the signside panel with a placeholder SVG avatar. Time is polled 5×/s for the caption, not per frame. Still needs the real player.
+- **H-I9 (UI only, not ticked):** `/signs` lists signs, searches, fingerspells unknown words and fetches Exa reference links on submit. Still needs `playSign()`.
+
 ### Concrete player semantics
 
 - `tick(t)` samples media seconds; neither `setSpeed` nor mixer timeScale may
