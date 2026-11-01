@@ -44,23 +44,18 @@
   outline-offset: 2px;
 }
 
-.ss-avatar {
+/* The signer fills the panel behind the header and the glass cards. The layer starts above the panel (clipped) so
+   the figure, which the renderer centres in its box, sits in the clear window between the header and the cards. */
+.ss-avatar-layer {
   position: absolute;
-  left: 0;
-  top: 64px;
-  width: 100%;
-  height: auto;
+  inset: -200px 0 0;
   z-index: -1;
 }
-.ss-hands-signing {
-  transform-box: view-box;
-  transform-origin: 125px 220px;
-  animation: ss-sign 0.45s ease-out;
-}
-@keyframes ss-sign {
-  from {
-    transform: translateY(6px) rotate(-3deg);
-  }
+.ss-avatar-canvas {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
 }
 
 .ss-glass {
@@ -328,7 +323,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ss-hands-signing,
   .ss-cta-waiting i {
     animation: none;
   }
