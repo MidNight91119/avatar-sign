@@ -77,6 +77,7 @@ Bun runtime, Hono, `youtubei.js`, **`exa-js`** (sponsor), `zod`, `bun:sqlite` (o
   - Reports whether each key is **set**, not whether it works: a live check on every health call would spend credits. Run one real request after deploying instead
 - [x] Rate limit (a simple per-IP counter, for example 20 new videos per hour) to protect the Cerebras and Exa credits; limit video length to ~15 min
 - [ ] Deploy (Railway / Render / Fly, anywhere with a persistent disk for SQLite) and share the URL by **hour 10**
+  - Ready: `apps/api/Dockerfile` (build from the repo root, volume at `/data`) and deploy steps in the API README. Needs your hosting account and the production keys
 - [ ] Swap the gloss stub for Durgesh's real module (hour 10) and test end-to-end on one demo video
 
 ## 4. Hours 12–18: Hardening
@@ -91,13 +92,14 @@ Bun runtime, Hono, `youtubei.js`, **`exa-js`** (sponsor), `zod`, `bun:sqlite` (o
 ## 5. Hours 18–20: Demo readiness
 
 - [ ] Set up the API **locally on the demo laptop** with the cache pre-loaded (the offline backup)
+  - Steps in the API README ("Offline demo laptop"): `demo import` then `dev`
 - [ ] Pre-run the `/discover` queries Ayush will use in the demo, so they come from the cache
   - Tool ready: `demo discover "<query>"...`
 - [ ] Pre-fetch `/api/sign-reference` for the 500 most common English words (~$5 of Exa credit) so `/signs` loads instantly
   - Tool ready: `demo sign-refs` (500 words in `src/scripts/common-words.ts`; cached words are skipped)
 - [ ] Export the cached tracks as a JSON file in `mocks/demo-cache/` so they can be loaded with no network
   - Tool ready: `demo export` writes `mocks/demo-cache/cache.json`; `demo import` loads it on the demo laptop
-- [ ] API section of the README: endpoints, env variables, how to run
+- [x] API section of the README: endpoints, env variables, how to run (`apps/api/README.md`, plus demo-laptop and deploy steps)
 
 ---
 
@@ -116,13 +118,14 @@ Bun runtime, Hono, `youtubei.js`, **`exa-js`** (sponsor), `zod`, `bun:sqlite` (o
 ## PR test cases
 Every PR must pass these before review (tick them in the PR description). Also see the PR rules in PLAN §9.
 
-- [ ] `packages/shared`: zod schemas parse `mocks/sign-track.sample.json` without errors, and reject a track with a missing `segments` field
+- [x] `packages/shared`: zod schemas parse `mocks/sign-track.sample.json` without errors, and reject a track with a missing `segments` field
 - [ ] `getCaptions` returns sorted, non-overlapping `{start, end, text}` for 2 demo videos; a video with no captions gives the `NO_CAPTIONS` error, not a crash
-- [ ] `GET /api/sign-track` on a new video returns `processing` with a `progress` value, then `ready`; two requests at once for the same video start only **one** job
-- [ ] A cached video returns in < 1s and makes **no** Cerebras or Exa call (check the logs)
-- [ ] With `EXA_API_KEY` removed, glossing still finishes (context is `undefined`)
-- [ ] `/api/discover` returns only YouTube `/watch` results; `/api/sign-reference` returns results only from the allowed sites
-- [ ] The rate limit returns HTTP 429 after the limit; no API key appears in any response or log
+  - Covered by tests with fixtures (sorted, non-overlapping, `NO_CAPTIONS`); the live run on 2 demo videos still needs the video list
+- [x] `GET /api/sign-track` on a new video returns `processing` with a `progress` value, then `ready`; two requests at once for the same video start only **one** job
+- [x] A cached video returns in < 1s and makes **no** Cerebras or Exa call (check the logs)
+- [x] With `EXA_API_KEY` removed, glossing still finishes (context is `undefined`)
+- [x] `/api/discover` returns only YouTube `/watch` results; `/api/sign-reference` returns results only from the allowed sites
+- [x] The rate limit returns HTTP 429 after the limit; no API key appears in any response or log
 
 ## Definition of done
 - [ ] Everyone was building against your contracts by hour 1
