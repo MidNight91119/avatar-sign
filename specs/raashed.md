@@ -103,6 +103,7 @@ Bun runtime, Hono, `youtubei.js`, **`exa-js`** (sponsor), `zod`, `bun:sqlite` (o
 - [ ] Set up the API **locally on the demo laptop** with the cache pre-loaded (the offline backup)
   - Steps in the API README ("Offline demo laptop"): `demo import` then `dev`
 - [ ] Pre-run the `/discover` queries Ayush will use in the demo, so they come from the cache
+  - Queries from Ayush (PR #23): "binary search explained", "how computers store numbers", "how volcanoes work". Shortlist posted in #21. The final pre-run must happen within an hour of going on stage (1-hour TTL), or the results have to come from `demo import`
   - Tool ready: `demo discover "<query>"...`
 - [ ] Pre-fetch `/api/sign-reference` for the 500 most common English words (~$5 of Exa credit) so `/signs` loads instantly
   - Tool ready: `demo sign-refs` (500 words in `src/scripts/common-words.ts`; cached words are skipped)
@@ -145,6 +146,7 @@ Every PR must pass these before review (tick them in the PR description). Also s
 
 - [ ] Everyone was building against your contracts by hour 1
 - [ ] The API is deployed; cached demo videos load in < 1s; a new 3-minute video finishes in < 15s (Exa + Cerebras)
+  - Locally (2026-11-01, free key, throwaway cache, `d03fb20`): `fDKIpRe8GW4` (4:00) 14.1s cold, `w1vhSSu8Nxw` (3:53) 9.9s cold; cached 13–15 ms. Exa hit its 4s cap on every cold run, so these ran without context. Not deployed yet
 - [ ] `/api/discover` and `/api/sign-reference` work and are cached; Exa failures never break glossing
 - [ ] Captions blocked → the manual `.vtt` upload works
 - [ ] Cached API routes run locally on the demo laptop with no internet; YouTube playback itself still needs network, so use the recorded demo when fully offline
