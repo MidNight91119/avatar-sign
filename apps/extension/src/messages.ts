@@ -23,6 +23,8 @@ export type TrackSource = (typeof TRACK_SOURCES)[number];
 
 export const SignTrackUpdateSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("progress"), requestId: RequestIdSchema, progress: z.number().min(0).max(1) }),
+  /** A cumulative snapshot while processing (PLAN §4.3): receivers replace their track with it, never append. */
+  z.object({ type: z.literal("partial"), requestId: RequestIdSchema, track: SignTrackSchema }),
   z.object({ type: z.literal("ready"), requestId: RequestIdSchema, track: SignTrackSchema, source: z.enum(TRACK_SOURCES) }),
   z.object({ type: z.literal("error"), requestId: RequestIdSchema, code: z.string().min(1).max(64) }),
 ]);
@@ -44,9 +46,11 @@ export type PageInfo = z.infer<typeof PageInfoSchema>;
 
 /** The YouTube <video>'s state, sent on every media event and ~4×/s while playing (timeupdate). */
 export const VideoSnapshotSchema = z.object({
-  event: z.enum(["sync", "play", "pause", "seeked", "ratechange"]),
+  event: z.enum(["sync", "play", "pause", "seeked", "ratechange", "waiting", "playing"]),
   currentTime: z.number().nonnegative(),
   paused: z.boolean(),
+  /** Playing but waiting for data: the clock is frozen. */
+  buffering: z.boolean(),
   playbackRate: z.number().positive().max(16),
   adShowing: z.boolean(),
   /** Date.now() when sent, to correct for message latency. */

@@ -46,14 +46,19 @@ export function useActiveTab(): { page: PageInfo | null | undefined; remote: Rem
   return { page, remote };
 }
 
-const remoteState = (remote: RemoteVideo) => ({ paused: remote.paused, rate: remote.playbackRate, ad: remote.adShowing });
+const remoteState = (remote: RemoteVideo) => ({
+  paused: remote.paused,
+  buffering: remote.buffering,
+  rate: remote.playbackRate,
+  ad: remote.adShowing,
+});
 
 /** Re-renders when the remote video plays, pauses, changes speed or an ad starts/ends. */
 export function useRemoteState(remote: RemoteVideo) {
   const [state, setState] = useState(() => remoteState(remote));
   useEffect(() => {
     const update = () => setState(remoteState(remote));
-    const events = ["play", "pause", "ratechange", "adchange"];
+    const events = ["play", "pause", "ratechange", "adchange", "waiting", "playing"];
     for (const type of events) remote.addEventListener(type, update);
     update();
     return () => events.forEach((type) => remote.removeEventListener(type, update));
@@ -62,7 +67,8 @@ export function useRemoteState(remote: RemoteVideo) {
 }
 
 export type TrackState =
-  | { kind: "loading"; progress?: number; startedAt: number }
+  /** `partial`: the cumulative snapshot so far, which plays while the rest is prepared. */
+  | { kind: "loading"; progress?: number; startedAt: number; partial?: SignTrack }
   | { kind: "ready"; track: SignTrack; source: TrackSource; seconds: number }
   | { kind: "error"; code: string };
 
@@ -75,7 +81,10 @@ export function useSignTrack(videoId: string, lang: SignLang, sourceKey: string)
     const startedAt = performance.now();
     setState({ kind: "loading", startedAt });
     return requestSignTrack(videoId, lang, {
-      onProgress: (progress) => setState({ kind: "loading", progress, startedAt }),
+      onProgress: (progress) =>
+        setState((prev) => ({ kind: "loading", progress, startedAt, partial: prev.kind === "loading" ? prev.partial : undefined })),
+      onPartial: (partial) =>
+        setState((prev) => ({ kind: "loading", progress: prev.kind === "loading" ? prev.progress : undefined, startedAt, partial })),
       onReady: (track, source) =>
         setState({ kind: "ready", track, source, seconds: (performance.now() - startedAt) / 1000 }),
       onError: (code) => setState({ kind: "error", code }),

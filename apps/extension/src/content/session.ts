@@ -1,13 +1,13 @@
 import type { SignTrack } from "@signstream/shared";
+import type { CreatePlayer } from "../avatar/player";
+import { createVideoSync, type VideoSync } from "../avatar/sync";
 import { describeError } from "../errors";
 import type { Settings } from "../settings";
 import { createSignIndex, formatGloss } from "../track";
+import type { RequestTrack } from "../track-client";
 import { createPanel, type PanelTheme } from "./panel";
 import { SIZE_PRESETS, type PanelLayout } from "./panel-geometry";
-import type { CreatePlayer } from "../avatar/player";
-import { createVideoSync } from "../avatar/sync";
-import type { RequestTrack } from "../track-client";
-import { isAdShowing, isDarkTheme, isLiveStream, SELECTORS, waitForElement } from "./youtube";
+import { isAdShowing, isDarkTheme, isLiveStream, SELECTORS, waitForElement, watchVideoElement } from "./youtube";
 
 /** YouTube's fullscreen progress bar + control bar. The panel stays above them so they remain clickable. */
 const FULLSCREEN_CONTROLS_HEIGHT = 80;
@@ -38,6 +38,9 @@ export function startWatchSession(videoId: string, isLiveRoute: boolean, deps: S
   const cleanups: (() => void)[] = [];
   let settings = deps.getSettings();
   const theme = (): PanelTheme => (isDarkTheme(doc) ? "dark" : "light");
+  let sync: VideoSync | undefined;
+  // Minimized: nothing is visible, so the player stops rendering until the panel is restored.
+  let minimized = deps.layout.minimized;
 
   const panel = createPanel({
     doc,
@@ -45,7 +48,12 @@ export function startWatchSession(videoId: string, isLiveRoute: boolean, deps: S
     defaultWidth: SIZE_PRESETS[settings.size],
     theme: theme(),
     showGloss: settings.showGloss,
-    onLayoutChange: deps.saveLayout,
+    onLayoutChange: (layout) => {
+      deps.saveLayout(layout);
+      if (layout.minimized === minimized) return;
+      minimized = layout.minimized;
+      sync?.refresh();
+    },
     onClose: deps.onTurnOff,
   });
   const mountPanel = () => {
@@ -71,22 +79,31 @@ export function startWatchSession(videoId: string, isLiveRoute: boolean, deps: S
   themeObserver.observe(doc.documentElement, { attributes: true, attributeFilter: ["dark"] });
   cleanups.push(() => themeObserver.disconnect());
 
-  const startPlayback = (track: SignTrack, video: HTMLVideoElement, moviePlayer: Element) => {
-    player.load(track);
-    const index = createSignIndex(track);
-    let adShowing = isAdShowing(moviePlayer);
+  let index = createSignIndex({ segments: [] });
 
-    const sync = createVideoSync({
+  /** First call starts the sync loop; later calls replace the track (partial snapshots, then the ready track). */
+  const showTrack = (track: SignTrack, video: HTMLVideoElement, moviePlayer: Element) => {
+    player.load(track);
+    index = createSignIndex(track);
+    if (sync) {
+      sync.refresh();
+      return;
+    }
+
+    let adShowing = isAdShowing(moviePlayer);
+    const playback = createVideoSync({
       video,
       player,
       getOffset: () => deps.getSettings().offsetSec,
-      isSuspended: () => adShowing,
+      isSuspended: () => adShowing || minimized,
       onTick: (t) => {
         const sign = index.signAt(t);
         panel.setGloss(sign ? formatGloss(sign.gloss) : "");
       },
     });
-    cleanups.push(() => sync.destroy());
+    sync = playback;
+    cleanups.push(() => playback.destroy());
+    watchVideoElement(moviePlayer, video, (next) => playback.setVideo(next), signal);
 
     const showAdState = () => {
       if (adShowing) panel.setGloss("");
@@ -101,7 +118,7 @@ export function startWatchSession(videoId: string, isLiveRoute: boolean, deps: S
       if (isAdShowing(moviePlayer) === adShowing) return;
       adShowing = !adShowing;
       showAdState();
-      sync.refresh();
+      playback.refresh();
     });
     adObserver.observe(moviePlayer, { attributes: true, attributeFilter: ["class"] });
     cleanups.push(() => adObserver.disconnect());
@@ -129,17 +146,32 @@ export function startWatchSession(videoId: string, isLiveRoute: boolean, deps: S
     const elapsed = () => ((performance.now() - startedAt) / 1000).toFixed(1);
     panel.setStatus({ kind: "loading", text: "Preparing signs…" });
 
+    let partial = false;
     const cancel = deps.requestTrack(videoId, settings.lang, {
-      onProgress: (progress) =>
-        panel.setStatus({
-          kind: "loading",
-          text: `Preparing signs… ${Math.round(progress * 100)}%`,
-          sub: `Translating with Cerebras · ${elapsed()}s`,
-          progress,
-        }),
-      onError: (code) => panel.setStatus({ kind: "error", text: describeError(code) }),
+      onProgress: (progress) => {
+        const percent = `${Math.round(progress * 100)}%`;
+        // Once part of the track plays, progress is a small note instead of covering the avatar.
+        if (partial) panel.setNote(`Preparing more signs… ${percent}`);
+        else
+          panel.setStatus({
+            kind: "loading",
+            text: `Preparing signs… ${percent}`,
+            sub: `Translating with Cerebras · ${elapsed()}s`,
+            progress,
+          });
+      },
+      onPartial: (track) => {
+        partial = true;
+        showTrack(track, video, moviePlayer);
+        panel.setNote("Preparing more signs…");
+      },
+      onError: (code) => {
+        panel.setNote("");
+        panel.setStatus({ kind: "error", text: describeError(code) });
+      },
       onReady: (track, source) => {
-        startPlayback(track, video, moviePlayer);
+        panel.setNote("");
+        showTrack(track, video, moviePlayer);
         if (source === "api") panel.toast(`Signed in ${elapsed()}s with Cerebras`);
         if (source === "mock") panel.toast("Demo track: not this video's speech");
       },

@@ -7,7 +7,7 @@ import manifest, { apiOrigin } from "./manifest.config.ts";
 
 const SIGN_ASSETS_DIR = join(import.meta.dirname, "../../packages/sign-assets");
 
-/** Copies Hasan's clips + dictionary into the build as `sign-assets/`, for `chrome.runtime.getURL("sign-assets/")`. */
+/** Copies Hasan's model, clips and dictionary into the build as `assets/`, for `chrome.runtime.getURL("assets/")`. */
 function signAssets(): Plugin {
   const files = (dir: string): string[] =>
     readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -25,7 +25,7 @@ function signAssets(): Plugin {
         if (file.endsWith(".md")) continue;
         this.emitFile({
           type: "asset",
-          fileName: `sign-assets/${relative(SIGN_ASSETS_DIR, file)}`,
+          fileName: `assets/${relative(SIGN_ASSETS_DIR, file)}`,
           source: readFileSync(file),
         });
       }
@@ -40,5 +40,7 @@ export default defineConfig({
   },
   build: {
     emptyOutDir: true,
+    // Vite's own JS/CSS chunks go to chunks/, so assets/ holds only the sign assets (spec P-I6).
+    assetsDir: "chunks",
   },
 });

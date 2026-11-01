@@ -86,12 +86,16 @@ function NowWatching({ videoId, title, settings }: { videoId: string; title: str
 
 function Signer({ videoId, settings, remote }: { videoId: string; settings: Settings; remote: RemoteVideo }) {
   const [track, retry] = useSignTrack(videoId, settings.lang, String(settings.useMockData));
-  const { paused, rate, ad } = useRemoteState(remote);
+  const { paused, buffering, rate, ad } = useRemoteState(remote);
   const stageRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<AvatarPlayer>(undefined);
   const offsetRef = useRef(settings.offsetSec);
   const [kind, setKind] = useState<PlayerKind>();
   const [now, setNow] = useState({ gloss: "", caption: "" });
+  const indexRef = useRef(createSignIndex({ segments: [] }));
+  // What plays: the ready track, or the cumulative partial snapshot while the rest is prepared.
+  const data = track.kind === "ready" ? track.track : track.kind === "loading" ? track.partial : undefined;
+  const hasData = data !== undefined;
 
   useEffect(() => {
     offsetRef.current = settings.offsetSec;
@@ -113,11 +117,16 @@ function Signer({ videoId, settings, remote }: { videoId: string; settings: Sett
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `lang` is part of this component's key
   }, []);
 
+  // Each snapshot replaces the previous one (PLAN §4.3: never append).
+  useEffect(() => {
+    if (!data || !playerRef.current) return;
+    playerRef.current.load(data);
+    indexRef.current = createSignIndex(data);
+  }, [data]);
+
   useEffect(() => {
     const player = playerRef.current;
-    if (track.kind !== "ready" || !player) return;
-    player.load(track.track);
-    const index = createSignIndex(track.track);
+    if (!hasData || !player) return;
     let last = "";
     const sync = createVideoSync({
       video: remote.asMedia(),
@@ -125,9 +134,9 @@ function Signer({ videoId, settings, remote }: { videoId: string; settings: Sett
       getOffset: () => offsetRef.current,
       isSuspended: () => remote.adShowing,
       onTick: (t) => {
-        const sign = index.signAt(t);
+        const sign = indexRef.current.signAt(t);
         const gloss = sign ? formatGloss(sign.gloss) : "";
-        const caption = index.segmentAt(t)?.text ?? "";
+        const caption = indexRef.current.segmentAt(t)?.text ?? "";
         if (`${gloss}|${caption}` === last) return;
         last = `${gloss}|${caption}`;
         setNow({ gloss, caption });
@@ -139,12 +148,12 @@ function Signer({ videoId, settings, remote }: { videoId: string; settings: Sett
       remote.removeEventListener("adchange", onAdChange);
       sync.destroy();
     };
-  }, [track, remote]);
+  }, [hasData, remote]);
 
   return (
     <>
       <div className="stage" ref={stageRef}>
-        {track.kind === "loading" && (
+        {track.kind === "loading" && !hasData && (
           <div className="stage-overlay" role="status">
             <span className="overlay-title">
               Preparing signs…{track.progress !== undefined && ` ${Math.round(track.progress * 100)}%`}
@@ -166,7 +175,7 @@ function Signer({ videoId, settings, remote }: { videoId: string; settings: Sett
             </button>
           </div>
         )}
-        {track.kind === "ready" && ad && (
+        {hasData && ad && (
           <div className="stage-overlay" role="status">
             <span className="overlay-title">Ad playing</span>
             <span className="meta">Signing continues after the ad</span>
@@ -174,7 +183,7 @@ function Signer({ videoId, settings, remote }: { videoId: string; settings: Sett
         )}
       </div>
 
-      {track.kind === "ready" && (
+      {hasData && (
         <>
           {/* The placeholder already prints the gloss inside the stage; the avatar needs it spelled out below. */}
           {kind === "avatar" && settings.showGloss && (
@@ -184,15 +193,17 @@ function Signer({ videoId, settings, remote }: { videoId: string; settings: Sett
             </div>
           )}
           <div className="status-bar">
-            <span className="pill" data-state={ad ? "ad" : paused ? "paused" : "signing"}>
+            <span className="pill" data-state={ad ? "ad" : paused ? "paused" : buffering ? "buffering" : "signing"}>
               <span className="dot" />
-              {ad ? "Ad playing" : paused ? "Paused" : "Signing"}
+              {ad ? "Ad playing" : paused ? "Paused" : buffering ? "Buffering" : "Signing"}
               {!ad && rate !== 1 && <span className="rate">{rate}×</span>}
             </span>
             <span className="meta">
-              {track.source === "api" && `Ready in ${track.seconds.toFixed(1)}s · Cerebras`}
-              {track.source === "cache" && "Ready · cached"}
-              {track.source === "mock" && "Demo track, not this video's speech"}
+              {track.kind === "loading" &&
+                `Preparing more signs…${track.progress !== undefined ? ` ${Math.round(track.progress * 100)}%` : ""}`}
+              {track.kind === "ready" && track.source === "api" && `Ready in ${track.seconds.toFixed(1)}s · Cerebras`}
+              {track.kind === "ready" && track.source === "cache" && "Ready · cached"}
+              {track.kind === "ready" && track.source === "mock" && "Demo track, not this video's speech"}
             </span>
           </div>
         </>

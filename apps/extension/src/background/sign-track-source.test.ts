@@ -97,6 +97,19 @@ describe("loadSignTrack (shared createApiClient in the worker)", () => {
     expect(down.urls.length).toBe(3);
   });
 
+  it("passes cumulative partial snapshots on while processing", async () => {
+    const withSegments = (n: number, progress: number): SignTrack => ({
+      ...ready,
+      status: "processing",
+      progress,
+      segments: ready.segments.slice(0, n),
+    });
+    const { fn } = fakeFetch([json(withSegments(2, 0.2)), json(withSegments(2, 0.3)), json(withSegments(5, 0.6)), json(ready)]);
+    const partials: number[] = [];
+    await load(fn, { onPartial: (t) => partials.push(t.segments.length) });
+    expect(partials).toEqual([2, 5]); // only when there are new segments
+  });
+
   it("stops polling when aborted (the requester left the video)", async () => {
     const { fn, urls } = fakeFetch([json(processing(0.2))]);
     const controller = new AbortController();

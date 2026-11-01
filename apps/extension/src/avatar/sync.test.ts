@@ -5,6 +5,7 @@ class FakeVideo extends EventTarget {
   currentTime = 0;
   playbackRate = 1;
   paused = true;
+  readyState = 4;
   emit(type: string) {
     this.dispatchEvent(new Event(type));
   }
@@ -78,13 +79,15 @@ describe("createVideoSync", () => {
 
   it("forwards play, pause and playback speed", () => {
     const { video, calls } = setup();
+    video.paused = false; // a real <video> flips paused before firing play/pause
     video.emit("play");
+    video.paused = true;
     video.emit("pause");
     video.playbackRate = 2;
     video.emit("ratechange");
     video.playbackRate = 0.5;
     video.emit("ratechange");
-    expect(calls).toEqual(["play", "pause", "speed:2", "speed:0.5"]);
+    expect(calls).toEqual(["speed:1", "play", "pause", "speed:2", "speed:0.5"]);
   });
 
   it("jumps straight to the new time on seek, without waiting for a frame", () => {
@@ -124,5 +127,64 @@ describe("createVideoSync", () => {
     expect(cancelledCount()).toBe(1);
     frame(); // even if a queued frame still fires, it does nothing
     expect(ticks).toEqual([]);
+  });
+
+  it("freezes while buffering and resumes when media plays again", () => {
+    const { video, calls, frame, ticks } = setup();
+    video.paused = false;
+    video.emit("play");
+    calls.length = 0;
+    video.emit("waiting");
+    expect(calls).toEqual(["pause"]);
+    video.emit("playing");
+    expect(calls).toEqual(["pause", "speed:1", "play"]);
+    video.currentTime = 7;
+    frame();
+    expect(ticks.at(-1)).toBe(7);
+  });
+
+  it("only treats 'stalled' as buffering when playback can't continue", () => {
+    const { video, calls } = setup();
+    video.paused = false;
+    video.emit("play");
+    calls.length = 0;
+    video.readyState = 4; // network stalled, but enough is buffered
+    video.emit("stalled");
+    expect(calls).toEqual([]);
+    video.readyState = 2;
+    video.emit("stalled");
+    expect(calls).toEqual(["pause"]);
+  });
+
+  it("re-samples the clock when the tab becomes visible again", () => {
+    const video = new FakeVideo();
+    const visibility = Object.assign(new EventTarget(), { visibilityState: "hidden" }) as unknown as Document;
+    const ticks: number[] = [];
+    createVideoSync({
+      video: video as unknown as MediaLike,
+      player: { tick: (t) => void ticks.push(t), play() {}, pause() {}, setSpeed() {} },
+      getOffset: () => 0,
+      isSuspended: () => false,
+      requestFrame: () => 0,
+      visibility,
+    });
+    video.currentTime = 33;
+    (visibility as unknown as { visibilityState: string }).visibilityState = "visible";
+    visibility.dispatchEvent(new Event("visibilitychange"));
+    expect(ticks).toEqual([33]);
+  });
+
+  it("follows a replaced <video> element and ignores the old one", () => {
+    const { video: oldVideo, sync, calls, ticks } = setup();
+    const next = new FakeVideo();
+    next.currentTime = 12;
+    sync.setVideo(next as unknown as MediaLike);
+    expect(ticks.at(-1)).toBe(12);
+    calls.length = 0;
+    oldVideo.emit("ratechange");
+    expect(calls).toEqual([]);
+    next.playbackRate = 1.5;
+    next.emit("ratechange");
+    expect(calls).toEqual(["speed:1.5"]);
   });
 });
