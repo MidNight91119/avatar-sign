@@ -1,0 +1,4 @@
+# Keep agent skills out of GitHub's language stats
+.agents/** linguist-vendored
+.claude/** linguist-vendored
+.codex/** linguist-vendored
