@@ -48,10 +48,13 @@ const labels: string[] = JSON.parse(process.env.PR_LABELS || "[]");
 const prBody = process.env.PR_BODY ?? "";
 const head = process.env.HEAD_SHA || "HEAD";
 const base = "origin/main";
+/** The branch this PR merges into. For stacked PRs this is the PR below it, so only this PR's own changes are checked. */
+const prBase = `origin/${process.env.PR_BASE || "main"}`;
 
 if (!isCI) {
   try {
     git("fetch", "--quiet", "origin", "main");
+    if (prBase !== base) git("fetch", "--quiet", "origin", prBase.slice("origin/".length));
   } catch {
     warn("Could not fetch origin/main; using your local copy of origin/main.");
   }
@@ -109,7 +112,7 @@ try {
 }
 
 // ---------- 3. changed files inside the owner's area ----------
-const changed = git("diff", "--name-only", `${base}...${head}`).split("\n").filter(Boolean);
+const changed = git("diff", "--name-only", `${prBase}...${head}`).split("\n").filter(Boolean);
 if (changed.length === 0) warn("No changed files compared with main.");
 
 if (owner) {
@@ -169,7 +172,7 @@ const aiPatterns: RegExp[] = [
 ];
 /** The PR template's checklist mentions the forbidden text in backticks; ignore inline code there. */
 const withoutInlineCode = (s: string) => s.replace(/`[^`\n]*`/g, "");
-const messages = git("log", "--format=%H%n%B%n----END----", `${base}..${head}`);
+const messages = git("log", "--format=%H%n%B%n----END----", `${prBase}..${head}`);
 for (const block of messages.split("----END----")) {
   const [sha, ...body] = block.trim().split("\n");
   const text = body.join("\n");
@@ -182,7 +185,7 @@ if (aiPatterns.some((p) => p.test(withoutInlineCode(prBody)))) {
 }
 
 // ---------- report ----------
-console.log(`PR check for branch "${branch}" (${changed.length} changed file(s))\n`);
+console.log(`PR check for branch "${branch}" into ${prBase} (${changed.length} changed file(s))\n`);
 for (const w of warnings) console.log(`⚠️  ${w}\n`);
 for (const e of errors) console.log(`❌ ${e}\n`);
 if (errors.length) {
