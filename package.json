@@ -9,7 +9,9 @@
     "check-types": "turbo run check-types",
     "test": "turbo run test",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "pr-check": "node .github/scripts/pr-check.ts"
+    "pr-check": "node .github/scripts/pr-check.ts",
+    "eval:gloss": "bun apps/api/src/gloss/eval.ts",
+    "signs:missing": "bun apps/api/src/gloss/missing-signs.ts"
   },
   "devDependencies": {
     "prettier": "3.9.6",

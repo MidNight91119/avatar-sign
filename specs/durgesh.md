@@ -5,12 +5,13 @@
 **Branch:** `durgesh/gloss`
 
 ## What you own
+
 `apps/api/src/gloss/`: a **pure TypeScript module**. Its input is caption segments and its output is timed signs. It has no HTTP code; Raashed calls it from the API.
 
 ```ts
 export function textToSigns(
   captions: { start: number; end: number; text: string }[],
-  opts: { lang: SignLang; dictionary: string[] }
+  opts: { lang: SignLang; dictionary: string[] },
 ): Promise<Segment[]>;
 ```
 
@@ -22,14 +23,14 @@ You are the team's **sign language expert**. You also decide which words Hasan a
 
 ASL has its own grammar. A few rules matter most:
 
-| Rule | English | ASL gloss |
-|---|---|---|
-| Time words come first | I went to school yesterday | `YESTERDAY SCHOOL I GO` |
-| Topic first, then the comment | I like that movie | `MOVIE THAT, I LIKE` |
-| Drop articles and "to be" | The dog is big | `DOG BIG` |
-| WH-question word at the end | What is your name? | `YOUR NAME WHAT` (+ question face) |
-| Negation after the verb | I don't understand | `I UNDERSTAND NOT` |
-| Names and unknown words are fingerspelled | My name is Bob | `MY NAME FS:BOB` |
+| Rule                                      | English                    | ASL gloss                          |
+| ----------------------------------------- | -------------------------- | ---------------------------------- |
+| Time words come first                     | I went to school yesterday | `YESTERDAY SCHOOL I GO`            |
+| Topic first, then the comment             | I like that movie          | `MOVIE THAT, I LIKE`               |
+| Drop articles and "to be"                 | The dog is big             | `DOG BIG`                          |
+| WH-question word at the end               | What is your name?         | `YOUR NAME WHAT` (+ question face) |
+| Negation after the verb                   | I don't understand         | `I UNDERSTAND NOT`                 |
+| Names and unknown words are fingerspelled | My name is Bob             | `MY NAME FS:BOB`                   |
 
 Good sources: Lifeprint.com (Bill Vicars), "ASL gloss" guides. Spend at most 1 hour on research.
 
@@ -51,6 +52,7 @@ caption segments
 ```
 
 ### Step 2: LLM details (Cerebras, our sponsor)
+
 - Use **Cerebras** through `@cerebras/cerebras_cloud_sdk` (the API is OpenAI-compatible). In the first hour, compare the two production models on your 10 test sentences and keep the better one in `CEREBRAS_MODEL`:
   - `gpt-oss-120b`: ~3,000 tokens/s, 65k context on the free tier. **Start with this one**
   - `qwen-3.8-27b`: ~1,850 tokens/s, 64k context. Use it if quality or rate limits are a problem
@@ -63,10 +65,17 @@ caption segments
 
   const res = await client.chat.completions.create({
     model: process.env.CEREBRAS_MODEL ?? "gpt-oss-120b",
-    messages: [{ role: "system", content: systemPrompt }, { role: "user", content: batchJson }],
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: batchJson },
+    ],
     response_format: {
       type: "json_schema",
-      json_schema: { name: "gloss_batch", strict: true, schema: glossBatchSchema },
+      json_schema: {
+        name: "gloss_batch",
+        strict: true,
+        schema: glossBatchSchema,
+      },
     },
   });
   ```
@@ -78,6 +87,7 @@ caption segments
 - Use `p-limit` for concurrency (about 4 calls in parallel on the Developer tier, 1 on the free trial) so long videos finish fast.
 
 ### Step 4: Timing algorithm
+
 - Weight of each sign: normal sign = 1.0; `FS:WORD` = 0.35 × number of letters; short signs (`I`, `YOU`, `MY`) = 0.6
 - `duration_i = (segment length) × weight_i / sum(weights)`, clamped to a minimum of 0.25s and a maximum of 1.2s
 - If the signs don't fit in the window even at the minimum duration: first drop filler signs (`I`, `MY`, `THAT`), then let the overflow run up to 0.5s into the gap before the next segment
@@ -87,20 +97,34 @@ caption segments
 
 ## Tasks
 
-| # | Task | Target hour |
-|---|---|---|
-| D1 | Research the grammar rules (table above); write the system prompt v1 | 1.5 |
-| D2 | **Top-200 word list** ranked by how often the words appear in the captions of our 5 demo videos + common everyday words → give it to Hasan | **2** |
-| D3 | `textToSigns()` with a Cerebras call + zod validation, tested with `bun test` on 5 sentences; compare 2 Cerebras models | 5 |
-| D4 | Post-pass: synonym map (`synonyms.ts`, for example `LARGE/HUGE → BIG`, `PURCHASE → BUY`), FS fallback, number handling | 7 |
-| D5 | Timing algorithm + unit tests (signs never overlap; all signs stay inside their window ±0.5s) | 9 |
-| D6 | Hand the module to Raashed and test it end-to-end on a real video | 10 |
-| D6b | Use `opts.context` (Exa) in the prompt; add 5 eval sentences where context changes the right sign (homonyms, names) | 11 |
-| D6c | **Missing-signs report** `pnpm signs:missing`: the most-fingerspelled words in the demo videos, each with how-to-sign links from `/api/sign-reference` (Exa). Hasan uses it to pick what to animate next | 12 |
-| D7 | **Eval script** `pnpm eval:gloss`: 30 sentences with expected glosses + coverage report (% of tokens that are real signs rather than FS) | 13 |
-| D8 | Tune using the demo videos: add synonyms and tell Hasan which missing signs would help most | 13–18 |
+| #       | Task                                                                                                                                                                                                     | Target hour |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| [x] D1  | Research the grammar rules (table above); write the system prompt v1                                                                                                                                     | 1.5         |
+| [ ] D2  | **Top-200 word list** ranked by how often the words appear in the captions of our 5 demo videos + common everyday words → give it to Hasan                                                               | **2**       |
+| [ ] D3  | `textToSigns()` with a Cerebras call + zod validation, tested with `bun test` on 5 sentences; compare 2 Cerebras models                                                                                  | 5           |
+| [x] D4  | Post-pass: synonym map (`synonyms.ts`, for example `LARGE/HUGE → BIG`, `PURCHASE → BUY`), FS fallback, number handling                                                                                   | 7           |
+| [x] D5  | Timing algorithm + unit tests (signs never overlap; all signs stay inside their window ±0.5s)                                                                                                            | 9           |
+| [ ] D6  | Hand the module to Raashed and test it end-to-end on a real video                                                                                                                                        | 10          |
+| [x] D6b | Use `opts.context` (Exa) in the prompt; add 5 eval sentences where context changes the right sign (homonyms, names)                                                                                      | 11          |
+| [ ] D6c | **Missing-signs report** `pnpm signs:missing`: the most-fingerspelled words in the demo videos, each with how-to-sign links from `/api/sign-reference` (Exa). Hasan uses it to pick what to animate next | 12          |
+| [x] D7  | **Eval script** `pnpm eval:gloss`: 30 sentences with expected glosses + coverage report (% of tokens that are real signs rather than FS)                                                                 | 13          |
+| [ ] D8  | Tune using the demo videos: add synonyms and tell Hasan which missing signs would help most                                                                                                              | 13–18       |
+
+### Implementation status (2026-11-01)
+
+- D1: `prompt.ts` is based on Lifeprint and preserves multiple valid ASL sign orders rather than forcing OSV; sources are in the module README.
+- D2: `apps/api/src/gloss/word-priorities.json` contains 200 provisional everyday priorities. The missing-signs CLI re-ranks them using supplied caption frequencies; five-video ranking remains pending because no demo captions or mocks exist yet.
+- D3: SDK integration, strict zod output validation, indexed batching, bounded concurrency, retry/fallback behavior and mocked sentence tests are implemented. Live two-model comparison remains pending a development key. Local PLAN-compatible types/schemas are temporary because Raashed's shared schemas have not landed.
+- D4: Synonyms live alongside word normalization in `words.ts` to keep the small post-pass together. Decimal/sign/percentage information is preserved as explicit fingerspelled tokens.
+- D5: Dense captions may use durations below 0.25 seconds after filler removal when the minimum cannot fit; this preserves content and avoids overlap. Overlapping input windows are clipped to the next caption start before long captions are split at 20 words, so split windows remain ordered.
+- D6: Module usage and integration requirements are documented in `apps/api/src/gloss/README.md`; real API/video validation remains pending Raashed's transcript and API wiring.
+- D6b: Five context fixtures and mocked context-forwarding tests are implemented. The evaluator compares each context case with and without background and reports improvements/regressions. Live semantic improvement has not been established.
+- D6c/D7: The SDK, zod and p-limit are installed through pnpm, with locked versions and root `pnpm eval:gloss` / `pnpm signs:missing` commands. The user authorized the manifest changes. Reference fetching is tested against a local mock endpoint; real demo reports still need captions and Raashed's Exa endpoint.
+- D8: General synonyms are included; demo-driven tuning is still pending the videos, captions and Hasan's animation dictionary.
+- Verification: root lint, type check, test and build passed with workspace dependencies installed. The gloss suite has 31 passing tests. Offline real-dictionary evaluation: 0 real signs / 93 fingerspelled tokens = 0% coverage (dictionary has zero entries); main has no evaluator for an equivalent baseline. Full results are in the module README rather than Raashed's root README. A PR needs the `cross-team` label and Raashed's review for the authorized manifest changes.
 
 ## Handoffs
+
 - **Needs from Hasan:** `dictionary.json` (it grows during the event, so always read it at runtime).
 - **Needs from Raashed:** real caption output from the demo videos (hour ~4) for testing.
 - **Gives Hasan:** the ranked word list (hour 2), and later the missing-signs report with Exa reference links (hour 12) so Hasan knows what to animate next and has a video to copy from.
@@ -108,28 +132,32 @@ caption segments
 - **Gives Raashed:** the `textToSigns` module (hour 10).
 
 ## Stretch
+
 - `nonManual` hints: questions → `"question"`, negation → `"negation"`
 - ISL grammar (SOV order, different question rules) behind `lang: "ISL"`
 - A "learner mode" that also returns the gloss text for display under the avatar
 
 ## PR test cases
+
 Every PR must pass these before review (tick them in the PR description). Also see the PR rules in PLAN §9.
 
 - [ ] `pnpm eval:gloss` runs; coverage (real signs, not fingerspelling) did not drop compared with main; paste the before/after numbers in the PR
-- [ ] Every sign in the output is in `dictionary.json` or starts with `FS:`
-- [ ] Timing: no two signs overlap, and every sign stays inside its caption window ±0.5s (unit tests)
-- [ ] An empty caption, a `[Music]`-only caption and a 40-word caption all work without errors
+- [x] Every sign in the output is in `dictionary.json` or starts with `FS:`
+- [x] Timing: no two signs overlap, and every sign stays inside its caption window ±0.5s (unit tests)
+- [x] An empty caption, a `[Music]`-only caption and a 40-word caption all work without errors
 - [ ] With `context` set to `undefined`, output is still valid; with context, the homonym/name eval cases pass
-- [ ] Invalid JSON from Cerebras → one retry, then the rule-only fallback (test with a mocked client)
-- [ ] An HTTP 429 from Cerebras → backoff and retry (test with a mocked client)
-- [ ] Unit tests don't call the real Cerebras API (they use a mock), so CI never spends credits
+- [x] Invalid JSON from Cerebras → one retry, then the rule-only fallback (test with a mocked client)
+- [x] An HTTP 429 from Cerebras → backoff and retry (test with a mocked client)
+- [x] Unit tests don't call the real Cerebras API (they use a mock), so CI never spends credits
 
 ## Definition of done
-- [ ] `textToSigns` passes all its unit tests; the timing never produces overlapping signs
+
+- [x] `textToSigns` passes all its unit tests; the timing never produces overlapping signs
 - [ ] On the demo videos, **≥70% of the tokens are real signs** (not fingerspelled)
 - [ ] A 3-minute video is glossed in **< 10s** on Cerebras
 - [ ] Exa context improves at least the homonym/name eval cases
-- [ ] The eval script runs and its results are pasted in the README
+- [x] The eval script runs and its results are pasted in the README
 
 ## Demo role
+
 During the pitch, explain in 30 seconds **why gloss is not word-for-word English**, using one before/after example on a slide.
