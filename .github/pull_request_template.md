@@ -13,6 +13,7 @@
 
 ## Test cases
 - [ ] `pnpm lint`, `pnpm check-types`, `pnpm test` and `pnpm build` pass locally
+- [ ] I added or updated test cases (`*.test.ts`) for my source changes, or added the `no-tests-needed` label and explained why below
 - [ ] Every item in the **"PR test cases"** section of my spec passes (list any that don't, and why):
 - [ ] `node .github/scripts/pr-check.ts` passes locally
 

@@ -7,11 +7,13 @@
  *  2. Branch contains the latest main (so you are working from the current specs)
  *  3. Changed files are inside the owner's area (.github/owners.json)
  *  4. If you changed code, you also updated your own spec (specs/<owner>.md)
+ *     and added or updated test cases (*.test.ts / *.spec.ts) for source changes
  *  5. No AI tool attribution in commit messages or the PR description
  *
  * Escape hatches (PR labels, need a reviewer's OK):
  *  - "cross-team": allows files owned by someone else or team files (PLAN.md, other specs)
  *  - "no-spec-change": allows a code change without a spec update
+ *  - "no-tests-needed": allows a source change without test changes (explain why in the PR)
  *
  * Uses only Node built-ins. Node 24 runs this TypeScript file directly.
  */
@@ -126,6 +128,24 @@ if (owner) {
   if (team.length) {
     const msg = `Team-wide files changed:\n    ${team.join("\n    ")}`;
     crossTeam ? warn(`${msg}\n  Allowed by the "cross-team" label; tell the team in the chat.`) : fail(`${msg}\n  PLAN.md, other people's specs and agent instructions need team agreement: add the "cross-team" label.`);
+  }
+
+  // ---------- 4b. test cases added or updated when code changed ----------
+  const isTest = (f: string) => /\.(test|spec)\.[cm]?[jt]sx?$/.test(f);
+  const isSource = (f: string) =>
+    /^(apps|packages)\//.test(f) &&
+    /\.[cm]?[jt]sx?$/.test(f) &&
+    !isTest(f) &&
+    !/\.d\.ts$/.test(f) &&
+    !/(^|\/)[^/]*\.config\.[cm]?[jt]s$/.test(f);
+  const sourceChanged = changed.filter((f) => isSource(f) && matches(f, owner.paths));
+  const testsChanged = changed.some(isTest);
+  if (sourceChanged.length && !testsChanged) {
+    labels.includes("no-tests-needed")
+      ? warn(`Source code changed without test changes; allowed by the "no-tests-needed" label.`)
+      : fail(
+          `You changed source code but added or updated no test cases (*.test.ts / *.spec.ts):\n    ${sourceChanged.join("\n    ")}\n  Add tests for the change, or add the "no-tests-needed" label and explain why in the PR description.`,
+        );
   }
 
   // ---------- 4. own spec updated when code changed ----------

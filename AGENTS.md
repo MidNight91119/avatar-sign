@@ -22,6 +22,7 @@ This repo is a 5-person hackathon project. Each person owns one area. Follow the
 ## 5. Test before a PR
 - Run `pnpm lint`, `pnpm check-types`, `pnpm test` and `pnpm build` from the repo root (Turborepo runs them in every package).
 - Workspace: **pnpm** installs and runs root tasks; **Bun** is the runtime and test runner inside individual packages (`bun test`, `bun --watch`). Don't add npm, yarn or bun lockfiles.
+- **Write test cases** (`*.test.ts`, run with `bun test`) for every source change in `apps/` or `packages/`. CI fails a PR that changes source code without touching any test file.
 - Run every item in the **"PR test cases"** section of the owner's spec and report the results.
 - Run `node .github/scripts/pr-check.ts`. CI runs the same check on every PR.
 

@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   rules:
-    name: PR rules (owner, up to date, spec, no AI attribution)
+    name: PR rules
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -34,16 +34,34 @@ jobs:
           PR_BODY: ${{ github.event.pull_request.body }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
 
-  tests:
-    name: Lint, typecheck and tests
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-      - uses: oven-sh/setup-bun@v2
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm turbo run lint check-types test build --ui=stream
+      - uses: ./.github/actions/setup
+      - run: pnpm turbo run lint --ui=stream
+
+  check-types:
+    name: Type check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: pnpm turbo run check-types --ui=stream
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: pnpm turbo run test --ui=stream
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: pnpm turbo run build --ui=stream
