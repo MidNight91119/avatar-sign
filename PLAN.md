@@ -339,11 +339,15 @@ avatar/
 
 ### PR rules (checked automatically on every PR)
 
-Every PR runs `.github/workflows/pr-checks.yml`. A PR can't be merged until it passes:
+Every PR runs `.github/workflows/pr-rules.yml` and `.github/workflows/pr-quality.yml` as five separate checks: **PR rules**, **Lint**, **Type check**, **Tests** and **Build**. All five are required, so a PR can't be merged until they pass:
 
 | Rule | What it means | How to fix it |
 |---|---|---|
-| **Tests pass** | `pnpm lint`, `pnpm check-types`, `pnpm test` and `pnpm build` pass, and you ran the **"PR test cases"** in your spec | Fix the failing tests; tick the test cases in the PR description |
+| **Lint** | `pnpm lint` passes (ESLint, zero warnings) | Fix the lint errors |
+| **Type check** | `pnpm check-types` passes (strict TypeScript) | Fix the type errors |
+| **Tests** | `pnpm test` passes in every package | Fix the failing tests |
+| **Build** | `pnpm build` passes | Fix the build |
+| **New test cases** | If you changed source code in `apps/` or `packages/`, the PR also adds or updates `*.test.ts` files. You also ran the **"PR test cases"** in your spec | Write tests, or add the `no-tests-needed` label and explain why |
 | **Up to date with main** | Your branch contains the latest `main`, so you built against the current plan and specs | `git fetch origin && git rebase origin/main`, then re-read PLAN.md and your spec |
 | **Your spec is updated** | If you changed code, you also updated `specs/<you>.md` (ticked finished tasks, noted changes) | Edit your spec, or add the `no-spec-change` label if it really isn't needed |
 | **Your own work only** | The branch is `<you>/…`, you opened the PR, and you only changed files in your area (`.github/owners.json`). This applies to AI-made changes too | Ask the owner to make the change, or add the `cross-team` label and get their review |

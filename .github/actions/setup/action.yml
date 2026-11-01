@@ -1,0 +1,13 @@
+name: Setup workspace
+description: Install pnpm, Node 24, Bun and the workspace dependencies
+runs:
+  using: composite
+  steps:
+    - uses: pnpm/action-setup@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 24
+        cache: pnpm
+    - uses: oven-sh/setup-bun@v2
+    - run: pnpm install --frozen-lockfile
+      shell: bash
