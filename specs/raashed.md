@@ -34,7 +34,7 @@ Bun runtime, Hono, `youtubei.js`, **`exa-js`** (sponsor), `zod`, `bun:sqlite` (o
 - [ ] Turn on usage alerts in both dashboards if they offer them; note spend in the team chat at each checkpoint
 - [x] PR checks: separate Lint, Type check, Tests and Build jobs, plus a rule that source changes need test changes (`no-tests-needed` label to skip)
 - [x] `.env.example` (`CEREBRAS_API_KEY`, `CEREBRAS_MODEL`, `EXA_API_KEY`, `DATABASE_URL`, `ALLOWED_ORIGINS`, plus `ADMIN_SECRET` and rate limits), zod-validated `src/env.ts`, and an API README "how to run"
-- [ ] Branch protection on `main` (requires all five PR checks)
+- [x] Branch protection on `main` (requires all five PR checks, branch up to date; admins exempt so you can still push directly)
 - [ ] Post in the team chat: "Contracts are ready, start building."
 
 ## 2. Hours 1–6: Transcript
