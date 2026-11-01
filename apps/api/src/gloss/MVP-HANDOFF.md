@@ -1,10 +1,25 @@
 # Immediate demo handoff
 
-The Durgesh implementation is in PR #24, ready for review. It does not complete
+The initial Durgesh implementation in PR #24 is merged. The current bridge adds
+733 registered procedural signs and preserves digits. It does not complete
 playable coverage or prove human-readable signing. Reuse the existing API/cache
 commands below; no new service, queue or transcription subsystem is needed.
 
 ## Ready on this machine
+
+- Latest main is integrated through PR #30 (`9462407`). The refreshed Linear
+  Search cache now contains **202/346 native signs (58.38%)**, 61 segments,
+  zero fallback, **7.936s** total using cached Exa context. Historical measurements
+  below used the empty dictionary and are retained as the baseline.
+- The extension was visually verified on actual YouTube playback: hand poses,
+  captions and glosses advanced from 01:17 to 01:35. Build it with
+  `VITE_API_URL=http://localhost:8787 pnpm --filter @signstream/extension build`.
+  The unpacked extension directory is `apps/extension/dist`; its name is now
+  **signside**. Click its toolbar icon, then **Start sign language**.
+- Website: `http://localhost:3000/watch?v=TwsgCHYmbbA`; API: localhost port 8787.
+  The production website build uses `NEXT_PUBLIC_API_URL=http://localhost:8787`.
+  The website now creates its privacy-enhanced iframe directly before attaching
+  the media clock API. The actual CS50 player loads, replacing the black frame.
 
 - The full Linear Search video (`TwsgCHYmbbA`, 2:50) was prepared using the real
   YouTube → Exa → Cerebras → API job pipeline: **8.658s**, 61 segments,
@@ -52,9 +67,9 @@ For a clean laptop, copy the private export securely and use the existing
 `demo import <file>` command with the chosen local database. Cached API data
 can work offline; YouTube playback still needs a network or a backup recording.
 
-## The remaining product blocker
+## Historical blockers before the bridge
 
-Main still has an empty animation dictionary. Hasan's newly published
+Before this bridge, main had an empty animation dictionary. Hasan's published
 `hasan/signside-player` branch contains a procedural WebGL player and **733**
 lexicon entries, so it does not need hundreds of downloaded clip files. However:
 
@@ -67,10 +82,9 @@ lexicon entries, so it does not need hundreds of downloaded clip files. However:
 4. The player branch has not been integrated/render-tested here. Poonam's current
    extension PR accurately labels its text placeholder until a player is present.
 
-The user explicitly approved the focused vocabulary/digit bridge under
-`AGENTS.md`; it is being prepared as a small follow-up against Hasan's player
-branch so his renderer work is not duplicated.
-Do not label the placeholder or empty dictionary a completed signing MVP.
+The approved bridge above resolves registration, digit dropping and basic
+rendered integration. Native coverage is still below 70%; human signing review
+and the broader clock/control matrix remain open.
 
 ## Smallest stage path
 

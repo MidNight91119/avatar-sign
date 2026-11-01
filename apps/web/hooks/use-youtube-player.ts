@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { loadYouTubeApi, YT_PLAYING, type YTPlayer } from "../lib/youtube-iframe";
+import { loadYouTubeApi, youtubeEmbedUrl, YT_PLAYING, type YTPlayer } from "../lib/youtube-iframe";
 
 /**
  * Mounts a YouTube player into `frame` and exposes its clock. `getTime` is stable and cheap: read it every
@@ -15,12 +15,18 @@ export function useYouTubePlayer(videoId: string) {
     let cancelled = false;
     const host = frame.current;
     // YouTube replaces the element it's given, so give it a child React doesn't own.
-    const el = document.createElement("div");
+    const el = document.createElement("iframe");
+    el.title = "YouTube video player";
+    el.src = youtubeEmbedUrl(videoId, window.location.origin);
+    el.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
+    el.allowFullscreen = true;
+    el.referrerPolicy = "strict-origin-when-cross-origin";
     host?.append(el);
     void loadYouTubeApi().then((YT) => {
       if (cancelled) return;
       player.current = new YT.Player(el, {
         videoId,
+        host: "https://www.youtube-nocookie.com",
         playerVars: { playsinline: 1, rel: 0 },
         events: {
           onStateChange: (e) => setPaused(e.data !== YT_PLAYING),

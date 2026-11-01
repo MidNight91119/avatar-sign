@@ -1,5 +1,5 @@
 {
-  "scope": "Actual backend demo preparation, not avatar or language-quality acceptance",
+  "scope": "Historical empty-dictionary baseline plus current procedural bridge verification",
   "videoId": "TwsgCHYmbbA",
   "coldJobMetrics": "job TwsgCHYmbbA:ASL status=ready captions=61 signs=378 fs=100% context=yes exa=3360ms gloss=4489ms total=8658ms",
   "providerCalls": 2,
@@ -107,7 +107,7 @@
     }
   },
   "cacheExport": "ignored apps/api/src/gloss/data/mvp-demo-cache.json; rebuild after dictionary/prompt changes",
-  "assetStatus": "Main dictionary still empty; Hasan procedural-player branch exists but vocabulary is not registered and digits are currently dropped",
+  "assetStatus": "Procedural dictionary registered on this bridge branch; native signing observed in the extension",
   "candidatePlayer": {
     "repository": "xhxaidi/avatar-sign",
     "branch": "hasan/signside-player",
@@ -122,6 +122,25 @@
       "fallbackBatches": 0,
       "timingViolations": 0
     },
-    "pending": "Focused cross-owner edits approved; vocabulary/digit bridge and rendered integration/readability review pending"
+    "pending": "Historical pre-bridge inspection; current bridge registration, digit support and rendered integration are recorded in bridge"
+  },
+  "bridge": {
+    "main": "9462407",
+    "dictionarySigns": 733,
+    "lettersAndDigits": 36,
+    "videoId": "TwsgCHYmbbA",
+    "segments": 61,
+    "tokens": 346,
+    "nativeTokens": 202,
+    "coveragePercent": 58.38150289017341,
+    "totalMs": 7936,
+    "glossMs": 6257,
+    "exaContext": "cached",
+    "fallbackBatches": 0,
+    "droppedContent": 1,
+    "denseFingerspelling": 85,
+    "browserVerification": "Chrome extension hand poses, captions and glosses change during CS50 playback from 01:17 to 01:35",
+    "remaining": "70% coverage and human linguistic review; broader seek/rate/host acceptance",
+    "websiteVerification": "Actual CS50 playback, avatar and caption/gloss progression observed at02:13 in app browser"
   }
 }

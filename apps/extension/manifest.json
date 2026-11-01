@@ -12,5 +12,5 @@
   "background": { "service_worker": "src/background.ts", "type": "module" },
   "content_scripts": [{ "matches": ["https://www.youtube.com/*"], "js": ["src/content.ts"] }],
   "permissions": ["sidePanel"],
-  "host_permissions": ["https://www.youtube.com/*"]
+  "host_permissions": ["https://www.youtube.com/*", "http://localhost:8787/*"]
 }

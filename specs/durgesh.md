@@ -211,9 +211,13 @@ Keep historical pre-review live outputs labelled as historical.
 
 ### Immediate MVP readiness
 
+- Latest integration rebased onto main `9462407` after PR #30. The actual API now advertises 733 procedural signs. A refreshed full Linear Search track has 346 tokens, 202 native signs (**58.38%**), zero provider fallback, 7.936s total with cached Exa context. The >=70% gate remains open.
+- Computer-use verification on the real YouTube short confirmed extension hand-pose changes and caption/gloss progression from 01:17 to 01:35. Native signs and fingerspelling render; this is visual integration evidence, not linguistic sign-off. The merged extension needs `VITE_API_URL=http://localhost:8787` at build time and localhost host permission.
+- Website integration now creates the privacy-enhanced iframe before attaching the YouTube clock API, avoiding the observed permanently blank auto-created frame. Actual CS50 playback, moving avatar and matching caption/gloss progression were observed at 02:13 in the app browser; the broader seek/rate matrix remains open.
+
 - The fresh real API job for full Linear Search now completes in 8.658s including Exa/captions/gloss, zero fallback; actual localhost cached HTTP returns in 22.76ms. Private cache/export are prepared with existing commands, and a deterministic HTTP/client/partial/cache test is added.
 - See `apps/api/src/gloss/MVP-HANDOFF.md` and `mvp-readiness.json` for startup/refresh instructions and the precise backup segment. No additional service or scalability work is introduced.
-- Hasan's unmerged procedural player branch exposes 733 signs but still has an empty dictionary and drops digits. A live compatibility diagnostic reached 52.62% on Linear Search; this does not satisfy #17 or establish rendered/readable integration. The user approved a focused cross-owner vocabulary/digit bridge; rendered/linguistic acceptance still remains open.
+- Historical pre-bridge baseline: Hasan's player exposed 733 signs but had an empty dictionary and dropped digits. Its separate compatibility diagnostic reached 52.62% on Linear Search. Registration, digits and basic rendering are now fixed/verified above; #17 and linguistic acceptance remain open.
 
 ### Procedural vocabulary bridge (approved cross-owner scope)
 

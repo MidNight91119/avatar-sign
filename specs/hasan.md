@@ -1,5 +1,13 @@
 # Hasan: Avatar Engine + Website
 
+Demo integration follow-up: the approved bridge registers 733 actual engine
+definitions and preserves digits. On main through PR #30, the extension also
+needs localhost API host permission and `VITE_API_URL` at build time. The website
+creates its privacy-enhanced iframe before attaching the clock API to fix the
+observed black auto-created frame. Actual extension hand motion and caption/gloss
+progression were visually verified on CS50 Linear Search at 01:17–01:35;
+linguistic readability and >=70% coverage are still open.
+
 > Main plan: [../PLAN.md](../PLAN.md) · Contracts: PLAN §4.1, §4.4, §4.5
 
 You have **two tracks**. The avatar comes first, because it is the hardest and most visible part of the project. Keep the website small: use a template and the pre-built components.

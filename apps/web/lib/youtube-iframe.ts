@@ -8,11 +8,18 @@ export interface YTPlayer {
 /** YT.PlayerState: -1 unstarted, 0 ended, 1 playing, 2 paused, 3 buffering, 5 cued. */
 export const YT_PLAYING = 1;
 
+export function youtubeEmbedUrl(videoId: string, origin: string): string {
+  const url = new URL(`https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}`);
+  url.search = new URLSearchParams({ enablejsapi: "1", origin, playsinline: "1", rel: "0" }).toString();
+  return url.toString();
+}
+
 interface YTNamespace {
   Player: new (
     el: HTMLElement,
     opts: {
       videoId: string;
+      host?: string;
       playerVars?: Record<string, number>;
       events?: {
         onStateChange?: (e: { data: number }) => void;
