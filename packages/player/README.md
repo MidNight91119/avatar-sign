@@ -48,9 +48,10 @@ bounce or wobble, near-critically damped springs, and orientation eased by quate
 
 ## Limits (next steps)
 
-- ASL only. `lang` is accepted but ISL tracks are signed with ASL handshapes. Digits are dropped from `FS:` for now.
+- ASL only. `lang` is accepted but ISL tracks are signed with ASL handshapes. Digits are preserved one at a time with existing ONE–NINE poses; zero explicitly fingerspells Z-E-R-O because no native zero pose exists. Mixed identifiers retain their letter/digit order. This is literal digit playback, not a new compound-number grammar.
 - `assetsBaseUrl` is unused (no assets).
 - One avatar (Sara, light backdrop) is fixed in `src/index.ts` (`AVATAR`). The engine has three; choosing one needs a contract option.
-- `dictionary.json` doesn't list these signs yet, so the gloss module still fingerspells them. See specs/hasan.md for the handoff.
+- `packages/sign-assets/dictionary.json` now registers exactly the engine's native inventory. Keys are uppercase with spaces replaced by hyphens (`THANK-YOU`, `ICE-CREAM`, `I-LOVE-YOU`). Values are `procedural:<engine sign>` identifiers, not downloaded clip files; `letters` has A–Z and 0–9 `procedural:FS:<character>` identifiers.
+- Regenerate after lexicon changes with `bun packages/player/src/sync-dictionary.ts` from the repo root. Tests check manifest equality and that every entry resolves to a finite playable pose. This makes no claim that every sign has been linguistically reviewed.
 
 `bun test` covers the scheduling: three times, seeks, slot fitting, repeated glosses, unknown glosses and smiles.

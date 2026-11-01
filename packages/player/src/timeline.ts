@@ -53,20 +53,33 @@ const LEAD = 0.12;
 /** Gaps longer than this drop the hands back to rest. */
 const REST_GAP = 1.2;
 
-const letters = (s: string) => s.toUpperCase().replace(/[^A-Z]/g, "");
+const DIGIT_NAMES: Record<string, string> = {
+  "0": "ZERO", "1": "ONE", "2": "TWO", "3": "THREE", "4": "FOUR",
+  "5": "FIVE", "6": "SIX", "7": "SEVEN", "8": "EIGHT", "9": "NINE",
+};
+
+function spellUnits(text: string): Unit[] {
+  return (text.toUpperCase().match(/[A-Z]+|[0-9]/g) ?? []).map(part => {
+    const name = DIGIT_NAMES[part];
+    if (!name) return { spell: part };
+    const sign = signOf(name);
+    // Zero has no native pose: explicitly spell ZERO rather than dropping it.
+    return sign ? { sign } : { spell: name };
+  });
+}
 
 /**
  * Gloss → what to play. "HELLO" → sign; "THANK-YOU" → the two-word sign if the lexicon has it, else each part;
- * "FS:BOB" or anything unknown → fingerspelling (never an error). Digits aren't signed yet and are dropped.
+ * "FS:BOB" or anything unknown → fingerspelling (never an error). Digits resolve one at a time; unsupported numeric poses use spelled number names.
  */
 export function unitsFor(gloss: string): Unit[] {
   const g = gloss.trim().toUpperCase();
-  if (g.startsWith("FS:")) return letters(g.slice(3)) ? [{ spell: letters(g.slice(3)) }] : [];
+  if (g.startsWith("FS:")) return spellUnits(g.slice(3));
   const whole = signOf(g.replace(/-/g, " "));
   if (whole) return [{ sign: whole }];
   const parts = g.split(/[-\s]+/).filter(Boolean);
   if (parts.length > 1) return parts.flatMap(unitsFor);
-  return letters(g) ? [{ spell: letters(g) }] : [];
+  return spellUnits(g);
 }
 
 interface RawKey {

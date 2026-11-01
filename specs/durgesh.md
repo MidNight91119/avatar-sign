@@ -127,7 +127,7 @@ remaining acceptance inputs are tracked in
 - D6b: Issue #15 addressed with topic/term category guidance and deterministic decoding. All five paired context fixtures now match exactly, with three exact improvements and no regression/fallback. Separate real Exa context retrieval + Cerebras controls verify coffee, name spelling and bird interpretation; machinery/person-name controls prevent a global CRANE synonym. Evaluation vocabulary remains a fixture, not playable coverage.
 - D6c/D7: Issue #16 addressed with ten live Exa-backed reference entries through the actual local API, using frequencies from all five real CS50 caption sets (offline rule-only token aggregation). The capped report is explicitly 10 of 988 distinct missing words; it is not an exhaustive live-gloss report. Lowercase lookup fixes the AND search, generic navigation/off-domain results are excluded, and numeric/unsupported queries remain explicit. `--limit` bounds requests; `--check` gates reported reference availability.
 - D8: Added 14 unambiguous inflection mappings observed in CS50 captions (including VARIABLES, VALUES, LOOPS and COMPARING), tested only against available dictionary keys. Hasan's measured top-200 handoff replaces the provisional word list; actual animation coverage remains 0%.
-- Verification: 62 gloss/corpus/CS50/benchmark/integration tests pass, alongside root lint, type check, test and build. The verifier independently rechecked shared integration and reference-query compatibility. Actual five-video dictionary coverage is unchanged from main (0% to 0%); live timings and outputs are in live-results.json. Earlier runs (Loops 20.6s, manual excerpt 2.9s) remain historical. Issue #18 is now verified on the full 3:33 Defining Custom Types video: 3.91s gloss, 4.84s including YouTube caption fetch, zero fallback. This is speed/numerical-timing evidence only; content/readability and animation coverage remain open. PR #10 is merged; this acceptance branch changes only Durgesh-owned files and his own spec.
+- Verification: 63 gloss/corpus/CS50/benchmark/integration tests pass, alongside root lint, type check, test and build. The verifier independently rechecked shared integration and reference-query compatibility. Actual five-video dictionary coverage is unchanged from main (0% to 0%); live timings and outputs are in live-results.json. Earlier runs (Loops 20.6s, manual excerpt 2.9s) remain historical. Issue #18 is now verified on the full 3:33 Defining Custom Types video: 3.91s gloss, 4.84s including YouTube caption fetch, zero fallback. This is speed/numerical-timing evidence only; content/readability and animation coverage remain open. PR #10 is merged; this acceptance branch changes only Durgesh-owned files and his own spec.
 
 ## Handoffs
 
@@ -208,3 +208,22 @@ Keep historical pre-review live outputs labelled as historical.
 - **D-I3 implementation handoff:** three schema-valid synthetic schedules with FS:BOB, FS:23, gaps, negation and seek checkpoints are in `fixtures/playback.sample.json`. They are scheduling fixtures, not evidence of available/reviewed animation assets; visual review is still required.
 - **D-I4 remains open:** an owned integration test verifies non-overlapping inputs through the real API pipeline across the 40-caption split. Tracing both real ingress paths confirms they call `normalizeCaptions` before batching. The integration test also covers overlapping raw cues after that canonical normalization. Bypassing normalization in a synthetic dependency can overlap, but no real-ingress defect is claimed. R-I3 account-wide quota and deployed coordination remain Raashed-owned and pending.
 - **D-I8 remains open:** current sanitized acceptance evidence is provided, but full playable coverage, exhaustive references, linguistic sign-off and deployed cache/player integration are still pending.
+
+### Immediate MVP readiness
+
+- Latest integration rebased onto main `9462407` after PR #30. The actual API now advertises 733 procedural signs. A refreshed full Linear Search track has 346 tokens, 202 native signs (**58.38%**), zero provider fallback, 7.936s total with cached Exa context. The >=70% gate remains open.
+- Computer-use verification on the real YouTube short confirmed extension hand-pose changes and caption/gloss progression from 01:17 to 01:35. Native signs and fingerspelling render; this is visual integration evidence, not linguistic sign-off. The merged extension needs `VITE_API_URL=http://localhost:8787` at build time and localhost host permission.
+- Website integration now creates the privacy-enhanced iframe before attaching the YouTube clock API, avoiding the observed permanently blank auto-created frame. Actual CS50 playback, moving avatar and matching caption/gloss progression were observed at 02:13 in the app browser; the broader seek/rate matrix remains open.
+
+- The fresh real API job for full Linear Search now completes in 8.658s including Exa/captions/gloss, zero fallback; actual localhost cached HTTP returns in 22.76ms. Private cache/export are prepared with existing commands, and a deterministic HTTP/client/partial/cache test is added.
+- See `apps/api/src/gloss/MVP-HANDOFF.md` and `mvp-readiness.json` for startup/refresh instructions and the precise backup segment. No additional service or scalability work is introduced.
+- Historical pre-bridge baseline: Hasan's player exposed 733 signs but had an empty dictionary and dropped digits. Its separate compatibility diagnostic reached 52.62% on Linear Search. Registration, digits and basic rendering are now fixed/verified above; #17 and linguistic acceptance remain open.
+
+### Procedural vocabulary bridge (approved cross-owner scope)
+
+The user approved the focused player/assets bridge. Canonical dictionary keys
+are uppercase with hyphens for multi-word signs; `procedural:` values reference
+actual engine definitions, not nonexistent clip files. The native inventory and
+letter/digit fallback are validated in player tests. Coverage, cache refresh and
+rendered readability must be measured before #17 can close; the earlier live
+compatibility probe was 52.62%, below target.

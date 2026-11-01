@@ -1,5 +1,13 @@
 # Hasan: Avatar Engine + Website
 
+Demo integration follow-up: the approved bridge registers 733 actual engine
+definitions and preserves digits. On main through PR #30, the extension also
+needs localhost API host permission and `VITE_API_URL` at build time. The website
+creates its privacy-enhanced iframe before attaching the clock API to fix the
+observed black auto-created frame. Actual extension hand motion and caption/gloss
+progression were visually verified on CS50 Linear Search at 01:17–01:35;
+linguistic readability and >=70% coverage are still open.
+
 > Main plan: [../PLAN.md](../PLAN.md) · Contracts: PLAN §4.1, §4.4, §4.5
 
 You have **two tracks**. The avatar comes first, because it is the hardest and most visible part of the project. Keep the website small: use a template and the pre-built components.
@@ -183,3 +191,17 @@ the inspected baseline, so either add the agreed setup or use existing CSS.
 - [ ] An early partial snapshot, late asset, failed asset and superseded load never show the previous video's sign.
 - [ ] Same built model/clip paths load inside the installed extension and `/watch`.
 - [ ] All advertised signs and A–Z/digit behavior are visually reviewed; performance/resource evidence includes device and renderer.
+
+### Approved MVP vocabulary/digit bridge
+
+The user explicitly authorized a focused cross-owner player/assets fix. The
+procedural engine remains unchanged; no VRM, clip files or new dependencies are
+introduced. Dictionary keys now use uppercase/hyphenated words and values are
+explicit `procedural:` identifiers rather than pretend clip URLs. The generator
+and tests keep the inventory aligned with `knownSigns()`.
+
+Numeric FS no longer disappears: 1–9 reuse existing numeric-word poses and zero
+spells ZERO when a native zero pose is unavailable. Mixed letter/digit names
+preserve order. A–Z and digits have finite-pose/slot tests; linguistic visual
+review and full-corpus coverage remain open. The earlier empty-dictionary/dropped-
+digits notes describe the original branch state and are superseded by this bridge.

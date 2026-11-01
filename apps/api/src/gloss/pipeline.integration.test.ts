@@ -78,3 +78,108 @@ it.each([false, true])(
     }
   },
 );
+
+it("serves partial gloss through HTTP/client polling and reuses the ready cache", async () => {
+  const { createApiClient } = await import("@signstream/shared");
+  const { createApp } = await import("../app");
+  const { createSqliteCache } = await import("../cache");
+  const { createJobManager } = await import("../jobs");
+  const { loadEnv } = await import("../env");
+  const videoId = "TwsgCHYmbbA";
+  const cache = createSqliteCache(":memory:");
+  let releaseFinal!: () => void;
+  const finalBatch = new Promise<void>((resolve) => {
+    releaseFinal = resolve;
+  });
+  let providerCalls = 0;
+  const translate = createGlossTranslator({
+    log: () => {},
+    complete: async (request) => {
+      providerCalls++;
+      const batch = JSON.parse(request.messages[1]!.content).segments as {
+        index: number;
+      }[];
+      return {
+        choices: [
+          {
+            finish_reason: "stop",
+            message: {
+              content: JSON.stringify({
+                segments: batch.map(({ index }) => ({
+                  index,
+                  tokens: ["HELLO"],
+                })),
+              }),
+            },
+          },
+        ],
+      };
+    },
+  });
+  const jobs = createJobManager({
+    cache,
+    log: () => {},
+    deps: {
+      getTranscript: async () => ({
+        videoId,
+        title: "HTTP fixture",
+        description: "",
+        durationSec: 82,
+        track: { languageCode: "en", auto: false },
+        captions: Array.from({ length: 41 }, (_, i) => ({
+          start: i * 2,
+          end: i * 2 + 1.6,
+          text: "Hello",
+        })),
+      }),
+      getContext: async () => undefined,
+      dictionary: () => ["HELLO"],
+      maxVideoSeconds: 900,
+      textToSigns: async (captions, options) => {
+        if (captions[0]!.start >= 80) await finalBatch;
+        return translate(captions, options);
+      },
+    },
+  });
+  const app = createApp({
+    cache,
+    jobs,
+    dictionary: () => ["HELLO"],
+    env: loadEnv({ DATABASE_URL: ":memory:" }),
+    log: () => {},
+  });
+  const client = createApiClient({
+    baseUrl: "http://localhost",
+    mock: false,
+    fetch: Object.assign(
+      async (
+        input: Parameters<typeof fetch>[0],
+        init?: Parameters<typeof fetch>[1],
+      ) => app.fetch(new Request(input, init)),
+      { preconnect: () => {} },
+    ),
+  });
+  const partials: number[] = [];
+  try {
+    const ready = await client.getSignTrack(videoId, "ASL", {
+      pollIntervalMs: 1,
+      timeoutMs: 2000,
+      onPartial: (track) => {
+        partials.push(track.segments.length);
+        releaseFinal();
+      },
+    });
+    expect(partials).toEqual([40]);
+    expect(ready.status).toBe("ready");
+    expect(ready.segments).toHaveLength(41);
+    expect(SignTrackSchema.safeParse(ready).success).toBe(true);
+    expect(providerCalls).toBeGreaterThan(0);
+    const before = providerCalls;
+    expect(await client.getSignTrack(videoId)).toEqual(ready);
+    expect(providerCalls).toBe(before);
+  } finally {
+    releaseFinal();
+    await jobs.wait(videoId, "ASL");
+    cache.close();
+  }
+});

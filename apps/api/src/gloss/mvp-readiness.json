@@ -1,0 +1,146 @@
+{
+  "scope": "Historical empty-dictionary baseline plus current procedural bridge verification",
+  "videoId": "TwsgCHYmbbA",
+  "coldJobMetrics": "job TwsgCHYmbbA:ASL status=ready captions=61 signs=378 fs=100% context=yes exa=3360ms gloss=4489ms total=8658ms",
+  "providerCalls": 2,
+  "providerTokens": 10776,
+  "droppedContent": 2,
+  "denseFingerspelling": 251,
+  "fallbackBatches": 0,
+  "cachedHttp": {
+    "kind": "actual localhost HTTP cached-track smoke",
+    "videoId": "TwsgCHYmbbA",
+    "status": "ready",
+    "segments": 61,
+    "signs": 378,
+    "elapsedMs": 22.75933299999997,
+    "runningJobs": 0,
+    "jobLogs": 0,
+    "dictionaryEntries": 0,
+    "backupRange": {
+      "start": 15.03,
+      "end": 91.72,
+      "segments": 29,
+      "signs": 175,
+      "neededSignClips": [
+        [
+          "FS:WE",
+          18
+        ],
+        [
+          "FS:ELEMENT",
+          12
+        ],
+        [
+          "FS:LOOK",
+          10
+        ],
+        [
+          "FS:WHAT",
+          7
+        ],
+        [
+          "FS:FOR",
+          7
+        ],
+        [
+          "FS:CAN",
+          6
+        ],
+        [
+          "FS:SO",
+          6
+        ],
+        [
+          "FS:NEXT",
+          5
+        ],
+        [
+          "FS:NOT",
+          5
+        ],
+        [
+          "FS:LINEAR",
+          4
+        ],
+        [
+          "FS:SEARCH",
+          4
+        ],
+        [
+          "FS:ARRAY",
+          4
+        ],
+        [
+          "FS:IF",
+          4
+        ],
+        [
+          "FS:STOP",
+          4
+        ],
+        [
+          "FS:MOVE",
+          4
+        ],
+        [
+          "FS:FIND",
+          4
+        ],
+        [
+          "FS:YOU",
+          3
+        ],
+        [
+          "FS:OTHERWISE",
+          3
+        ],
+        [
+          "FS:KEEP",
+          3
+        ],
+        [
+          "FS:9",
+          3
+        ]
+      ]
+    }
+  },
+  "cacheExport": "ignored apps/api/src/gloss/data/mvp-demo-cache.json; rebuild after dictionary/prompt changes",
+  "assetStatus": "Procedural dictionary registered on this bridge branch; native signing observed in the extension",
+  "candidatePlayer": {
+    "repository": "xhxaidi/avatar-sign",
+    "branch": "hasan/signside-player",
+    "commit": "2104a6ef567baa19738786962ce318cfd8ccee6c",
+    "proceduralSigns": 733,
+    "registeredDictionarySigns": 0,
+    "numericFingerspelling": "digits dropped by unitsFor in inspected branch",
+    "compatibilityProbe": {
+      "scope": "Live translation against unmerged engine vocabulary, not current runtime/asset acceptance",
+      "videoId": "TwsgCHYmbbA",
+      "coveragePercent": 52.617801047120416,
+      "fallbackBatches": 0,
+      "timingViolations": 0
+    },
+    "pending": "Historical pre-bridge inspection; current bridge registration, digit support and rendered integration are recorded in bridge"
+  },
+  "bridge": {
+    "main": "9462407",
+    "dictionarySigns": 733,
+    "lettersAndDigits": 36,
+    "videoId": "TwsgCHYmbbA",
+    "segments": 61,
+    "tokens": 346,
+    "nativeTokens": 202,
+    "coveragePercent": 58.38150289017341,
+    "totalMs": 7936,
+    "glossMs": 6257,
+    "exaContext": "cached",
+    "fallbackBatches": 0,
+    "droppedContent": 1,
+    "denseFingerspelling": 85,
+    "browserVerification": "Chrome extension hand poses, captions and glosses change during CS50 playback from 01:17 to 01:35",
+    "remaining": "70% coverage and human linguistic review; broader seek/rate/host acceptance",
+    "websiteVerification": "Actual CS50 playback, avatar and caption/gloss progression observed at02:13 in app browser"
+  }
+}
