@@ -44,6 +44,7 @@ describe("estimateGlossTokens", () => {
   it("grows with the batch and stays near the ~5k measured for 40 captions", () => {
     const req = (n: number) => ({
       model: "m",
+      temperature: 0 as const,
       messages: [
         { role: "system" as const, content: "x".repeat(2000) },
         { role: "user" as const, content: JSON.stringify({ segments: Array.from({ length: n }, (_, i) => ({ index: i, text: "hello there friend" })) }) },
