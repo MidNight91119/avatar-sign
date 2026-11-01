@@ -1,5 +1,8 @@
 /* signside website. Design tokens + shared layout; page styles live next to each page. */
 :root {
+  --font-inter: "Inter Variable";
+  --font-inter-tight: "Inter Tight Variable";
+  --font-instrument-serif: "Instrument Serif";
   --bg: #f3f2f0;
   --surface: #e9e8e5;
   --field: #e6e4e1;
