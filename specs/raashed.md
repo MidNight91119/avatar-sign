@@ -21,7 +21,7 @@ Bun runtime, Hono, `youtubei.js`, **`exa-js`** (sponsor), `zod`, `bun:sqlite` (o
 
 - [x] Turborepo + pnpm monorepo: `apps/{api,extension,web}`, `packages/{player,sign-assets,shared,ui,typescript-config,eslint-config}`, strict TS, ESLint + Prettier, Bun for the API and tests, root scripts (`pnpm dev`, `pnpm build`, `pnpm test`, `pnpm pr-check`)
 - [x] `packages/shared`: zod schemas + TS types from PLAN §4.1 (`SignTrack`, `Segment`, `Sign`, `SignLang`). Export the types with `z.infer` so they can't drift from the schemas
-- [ ] `packages/shared`: a typed API client:
+- [x] `packages/shared`: a typed API client (also `discover`, `signReference`, `health`, `ApiClientError`, and `mock: true` / `MOCK=1` mode):
   ```ts
   createApiClient({ baseUrl })
     .getSignTrack(videoId, lang, { onProgress })  // polls every 2s until "ready" or "error"

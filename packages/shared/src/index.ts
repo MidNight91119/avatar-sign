@@ -1,2 +1,3 @@
-// Shared contracts (PLAN §4). Every app imports types and schemas from here.
+// Shared contracts (PLAN §4) and the typed API client. Every app imports from here.
 export * from "./schemas";
+export * from "./client";
