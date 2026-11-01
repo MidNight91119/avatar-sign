@@ -70,12 +70,13 @@ Numeric values use fingerspelling, with explicit MINUS/PLUS, POINT and PERCENT
 tokens so a decimal is not silently changed into an integer.
 
 Captions longer than 20 words are split into proportional contiguous windows.
-Signs use the specified weights, 0.25–1.2 second preferred durations and centred
+Signs use the specified weights, 0.25–1.2 second durations and centred
 idle time. If minimum durations do not fit, filler signs are removed first and
 up to 0.5 seconds of a real following gap may be used. For irreducibly dense
-captions, durations below 0.25 seconds preserve content without overlapping signs.
-Those very fast signs need linguistic simplification before a polished demo.
-Zero-length windows emit no signs.
+captions, trailing tokens are removed while retaining NOT/FS:NOT where possible. This
+can omit content and still needs linguistic review. Windows that cannot fit a
+0.25-second sign emit no signs. Outbound segments are validated with the shared
+schema before returning. ISL requests throw `UnsupportedSignLanguageError`.
 
 Rule-only fallback drops simple English function words and keeps word order.
 It preserves negation but does not perform context-based disambiguation or full
@@ -152,12 +153,12 @@ is attributed under its [published license](https://cs50.harvard.edu/x/2026/lice
 
 - Root `pnpm lint`, `pnpm check-types`, `pnpm test` and `pnpm build`: passed
   with workspace dependencies installed from the lockfile.
-- Gloss suite: 45 tests passed, including malformed JSON, indexed validation,
+- Gloss suite: 51 tests passed, including malformed JSON, indexed validation,
   429 backoff, free-tier batching, concurrency, context prompt forwarding,
   references and timing across dense/overlapping source windows, including
   overlapping long captions that are split before translation, portable model
   schemas, phrase numbers, Unicode contractions and corpus acceptance gates.
-- Offline eval on the real dictionary: 30 sentences, 0 playable dictionary
+- Current offline eval on the real dictionary: 30 sentences, 0 playable dictionary
   entries, 0 real signs / 93 fingerspelled tokens, **0% coverage**, 10 exact
   matches, 0 context matches, 0 provider tokens. This is a scaffold baseline,
   not a quality or performance result for Cerebras.
@@ -169,7 +170,7 @@ is attributed under its [published license](https://cs50.harvard.edu/x/2026/lice
   package manifests and the shared lockfile. A PR needs the `cross-team` label
   and Raashed's review for the manifest changes.
 
-Live evidence is recorded in [live-results.json](./live-results.json): both
+Historical live evidence, collected before the timing-floor review fix, is recorded in [live-results.json](./live-results.json): both
 models matched 7/10 expected glosses using evaluation-only vocabulary;
 `gpt-oss-120b` took 1.4s versus 7.1s for `qwen-3.8-27b`, so the default stays
 `gpt-oss-120b`. Context selected COFFEE for Java and corrected MONA to MAUNA.

@@ -5,6 +5,7 @@ import {
   captionsSchema,
   optionsSchema,
   glossBatchJsonSchema,
+  segmentSchema,
 } from "./schemas";
 import {
   cleanText,
@@ -68,6 +69,13 @@ function setting(
   return parsed;
 }
 
+export class UnsupportedSignLanguageError extends Error {
+  constructor() {
+    super("ISL grammar is not implemented; request ASL");
+    this.name = "UnsupportedSignLanguageError";
+  }
+}
+
 export function createGlossTranslator(dependencies: Dependencies = {}) {
   return async function translate(
     captions: Caption[],
@@ -76,8 +84,7 @@ export function createGlossTranslator(dependencies: Dependencies = {}) {
     const started = performance.now();
     const input = captionsSchema.parse(captions);
     const options = optionsSchema.parse(opts);
-    if (options.lang !== "ASL")
-      throw new Error("ISL grammar is not implemented; request ASL");
+    if (options.lang !== "ASL") throw new UnsupportedSignLanguageError();
     const prepared = prepareCaptions(input);
     const dictionary = new Set(options.dictionary);
     const env = globalThis.process.env;
@@ -249,7 +256,9 @@ export function createGlossTranslator(dependencies: Dependencies = {}) {
           }),
       ),
     );
-    const segments = timeSigns(prepared, allTokens);
+    const segments = segmentSchema
+      .array()
+      .parse(timeSigns(prepared, allTokens));
     log({
       event: "gloss.video",
       model,

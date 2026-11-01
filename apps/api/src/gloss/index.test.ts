@@ -1,5 +1,11 @@
-import { afterEach, beforeEach, describe, expect, it } from "bun:test";
-import { createGlossTranslator, type GlossRequest } from "./index";
+import { afterEach, beforeEach, describe, expect, it, spyOn } from "bun:test";
+import { SegmentSchema } from "@signstream/shared";
+import * as timing from "./timing";
+import {
+  createGlossTranslator,
+  UnsupportedSignLanguageError,
+  type GlossRequest,
+} from "./index";
 import { EVAL_CASES, EVAL_DICTIONARY } from "./eval-cases";
 import {
   cleanText,
@@ -82,7 +88,7 @@ function assertTiming(segments: Segment[]) {
         segment.end + 0.50000001,
       );
       expect(sign.start + 1e-8).toBeGreaterThanOrEqual(previousEnd);
-      expect(sign.duration).toBeGreaterThan(0);
+      expect(sign.duration).toBeGreaterThanOrEqual(0.25);
       expect(sign.duration).toBeLessThanOrEqual(1.20000001);
       previousEnd = sign.start + sign.duration;
     }
@@ -199,7 +205,7 @@ describe("caption cleanup and dictionary enforcement", () => {
       [caption(Array(40).fill("dog").join(" "), 0, 10), caption("big", 3, 4)],
       options,
     );
-    expect(result.flatMap(({ signs }) => signs)).toHaveLength(41);
+    expect(result.flatMap(({ signs }) => signs)).toHaveLength(13);
     assertTiming(result);
   });
   it("handles empty, music-only, zero-length and 40-word captions without provider calls", async () => {
@@ -224,7 +230,7 @@ describe("caption cleanup and dictionary enforcement", () => {
       [caption(Array(40).fill("dog").join(" "), 0, 2)],
       options,
     );
-    expect(result.flatMap(({ signs }) => signs)).toHaveLength(40);
+    expect(result.flatMap(({ signs }) => signs)).toHaveLength(8);
     assertTiming(result);
   });
   it("validates boundaries, order, language and dictionary keys before translation", async () => {
@@ -241,7 +247,7 @@ describe("caption cleanup and dictionary enforcement", () => {
       translate([], { ...options, dictionary: ["lowercase"] }),
     ).rejects.toThrow();
     await expect(translate([], { ...options, lang: "ISL" })).rejects.toThrow(
-      "ISL",
+      UnsupportedSignLanguageError,
     );
   });
 });
@@ -287,6 +293,16 @@ describe("Cerebras translation", () => {
     };
     checkSchema(request.response_format.json_schema.schema);
     assertTiming(output);
+  });
+  it("rejects schema-invalid outbound timings inside the translator", async () => {
+    const timed = spyOn(timing, "timeSigns").mockReturnValue([
+      { ...caption(), signs: [{ gloss: "DOG", start: 0, duration: 0 }] },
+    ]);
+    try {
+      await expect(offline()([caption()], options)).rejects.toThrow();
+    } finally {
+      timed.mockRestore();
+    }
   });
   it("retries invalid JSON exactly once then falls back", async () => {
     let calls = 0;
@@ -542,6 +558,57 @@ describe("Cerebras translation", () => {
 });
 
 describe("timing", () => {
+  it("drops trailing content after fillers, preserving negation at the minimum duration", () => {
+    const result = timeSigns(
+      [caption("I see the big dog, not", 0, 0.5)],
+      [["I", "DOG", "BIG", "NOT"]],
+    );
+    expect(result[0]?.signs.map(({ gloss }) => gloss)).toEqual(["DOG", "NOT"]);
+    expect(result[0]?.signs.map(({ duration }) => duration)).toEqual([
+      0.25, 0.25,
+    ]);
+    assertTiming(result);
+  });
+  it("treats fingerspelled fillers and negation like dictionary signs", () => {
+    const result = timeSigns(
+      [caption("I see the big dog, not", 0, 0.5)],
+      [["FS:I", "FS:DOG", "FS:BIG", "FS:NOT"]],
+    );
+    expect(result[0]?.signs.map(({ gloss }) => gloss)).toEqual([
+      "FS:DOG",
+      "FS:NOT",
+    ]);
+    assertTiming(result);
+  });
+  it("keeps an exactly fitting sign at fractional timestamps", async () => {
+    const result = await offline()([caption("dog", 0.1, 0.35)], options);
+    expect(result[0]?.signs).toEqual([
+      { gloss: "DOG", start: 0.1, duration: 0.25 },
+    ]);
+    expect(SegmentSchema.array().safeParse(result).success).toBe(true);
+    assertTiming(result);
+  });
+  it("keeps final negation when fractional timestamps accumulate rounding error", () => {
+    for (let i = 1; i <= 1000; i++) {
+      const start = i * 0.003;
+      const result = timeSigns(
+        [caption("dog big car not", start, start + 1)],
+        [["DOG", "BIG", "CAR", "NOT"]],
+      );
+      expect(result[0]?.signs.map(({ gloss }) => gloss)).toEqual([
+        "DOG",
+        "BIG",
+        "CAR",
+        "NOT",
+      ]);
+      assertTiming(result);
+    }
+  });
+  it("emits no signs when even one minimum duration cannot fit", () => {
+    const result = timeSigns([caption("dog", 1, 1.1)], [["DOG"]]);
+    expect(result[0]?.signs).toEqual([]);
+    expect(SegmentSchema.array().safeParse(result).success).toBe(true);
+  });
   it("weights fingerspelling, caps long signs and centres idle time", () => {
     const result = timeSigns(
       [caption("x", 0, 10)],
@@ -575,7 +642,9 @@ describe("timing", () => {
           [caption("x", 0, duration), caption("x", duration / 2, duration + 2)],
           [Array(count).fill("FS:LONGNAME"), ["DOG"]],
         );
-        expect(result[0]?.signs).toHaveLength(count);
+        expect(result[0]?.signs).toHaveLength(
+          Math.min(count, Math.floor(duration / 2 / 0.25)),
+        );
         assertTiming(result);
       }
     }

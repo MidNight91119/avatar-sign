@@ -79,7 +79,7 @@ describe("demo corpus evaluation", () => {
     expect(report.acceptance.criteria.providerOnly).toBe(false);
     expect(report.acceptance.status).not.toBe("passed");
   });
-  it("reports sub-minimum sign durations instead of passing dense tracks", async () => {
+  it("drops unsignable dense output without passing coverage acceptance", async () => {
     const dense = {
       source: "fixture",
       videos: [
@@ -90,8 +90,10 @@ describe("demo corpus evaluation", () => {
       ],
     };
     const report = await evaluateCorpus(dense, ["DOG"], { live: false });
-    expect(report.videos[0]?.tooFastSigns).toBe(3);
-    expect(report.acceptance.criteria.timing).toBe(false);
+    expect(report.videos[0]?.tooFastSigns).toBe(0);
+    expect(report.videos[0]?.tokens).toBe(0);
+    expect(report.acceptance.criteria.timing).toBe(true);
+    expect(report.acceptance.status).not.toBe("passed");
     expect(report.acceptance.criteria.fiveVideos).toBe(false);
   });
   it("validates the entire corpus before making a provider request", async () => {

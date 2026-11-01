@@ -4,18 +4,18 @@ Independent verification was requested for PR #10 on 2026-11-01. The complete
 spec is **not yet satisfied**. This table distinguishes implemented behavior
 from acceptance evidence that requires external inputs.
 
-| Task | Implementation and automated evidence                                                                                              | Remaining acceptance evidence                                                                                |
-| ---- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| D1   | Grammar prompt, five examples, dictionary/context instructions and source links                                                    | Complete                                                                                                     |
-| D2   | 200 measured priorities from five official CS50 shorts / 1,007 actual caption segments                                             | Complete; word list and source links ready for Hasan                                                         |
-| D3   | SDK/schema/retry tests and live two-model comparison; both 7/10 exact matches, GPT 1.4s vs Qwen 7.1s                               | Comparison complete; GPT selected; remaining strict linguistic cases disclosed                               |
-| D4   | Synonyms, FS fallback, numbers in phrase tokens, decimal/sign/percentage handling and straight/curly contraction tests             | Complete for the documented post-pass                                                                        |
-| D5   | Weighted timing, filler removal, bounded gap overflow, centring and non-overlap tests, including overlapping long captions         | Dense captions can require sub-0.25s signs; corpus acceptance rejects these until content/pacing is reviewed |
-| D6   | Real YouTube/API/Cerebras runs: full Linear Search and Loops, plus a manual 180-second caption excerpt; shared track validation    | Module/API integration complete; avatar playback still depends on Hasan                                      |
-| D6b  | Live paired context tests correct Java/coffee and Mauna Loa spelling; 4/5 exact matches after correcting word-boundary expectation | Crane case remains a mismatch; Exa fetch itself was not exercised                                            |
-| D6c  | Actual CS50 offline missing-sign frequencies and live endpoint integration contract tests                                          | Live Exa-backed reference links require Exa configuration                                                    |
-| D7   | 30-sentence diagnostic, coverage, paired context results, model comparison command and explicit `--check` gate                     | Diagnostic implementation complete; live quality results pending                                             |
-| D8   | 14 inflection mappings observed in CS50 captions; availability-only mapping tests and measured handoff priorities                  | Caption-driven tuning complete; rendered signs/coverage need Hasan's dictionary                              |
+| Task | Implementation and automated evidence                                                                                              | Remaining acceptance evidence                                                                                                 |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| D1   | Grammar prompt, five examples, dictionary/context instructions and source links                                                    | Complete                                                                                                                      |
+| D2   | 200 measured priorities from five official CS50 shorts / 1,007 actual caption segments                                             | Complete; word list and source links ready for Hasan                                                                          |
+| D3   | SDK/schema/retry tests and live two-model comparison; both 7/10 exact matches, GPT 1.4s vs Qwen 7.1s                               | Comparison complete; GPT selected; remaining strict linguistic cases disclosed                                                |
+| D4   | Synonyms, FS fallback, numbers in phrase tokens, decimal/sign/percentage handling and straight/curly contraction tests             | Complete for the documented post-pass                                                                                         |
+| D5   | Weighted timing, filler removal, bounded gap overflow, centring and non-overlap tests, including overlapping long captions         | Floor enforced; dense captions trim trailing content (retaining NOT/FS:NOT where possible), pending linguistic simplification |
+| D6   | Real YouTube/API/Cerebras runs: full Linear Search and Loops, plus a manual 180-second caption excerpt; shared track validation    | Module/API integration complete; avatar playback still depends on Hasan                                                       |
+| D6b  | Live paired context tests correct Java/coffee and Mauna Loa spelling; 4/5 exact matches after correcting word-boundary expectation | Crane case remains a mismatch; Exa fetch itself was not exercised                                                             |
+| D6c  | Actual CS50 offline missing-sign frequencies and live endpoint integration contract tests                                          | Live Exa-backed reference links require Exa configuration                                                                     |
+| D7   | 30-sentence diagnostic, coverage, paired context results, model comparison command and explicit `--check` gate                     | Diagnostic implementation complete; live quality results pending                                                              |
+| D8   | 14 inflection mappings observed in CS50 captions; availability-only mapping tests and measured handoff priorities                  | Caption-driven tuning complete; rendered signs/coverage need Hasan's dictionary                                               |
 
 ## Independent findings and corrections
 
@@ -41,9 +41,23 @@ from acceptance evidence that requires external inputs.
   numeric FS entries are excluded from word searches, and unsupported queries
   are reported explicitly.
 
-Live runs, exact model outputs, scoring corrections and timings are recorded
+Historical live runs (before the timing-floor review fix), exact model outputs,
+scoring corrections and timings are recorded
 in [live-results.json](./live-results.json). Model/context vocabulary is an
 evaluation fixture, not a claim that those signs have playable animations.
+
+## PR review corrections
+
+- Reproduced sub-minimum durations and missing outbound validation in regression
+  tests. Timing now drops fillers, uses the actual bounded gap, then trims trailing
+  content while retaining NOT/FS:NOT where possible. It never emits signs below 0.25s;
+  a shorter window yields no signs. Dense content may be omitted until linguistic
+  phrase simplification is available.
+- The translator validates final output with the shared segment schema; a test
+  injects zero-duration timing output and verifies rejection inside the module.
+- D6b remains unchecked: crane is still a live mismatch. D6c, playable coverage
+  and the full three-minute speed gate remain open. Earlier sponsor runs are
+  historical evidence and were not rerun after the timing change.
 
 ## Run the remaining acceptance checks
 
@@ -88,9 +102,9 @@ Plain reports remain diagnostic and exit zero; `--check` is the acceptance path.
 
 ## Blockers and ownership
 
-- **PR rules:** the only failing rule is the missing `cross-team` label for
-  the authorized root/API manifests. Adding it through `gh` returned HTTP 403.
-  A maintainer must add the label; Raashed is already requested for review.
+- **PR rules:** the `cross-team` label is now applied for the authorized
+  root/API manifests. Raashed has reviewed; review fixes remain subject to CI
+  and re-review.
 - **Sponsor runs:** a personal development key was supplied and used; it has a
   5-request/minute limit. Real Exa results still require Exa configuration.
 - **Demo evidence:** all five selected CS50 videos/captions are fetched and
